@@ -48,44 +48,88 @@ const HeroSection = ({ scrollProgress }: HeroSectionProps) => {
         }}
       />
 
-      {/* Floating Tulips - Many more! */}
-      <FloatingTulip style={{ top: "5%", left: "5%" }} delay={0} size={70} />
-      <FloatingTulip style={{ top: "15%", right: "8%" }} delay={1} size={90} />
-      <FloatingTulip style={{ bottom: "25%", left: "10%" }} delay={2} size={65} />
-      <FloatingTulip style={{ top: "40%", right: "15%" }} delay={3} size={75} />
-      <FloatingTulip style={{ bottom: "15%", right: "5%" }} delay={4} size={85} />
-      <FloatingTulip style={{ top: "8%", left: "35%" }} delay={5} size={60} />
-      <FloatingTulip style={{ bottom: "30%", left: "25%" }} delay={0} size={55} />
-      <FloatingTulip style={{ top: "25%", left: "15%" }} delay={1} size={50} />
-      <FloatingTulip style={{ bottom: "10%", left: "40%" }} delay={2} size={70} />
-      <FloatingTulip style={{ top: "50%", left: "3%" }} delay={3} size={60} />
-      <FloatingTulip style={{ top: "35%", right: "25%" }} delay={4} size={65} />
-      <FloatingTulip style={{ bottom: "40%", right: "10%" }} delay={5} size={55} />
-      <FloatingTulip style={{ top: "60%", right: "35%" }} delay={0} size={50} />
-      <FloatingTulip style={{ top: "20%", left: "50%" }} delay={1} size={45} />
-      <FloatingTulip style={{ bottom: "20%", right: "40%" }} delay={2} size={60} />
+      {/* Floating Tulips - MANY MORE everywhere including center! */}
+      {/* Top Row */}
+      <FloatingTulip style={{ top: "3%", left: "3%" }} delay={0} size={70} />
+      <FloatingTulip style={{ top: "5%", left: "15%" }} delay={1} size={55} />
+      <FloatingTulip style={{ top: "2%", left: "30%" }} delay={2} size={60} />
+      <FloatingTulip style={{ top: "6%", left: "45%" }} delay={3} size={50} />
+      <FloatingTulip style={{ top: "4%", left: "55%" }} delay={4} size={65} />
+      <FloatingTulip style={{ top: "3%", left: "70%" }} delay={5} size={55} />
+      <FloatingTulip style={{ top: "5%", right: "10%" }} delay={0} size={70} />
+      <FloatingTulip style={{ top: "8%", right: "3%" }} delay={1} size={60} />
+      
+      {/* Upper Middle */}
+      <FloatingTulip style={{ top: "15%", left: "5%" }} delay={2} size={65} />
+      <FloatingTulip style={{ top: "18%", left: "20%" }} delay={3} size={50} />
+      <FloatingTulip style={{ top: "12%", left: "38%" }} delay={4} size={55} />
+      <FloatingTulip style={{ top: "16%", right: "35%" }} delay={5} size={60} />
+      <FloatingTulip style={{ top: "14%", right: "18%" }} delay={0} size={55} />
+      <FloatingTulip style={{ top: "20%", right: "5%" }} delay={1} size={70} />
+
+      {/* Center Area */}
+      <FloatingTulip style={{ top: "30%", left: "8%" }} delay={2} size={60} />
+      <FloatingTulip style={{ top: "35%", left: "18%" }} delay={3} size={50} />
+      <FloatingTulip style={{ top: "28%", left: "28%" }} delay={4} size={55} />
+      <FloatingTulip style={{ top: "32%", right: "28%" }} delay={5} size={50} />
+      <FloatingTulip style={{ top: "38%", right: "15%" }} delay={0} size={60} />
+      <FloatingTulip style={{ top: "30%", right: "5%" }} delay={1} size={65} />
+
+      {/* Middle Row */}
+      <FloatingTulip style={{ top: "45%", left: "3%" }} delay={2} size={55} />
+      <FloatingTulip style={{ top: "50%", left: "12%" }} delay={3} size={50} />
+      <FloatingTulip style={{ top: "48%", right: "12%" }} delay={4} size={55} />
+      <FloatingTulip style={{ top: "52%", right: "3%" }} delay={5} size={60} />
+
+      {/* Lower Middle */}
+      <FloatingTulip style={{ top: "60%", left: "5%" }} delay={0} size={65} />
+      <FloatingTulip style={{ top: "65%", left: "20%" }} delay={1} size={50} />
+      <FloatingTulip style={{ top: "58%", left: "35%" }} delay={2} size={55} />
+      <FloatingTulip style={{ top: "62%", right: "30%" }} delay={3} size={50} />
+      <FloatingTulip style={{ top: "68%", right: "18%" }} delay={4} size={60} />
+      <FloatingTulip style={{ top: "60%", right: "5%" }} delay={5} size={55} />
+
+      {/* Bottom Area */}
+      <FloatingTulip style={{ bottom: "25%", left: "8%" }} delay={0} size={60} />
+      <FloatingTulip style={{ bottom: "22%", left: "25%" }} delay={1} size={55} />
+      <FloatingTulip style={{ bottom: "28%", left: "40%" }} delay={2} size={50} />
+      <FloatingTulip style={{ bottom: "20%", right: "38%" }} delay={3} size={55} />
+      <FloatingTulip style={{ bottom: "25%", right: "22%" }} delay={4} size={60} />
+      <FloatingTulip style={{ bottom: "22%", right: "8%" }} delay={5} size={65} />
+
+      {/* Very Bottom */}
+      <FloatingTulip style={{ bottom: "12%", left: "5%" }} delay={0} size={55} />
+      <FloatingTulip style={{ bottom: "8%", left: "18%" }} delay={1} size={50} />
+      <FloatingTulip style={{ bottom: "15%", left: "32%" }} delay={2} size={45} />
+      <FloatingTulip style={{ bottom: "10%", right: "30%" }} delay={3} size={50} />
+      <FloatingTulip style={{ bottom: "14%", right: "15%" }} delay={4} size={55} />
+      <FloatingTulip style={{ bottom: "8%", right: "5%" }} delay={5} size={60} />
 
       {/* Hero Content */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4">
-        {/* FOR LOVE Title with Tulips */}
+        {/* FOR LOVE Title with FILLED Tulips on sides */}
         <div
-          className={`flex items-center gap-4 transition-all duration-1000 ${
+          className={`flex items-center gap-2 transition-all duration-1000 md:gap-4 ${
             isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           }`}
         >
-          <img
-            src={floatingTulip}
-            alt=""
-            className="h-16 w-auto animate-float md:h-24"
-          />
-          <h1 className="font-display text-6xl font-bold tracking-wider text-foreground text-glow-pink md:text-8xl lg:text-9xl">
+          {/* Left side tulips - filled/stacked */}
+          <div className="flex items-center -space-x-2 md:-space-x-4">
+            <img src={floatingTulip} alt="" className="h-10 w-auto animate-float md:h-16 lg:h-20" />
+            <img src={floatingTulip} alt="" className="float-animation-delay-1 h-12 w-auto md:h-20 lg:h-24" />
+            <img src={floatingTulip} alt="" className="float-animation-delay-2 h-10 w-auto md:h-16 lg:h-20" />
+          </div>
+          
+          <h1 className="font-display text-5xl font-bold tracking-wider text-foreground text-glow-pink md:text-7xl lg:text-9xl">
             FOR LOVE
           </h1>
-          <img
-            src={floatingTulip}
-            alt=""
-            className="float-animation-delay-2 h-16 w-auto md:h-24"
-          />
+          
+          {/* Right side tulips - filled/stacked */}
+          <div className="flex items-center -space-x-2 md:-space-x-4">
+            <img src={floatingTulip} alt="" className="float-animation-delay-3 h-10 w-auto md:h-16 lg:h-20" />
+            <img src={floatingTulip} alt="" className="float-animation-delay-4 h-12 w-auto md:h-20 lg:h-24" />
+            <img src={floatingTulip} alt="" className="float-animation-delay-5 h-10 w-auto md:h-16 lg:h-20" />
+          </div>
         </div>
 
         {/* Cute corner texts */}

@@ -98,7 +98,15 @@
     cursor: url('/images/cursor.png') 16 16, auto;
   }
 
-  a, button {
+  * {
+    cursor: url('/images/cursor.png') 16 16, auto;
+  }
+
+  a, button, [role="button"], input, textarea, select {
+    cursor: url('/images/cursor.png') 16 16, pointer;
+  }
+
+  a:hover, button:hover, [role="button"]:hover {
     cursor: url('/images/cursor.png') 16 16, pointer;
   }
 
