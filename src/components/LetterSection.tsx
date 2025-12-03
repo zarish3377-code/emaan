@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import FloatingTulip from "./FloatingTulip";
 
 const LetterSection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -24,8 +25,34 @@ const LetterSection = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-screen bg-gradient-to-b from-warm-white to-soft-pink py-20"
+      className="relative min-h-screen bg-gradient-to-b from-warm-white/80 to-soft-pink/80 py-20 backdrop-blur-sm"
     >
+      {/* Floating Tulips - on sides only, NO center (letter area is center) */}
+      <FloatingTulip style={{ top: "3%", left: "3%" }} delay={0} size={55} />
+      <FloatingTulip style={{ top: "8%", left: "8%" }} delay={1} size={50} />
+      <FloatingTulip style={{ top: "5%", right: "3%" }} delay={2} size={60} />
+      <FloatingTulip style={{ top: "10%", right: "8%" }} delay={3} size={50} />
+      
+      <FloatingTulip style={{ top: "18%", left: "3%" }} delay={4} size={55} />
+      <FloatingTulip style={{ top: "22%", right: "3%" }} delay={5} size={55} />
+      
+      <FloatingTulip style={{ top: "32%", left: "3%" }} delay={0} size={50} />
+      <FloatingTulip style={{ top: "35%", right: "3%" }} delay={1} size={55} />
+      
+      <FloatingTulip style={{ top: "45%", left: "3%" }} delay={2} size={55} />
+      <FloatingTulip style={{ top: "48%", right: "3%" }} delay={3} size={50} />
+      
+      <FloatingTulip style={{ top: "58%", left: "3%" }} delay={4} size={50} />
+      <FloatingTulip style={{ top: "62%", right: "3%" }} delay={5} size={55} />
+      
+      <FloatingTulip style={{ top: "72%", left: "3%" }} delay={0} size={55} />
+      <FloatingTulip style={{ top: "75%", right: "3%" }} delay={1} size={50} />
+      
+      <FloatingTulip style={{ bottom: "15%", left: "3%" }} delay={2} size={55} />
+      <FloatingTulip style={{ bottom: "12%", left: "8%" }} delay={3} size={50} />
+      <FloatingTulip style={{ bottom: "18%", right: "3%" }} delay={4} size={55} />
+      <FloatingTulip style={{ bottom: "10%", right: "8%" }} delay={5} size={50} />
+
       <div className="container mx-auto px-4">
         {/* Letter Card */}
         <div
