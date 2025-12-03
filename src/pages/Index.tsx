@@ -4,6 +4,7 @@ import SweaterSection from "@/components/SweaterSection";
 import LetterSection from "@/components/LetterSection";
 import VideoSection from "@/components/VideoSection";
 import BackgroundMusic from "@/components/BackgroundMusic";
+import backgroundAllway from "@/assets/background_allway.jpg";
 
 const Index = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -23,6 +24,14 @@ const Index = () => {
 
   return (
     <main className="relative">
+      {/* Global Background Image (visible after scroll) */}
+      <div
+        className="fixed inset-0 -z-10 h-full w-full bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(${backgroundAllway})`,
+        }}
+      />
+
       {/* Background Music */}
       <BackgroundMusic />
 

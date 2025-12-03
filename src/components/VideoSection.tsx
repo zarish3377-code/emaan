@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import FloatingTulip from "./FloatingTulip";
+import FloatingText from "./FloatingText";
+
+const floatingTexts = [
+  "You're safe with me.",
+  "We can weather any storm.",
+  "My love is your shelter.",
+  "Sending you a hug.",
+  "You're stronger than you know.",
+];
 
 const VideoSection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -25,15 +34,37 @@ const VideoSection = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-screen bg-gradient-to-b from-soft-pink to-pastel-lavender py-20"
+      className="relative min-h-screen bg-gradient-to-b from-soft-pink/80 to-pastel-lavender/80 py-20 backdrop-blur-sm"
     >
-      {/* Floating Tulips */}
-      <FloatingTulip style={{ top: "5%", left: "5%" }} delay={0} size={60} />
-      <FloatingTulip style={{ top: "15%", right: "8%" }} delay={1} size={70} />
-      <FloatingTulip style={{ bottom: "10%", left: "8%" }} delay={2} size={55} />
-      <FloatingTulip style={{ bottom: "20%", right: "5%" }} delay={3} size={65} />
-      <FloatingTulip style={{ top: "40%", left: "3%" }} delay={4} size={50} />
-      <FloatingTulip style={{ top: "50%", right: "3%" }} delay={5} size={55} />
+      {/* Floating Tulips - Many more */}
+      <FloatingTulip style={{ top: "3%", left: "3%" }} delay={0} size={60} />
+      <FloatingTulip style={{ top: "5%", left: "15%" }} delay={1} size={50} />
+      <FloatingTulip style={{ top: "4%", left: "30%" }} delay={2} size={55} />
+      <FloatingTulip style={{ top: "6%", right: "28%" }} delay={3} size={50} />
+      <FloatingTulip style={{ top: "3%", right: "12%" }} delay={4} size={60} />
+      <FloatingTulip style={{ top: "8%", right: "3%" }} delay={5} size={55} />
+      
+      <FloatingTulip style={{ top: "18%", left: "5%" }} delay={0} size={55} />
+      <FloatingTulip style={{ top: "22%", right: "5%" }} delay={1} size={60} />
+      <FloatingTulip style={{ top: "35%", left: "3%" }} delay={2} size={50} />
+      <FloatingTulip style={{ top: "38%", right: "3%" }} delay={3} size={55} />
+      
+      <FloatingTulip style={{ top: "50%", left: "5%" }} delay={4} size={60} />
+      <FloatingTulip style={{ top: "55%", right: "5%" }} delay={5} size={55} />
+      <FloatingTulip style={{ top: "65%", left: "3%" }} delay={0} size={50} />
+      <FloatingTulip style={{ top: "70%", right: "3%" }} delay={1} size={60} />
+      
+      <FloatingTulip style={{ bottom: "18%", left: "8%" }} delay={2} size={55} />
+      <FloatingTulip style={{ bottom: "12%", left: "22%" }} delay={3} size={50} />
+      <FloatingTulip style={{ bottom: "15%", right: "20%" }} delay={4} size={55} />
+      <FloatingTulip style={{ bottom: "10%", right: "5%" }} delay={5} size={60} />
+
+      {/* Floating Texts - on sides only */}
+      <FloatingText text={floatingTexts[0]} style={{ top: "12%", left: "5%" }} delay={0} />
+      <FloatingText text={floatingTexts[1]} style={{ top: "28%", right: "5%" }} delay={1} />
+      <FloatingText text={floatingTexts[2]} style={{ top: "45%", left: "5%" }} delay={2} />
+      <FloatingText text={floatingTexts[3]} style={{ top: "62%", right: "5%" }} delay={3} />
+      <FloatingText text={floatingTexts[4]} style={{ bottom: "20%", left: "5%" }} delay={4} />
 
       {/* Corner texts */}
       <p className="absolute left-6 top-8 font-body text-sm italic text-foreground/60">
