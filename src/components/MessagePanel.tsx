@@ -1,8 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Trash2, Send } from 'lucide-react';
+import { format } from 'date-fns';
+
+interface Message {
+  text: string;
+  timestamp: string;
+}
 
 interface MessagePages {
-  [key: string]: string[];
+  [key: string]: Message[];
 }
 
 interface MessagePanelProps {
@@ -70,19 +76,16 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
 
   const sendMessage = () => {
     if (!newMessage.trim()) return;
+    const newMsg: Message = {
+      text: newMessage.trim(),
+      timestamp: new Date().toISOString()
+    };
     setPages(prev => ({
       ...prev,
-      [currentPage]: [...(prev[currentPage] || []), newMessage.trim()]
+      [currentPage]: [...(prev[currentPage] || []), newMsg]
     }));
     setNewMessage("");
     inputRef.current?.focus();
-  };
-
-  const deleteMessage = (index: number) => {
-    setPages(prev => ({
-      ...prev,
-      [currentPage]: prev[currentPage].filter((_, i) => i !== index)
-    }));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -122,6 +125,14 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
     } else if (e.key === "Escape") {
       setEditingTab(null);
       setEditingName("");
+    }
+  };
+
+  const formatTimestamp = (timestamp: string) => {
+    try {
+      return format(new Date(timestamp), "MMM d, h:mm a");
+    } catch {
+      return "";
     }
   };
 
@@ -211,21 +222,26 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
               No messages yet... write what your heart feels 🌷
             </p>
           ) : (
-            currentMessages.map((msg, idx) => (
-              <div 
-                key={idx}
-                className="group relative p-3 bg-white/60 rounded-2xl shadow-sm animate-fade-in"
-                style={{ animationDelay: `${idx * 0.05}s` }}
-              >
-                <p className="text-dark-berry text-sm leading-relaxed pr-6">{msg}</p>
-                <button
-                  onClick={() => deleteMessage(idx)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded-full hover:bg-blush-rose/20 transition-all"
+            currentMessages.map((msg, idx) => {
+              // Handle both old format (string) and new format (object)
+              const text = typeof msg === 'string' ? msg : msg.text;
+              const timestamp = typeof msg === 'string' ? null : msg.timestamp;
+              
+              return (
+                <div 
+                  key={idx}
+                  className="relative p-3 pb-6 bg-white/60 rounded-2xl shadow-sm animate-fade-in"
+                  style={{ animationDelay: `${idx * 0.05}s` }}
                 >
-                  <Trash2 className="w-3 h-3 text-dark-berry/50 hover:text-dark-berry" />
-                </button>
-              </div>
-            ))
+                  <p className="text-dark-berry text-sm leading-relaxed">{text}</p>
+                  {timestamp && (
+                    <span className="absolute bottom-2 right-3 text-[10px] text-dark-berry/40">
+                      {formatTimestamp(timestamp)}
+                    </span>
+                  )}
+                </div>
+              );
+            })
           )}
           <div ref={messagesEndRef} />
         </div>
