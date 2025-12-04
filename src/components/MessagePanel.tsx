@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Trash2, Send } from 'lucide-react';
+import { X, Plus, Trash2, Send, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
+  id: string;
   text: string;
-  timestamp: string;
-}
-
-interface MessagePages {
-  [key: string]: Message[];
+  page_name: string;
+  created_at: string;
 }
 
 interface MessagePanelProps {
@@ -17,74 +16,115 @@ interface MessagePanelProps {
 }
 
 const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
-  const [pages, setPages] = useState<MessagePages>({ "Page 1": [] });
-  const [currentPage, setCurrentPage] = useState("Page 1");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [pages, setPages] = useState<string[]>(["General"]);
+  const [currentPage, setCurrentPage] = useState("General");
   const [newMessage, setNewMessage] = useState("");
   const [editingTab, setEditingTab] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Load from localStorage on mount
+  // Fetch all messages from database
   useEffect(() => {
-    const saved = localStorage.getItem("messagePages");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setPages(parsed);
-        const pageNames = Object.keys(parsed);
-        if (pageNames.length > 0 && !parsed[currentPage]) {
-          setCurrentPage(pageNames[0]);
-        }
-      } catch (e) {
-        console.error("Failed to parse saved messages");
-      }
-    }
-  }, []);
+    const fetchMessages = async () => {
+      const { data, error } = await supabase
+        .from('global_messages')
+        .select('*')
+        .order('created_at', { ascending: true });
 
-  // Save to localStorage whenever pages change
-  useEffect(() => {
-    localStorage.setItem("messagePages", JSON.stringify(pages));
-  }, [pages]);
+      if (error) {
+        console.error('Error fetching messages:', error);
+      } else if (data) {
+        setMessages(data);
+        // Extract unique page names
+        const uniquePages = [...new Set(data.map(m => m.page_name))];
+        if (uniquePages.length > 0) {
+          setPages(uniquePages);
+          if (!uniquePages.includes(currentPage)) {
+            setCurrentPage(uniquePages[0]);
+          }
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchMessages();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('global_messages_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'global_messages'
+        },
+        (payload) => {
+          const newMsg = payload.new as Message;
+          setMessages(prev => [...prev, newMsg]);
+          // Add page if it's new
+          setPages(prev => {
+            if (!prev.includes(newMsg.page_name)) {
+              return [...prev, newMsg.page_name];
+            }
+            return prev;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   // Auto-scroll to bottom when new messages added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [pages, currentPage]);
+  }, [messages, currentPage]);
 
   const addNewPage = () => {
-    const pageNumbers = Object.keys(pages)
+    const pageNumbers = pages
       .map(name => {
         const match = name.match(/Page (\d+)/);
         return match ? parseInt(match[1]) : 0;
       });
     const nextNum = Math.max(...pageNumbers, 0) + 1;
     const newPageName = `Page ${nextNum}`;
-    setPages(prev => ({ ...prev, [newPageName]: [] }));
+    setPages(prev => [...prev, newPageName]);
     setCurrentPage(newPageName);
   };
 
   const deletePage = (pageName: string) => {
-    if (Object.keys(pages).length <= 1) return;
-    const newPages = { ...pages };
-    delete newPages[pageName];
+    if (pages.length <= 1) return;
+    const newPages = pages.filter(p => p !== pageName);
     setPages(newPages);
     if (currentPage === pageName) {
-      setCurrentPage(Object.keys(newPages)[0]);
+      setCurrentPage(newPages[0]);
     }
   };
 
-  const sendMessage = () => {
-    if (!newMessage.trim()) return;
-    const newMsg: Message = {
-      text: newMessage.trim(),
-      timestamp: new Date().toISOString()
-    };
-    setPages(prev => ({
-      ...prev,
-      [currentPage]: [...(prev[currentPage] || []), newMsg]
-    }));
+  const sendMessage = async () => {
+    if (!newMessage.trim() || sending) return;
+    
+    setSending(true);
+    const { error } = await supabase
+      .from('global_messages')
+      .insert({
+        text: newMessage.trim(),
+        page_name: currentPage
+      });
+
+    if (error) {
+      console.error('Error sending message:', error);
+    }
+    
     setNewMessage("");
+    setSending(false);
     inputRef.current?.focus();
   };
 
@@ -102,14 +142,7 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
 
   const finishRenaming = () => {
     if (editingTab && editingName.trim() && editingName !== editingTab) {
-      const newPages: MessagePages = {};
-      Object.keys(pages).forEach(key => {
-        if (key === editingTab) {
-          newPages[editingName.trim()] = pages[key];
-        } else {
-          newPages[key] = pages[key];
-        }
-      });
+      const newPages = pages.map(p => p === editingTab ? editingName.trim() : p);
       setPages(newPages);
       if (currentPage === editingTab) {
         setCurrentPage(editingName.trim());
@@ -138,8 +171,7 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
 
   if (!isOpen) return null;
 
-  const pageNames = Object.keys(pages);
-  const currentMessages = pages[currentPage] || [];
+  const currentMessages = messages.filter(m => m.page_name === currentPage);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
@@ -158,7 +190,10 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-blush-rose/20">
-          <h3 className="font-serif text-lg text-dark-berry">Just Say It 🌷</h3>
+          <div>
+            <h3 className="font-serif text-lg text-dark-berry">Just Say It 🌷</h3>
+            <p className="text-[10px] text-dark-berry/50">Messages visible to everyone worldwide</p>
+          </div>
           <button 
             onClick={onClose}
             className="p-1 rounded-full hover:bg-blush-rose/20 transition-colors"
@@ -169,7 +204,7 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
 
         {/* Page Tabs */}
         <div className="flex items-center gap-1 p-2 overflow-x-auto border-b border-blush-rose/20 scrollbar-hide">
-          {pageNames.map(pageName => (
+          {pages.map(pageName => (
             <div 
               key={pageName}
               className={`group flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
@@ -194,7 +229,7 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
               ) : (
                 <span>{pageName}</span>
               )}
-              {pageNames.length > 1 && (
+              {pages.length > 1 && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -217,31 +252,26 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
 
         {/* Messages */}
         <div className="h-[300px] overflow-y-auto p-4 space-y-3">
-          {currentMessages.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="w-6 h-6 text-blush-rose animate-spin" />
+            </div>
+          ) : currentMessages.length === 0 ? (
             <p className="text-center text-dark-berry/50 text-sm italic mt-10">
               No messages yet... write what your heart feels 🌷
             </p>
           ) : (
-            currentMessages.map((msg, idx) => {
-              // Handle both old format (string) and new format (object)
-              const text = typeof msg === 'string' ? msg : msg.text;
-              const timestamp = typeof msg === 'string' ? null : msg.timestamp;
-              
-              return (
-                <div 
-                  key={idx}
-                  className="relative p-3 pb-6 bg-white/60 rounded-2xl shadow-sm animate-fade-in"
-                  style={{ animationDelay: `${idx * 0.05}s` }}
-                >
-                  <p className="text-dark-berry text-sm leading-relaxed">{text}</p>
-                  {timestamp && (
-                    <span className="absolute bottom-2 right-3 text-[10px] text-dark-berry/40">
-                      {formatTimestamp(timestamp)}
-                    </span>
-                  )}
-                </div>
-              );
-            })
+            currentMessages.map((msg) => (
+              <div 
+                key={msg.id}
+                className="relative p-3 pb-6 bg-white/60 rounded-2xl shadow-sm animate-fade-in"
+              >
+                <p className="text-dark-berry text-sm leading-relaxed">{msg.text}</p>
+                <span className="absolute bottom-2 right-3 text-[10px] text-dark-berry/40">
+                  {formatTimestamp(msg.created_at)}
+                </span>
+              </div>
+            ))
           )}
           <div ref={messagesEndRef} />
         </div>
@@ -260,10 +290,14 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
             />
             <button
               onClick={sendMessage}
-              disabled={!newMessage.trim()}
+              disabled={!newMessage.trim() || sending}
               className="p-2.5 rounded-full bg-blush-rose text-white hover:bg-blush-rose/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
             >
-              <Send className="w-4 h-4" />
+              {sending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
