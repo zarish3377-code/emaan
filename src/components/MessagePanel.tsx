@@ -8,12 +8,48 @@ interface Message {
   text: string;
   page_name: string;
   created_at: string;
+  sender_id: string;
 }
 
 interface MessagePanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+// Color palette for different users
+const MESSAGE_COLORS = [
+  'bg-pink-200/70 border-pink-300',
+  'bg-purple-200/70 border-purple-300',
+  'bg-blue-200/70 border-blue-300',
+  'bg-green-200/70 border-green-300',
+  'bg-yellow-200/70 border-yellow-300',
+  'bg-orange-200/70 border-orange-300',
+  'bg-teal-200/70 border-teal-300',
+  'bg-rose-200/70 border-rose-300',
+  'bg-indigo-200/70 border-indigo-300',
+  'bg-cyan-200/70 border-cyan-300',
+];
+
+// Generate a unique ID for this user
+const getOrCreateUserId = (): string => {
+  const key = 'lovable_user_id';
+  let userId = localStorage.getItem(key);
+  if (!userId) {
+    userId = crypto.randomUUID();
+    localStorage.setItem(key, userId);
+  }
+  return userId;
+};
+
+// Get consistent color based on sender ID
+const getColorForSender = (senderId: string): string => {
+  let hash = 0;
+  for (let i = 0; i < senderId.length; i++) {
+    hash = senderId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % MESSAGE_COLORS.length;
+  return MESSAGE_COLORS[index];
+};
 
 const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -24,6 +60,7 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   const [editingName, setEditingName] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [userId] = useState(() => getOrCreateUserId());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -116,7 +153,8 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
       .from('global_messages')
       .insert({
         text: newMessage.trim(),
-        page_name: currentPage
+        page_name: currentPage,
+        sender_id: userId
       });
 
     if (error) {
@@ -261,17 +299,29 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
               No messages yet... write what your heart feels 🌷
             </p>
           ) : (
-            currentMessages.map((msg) => (
-              <div 
-                key={msg.id}
-                className="relative p-3 pb-6 bg-white/60 rounded-2xl shadow-sm animate-fade-in"
-              >
-                <p className="text-dark-berry text-sm leading-relaxed">{msg.text}</p>
-                <span className="absolute bottom-2 right-3 text-[10px] text-dark-berry/40">
-                  {formatTimestamp(msg.created_at)}
-                </span>
-              </div>
-            ))
+            currentMessages.map((msg) => {
+              const isMyMessage = msg.sender_id === userId;
+              const colorClass = getColorForSender(msg.sender_id);
+              
+              return (
+                <div 
+                  key={msg.id}
+                  className={`relative p-3 pb-6 rounded-2xl shadow-sm animate-fade-in border ${colorClass} ${
+                    isMyMessage ? 'ml-4' : 'mr-4'
+                  }`}
+                >
+                  <p className="text-dark-berry text-sm leading-relaxed">{msg.text}</p>
+                  <div className="absolute bottom-2 right-3 flex items-center gap-1">
+                    {isMyMessage && (
+                      <span className="text-[9px] text-dark-berry/40 italic">you</span>
+                    )}
+                    <span className="text-[10px] text-dark-berry/40">
+                      {formatTimestamp(msg.created_at)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
           )}
           <div ref={messagesEndRef} />
         </div>
