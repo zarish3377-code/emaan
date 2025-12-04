@@ -78,6 +78,13 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
     inputRef.current?.focus();
   };
 
+  const deleteMessage = (index: number) => {
+    setPages(prev => ({
+      ...prev,
+      [currentPage]: prev[currentPage].filter((_, i) => i !== index)
+    }));
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -207,10 +214,16 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
             currentMessages.map((msg, idx) => (
               <div 
                 key={idx}
-                className="p-3 bg-white/60 rounded-2xl shadow-sm animate-fade-in"
+                className="group relative p-3 bg-white/60 rounded-2xl shadow-sm animate-fade-in"
                 style={{ animationDelay: `${idx * 0.05}s` }}
               >
-                <p className="text-dark-berry text-sm leading-relaxed">{msg}</p>
+                <p className="text-dark-berry text-sm leading-relaxed pr-6">{msg}</p>
+                <button
+                  onClick={() => deleteMessage(idx)}
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded-full hover:bg-blush-rose/20 transition-all"
+                >
+                  <Trash2 className="w-3 h-3 text-dark-berry/50 hover:text-dark-berry" />
+                </button>
               </div>
             ))
           )}
