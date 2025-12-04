@@ -4,10 +4,13 @@ import SweaterSection from "@/components/SweaterSection";
 import LetterSection from "@/components/LetterSection";
 import VideoSection from "@/components/VideoSection";
 import BackgroundMusic from "@/components/BackgroundMusic";
+import JustSayItButton from "@/components/JustSayItButton";
+import MessagePanel from "@/components/MessagePanel";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
 const Index = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isMessagePanelOpen, setIsMessagePanelOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,6 +59,13 @@ const Index = () => {
           forever yours
         </p>
       </footer>
+
+      {/* Just Say It Button & Panel */}
+      <JustSayItButton onClick={() => setIsMessagePanelOpen(true)} />
+      <MessagePanel 
+        isOpen={isMessagePanelOpen} 
+        onClose={() => setIsMessagePanelOpen(false)} 
+      />
     </main>
   );
 };
