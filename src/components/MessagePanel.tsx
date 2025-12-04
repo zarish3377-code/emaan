@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Trash2, Send, Loader2 } from 'lucide-react';
+import { X, Plus, Send, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -136,14 +136,6 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
     setCurrentPage(newPageName);
   };
 
-  const deletePage = (pageName: string) => {
-    if (pages.length <= 1) return;
-    const newPages = pages.filter(p => p !== pageName);
-    setPages(newPages);
-    if (currentPage === pageName) {
-      setCurrentPage(newPages[0]);
-    }
-  };
 
   const sendMessage = async () => {
     if (!newMessage.trim() || sending) return;
@@ -266,17 +258,6 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
                 />
               ) : (
                 <span>{pageName}</span>
-              )}
-              {pages.length > 1 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deletePage(pageName);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 p-0.5 rounded-full hover:bg-white/30 transition-all"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
               )}
             </div>
           ))}
