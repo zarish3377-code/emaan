@@ -96,5 +96,5 @@ export const NENO_MESSAGES = [
   `if you ever feel like you're falling behind or failing at life, i hope you pause and remember that growth isn't loud or dramatic, it's slow, silent, almost invisible until one day it isn't🌼🌷 you've been growing even on the days you felt stuck🌼🌷 you've been healing even on the days you thought you were breaking🌼🌷 you've been moving forward even when it felt like standing still🌼🌷 you're not behind; you're becoming🌼🌷 and becoming takes time🌼🌷`,
 ];
 
-// The start date for the 100-day journey (fixed date)
-export const NENO_START_DATE = new Date('2024-12-10');
+// The start date for the 100-day journey (starts today - Dec 10, 2025)
+export const NENO_START_DATE = new Date('2025-12-10T00:00:00');
