@@ -6,11 +6,14 @@ import VideoSection from "@/components/VideoSection";
 import BackgroundMusic from "@/components/BackgroundMusic";
 import JustSayItButton from "@/components/JustSayItButton";
 import MessagePanel from "@/components/MessagePanel";
+import NenoButton from "@/components/NenoButton";
+import NenoPanel from "@/components/NenoPanel";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
 const Index = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isMessagePanelOpen, setIsMessagePanelOpen] = useState(false);
+  const [isNenoPanelOpen, setIsNenoPanelOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,6 +62,13 @@ const Index = () => {
           forever yours
         </p>
       </footer>
+
+      {/* Neno Button & Panel */}
+      <NenoButton onClick={() => setIsNenoPanelOpen(true)} />
+      <NenoPanel 
+        isOpen={isNenoPanelOpen} 
+        onClose={() => setIsNenoPanelOpen(false)} 
+      />
 
       {/* Just Say It Button & Panel */}
       <JustSayItButton onClick={() => setIsMessagePanelOpen(true)} />

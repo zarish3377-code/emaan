@@ -232,8 +232,10 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
           </button>
         </div>
 
-        {/* Page Tabs */}
-        <div className="flex items-center gap-1 p-2 overflow-x-auto border-b border-blush-rose/20 scrollbar-hide">
+        {/* Page Tabs with horizontal scroll */}
+        <div className="relative flex items-center border-b border-blush-rose/20">
+          <div className="flex-1 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1 p-2 min-w-max">
           {pages.map(pageName => (
             <div 
               key={pageName}
@@ -261,12 +263,14 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
               )}
             </div>
           ))}
-          <button
-            onClick={addNewPage}
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-pastel-lavender/30 hover:bg-pastel-lavender/50 text-dark-berry transition-all"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
+              <button
+                onClick={addNewPage}
+                className="flex items-center justify-center w-8 h-8 rounded-full bg-pastel-lavender/30 hover:bg-pastel-lavender/50 text-dark-berry transition-all flex-shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Messages */}
