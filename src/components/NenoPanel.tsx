@@ -89,9 +89,6 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
         <div className="flex items-center justify-between p-4 border-b border-blush-rose/20">
           <div className="flex items-center gap-2">
             <h3 className="font-serif text-lg text-dark-berry">~Ur neno 🌼🌷</h3>
-            <span className="text-xs text-dark-berry/50 bg-pastel-lavender/30 px-2 py-0.5 rounded-full">
-              Day {currentDayNumber}/100
-            </span>
           </div>
           <div className="flex items-center gap-2">
             {/* Calendar Button */}
