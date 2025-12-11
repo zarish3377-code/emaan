@@ -51,6 +51,8 @@ const getColorForSender = (senderId: string): string => {
   return MESSAGE_COLORS[index];
 };
 
+const SECRET_CODE = "us against the world";
+
 const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [pages, setPages] = useState<string[]>(["General"]);
@@ -61,6 +63,12 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [userId] = useState(() => getOrCreateUserId());
+  const [isUnlocked, setIsUnlocked] = useState(() => {
+    return localStorage.getItem('message_unlocked') === 'true';
+  });
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -137,6 +145,30 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   };
 
 
+  const handleTryToSend = () => {
+    if (!isUnlocked) {
+      setShowPasswordPrompt(true);
+      setPasswordInput("");
+      setPasswordError(false);
+    } else {
+      sendMessage();
+    }
+  };
+
+  const verifyPassword = () => {
+    if (passwordInput.toLowerCase().trim() === SECRET_CODE) {
+      setIsUnlocked(true);
+      localStorage.setItem('message_unlocked', 'true');
+      setShowPasswordPrompt(false);
+      setPasswordInput("");
+      setPasswordError(false);
+      // Now send the message
+      sendMessage();
+    } else {
+      setPasswordError(true);
+    }
+  };
+
   const sendMessage = async () => {
     if (!newMessage.trim() || sending) return;
     
@@ -161,7 +193,15 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      handleTryToSend();
+    }
+  };
+
+  const handlePasswordKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      verifyPassword();
+    } else if (e.key === "Escape") {
+      setShowPasswordPrompt(false);
     }
   };
 
@@ -311,6 +351,49 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Password Prompt Modal */}
+        {showPasswordPrompt && (
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10 rounded-3xl">
+            <div className="bg-white rounded-2xl p-6 mx-4 shadow-xl max-w-[280px] w-full">
+              <h4 className="font-serif text-lg text-dark-berry text-center mb-2">🔐 Secret Code</h4>
+              <p className="text-xs text-dark-berry/60 text-center mb-4">Enter the secret code to send messages</p>
+              <input
+                type="text"
+                value={passwordInput}
+                onChange={(e) => {
+                  setPasswordInput(e.target.value);
+                  setPasswordError(false);
+                }}
+                onKeyDown={handlePasswordKeyPress}
+                placeholder="enter secret code..."
+                className={`w-full px-4 py-2.5 rounded-full text-sm text-dark-berry placeholder:text-dark-berry/40 outline-none transition-all ${
+                  passwordError 
+                    ? 'bg-red-100 border-2 border-red-300 focus:ring-red-300' 
+                    : 'bg-pastel-lavender/30 focus:ring-2 focus:ring-blush-rose/50'
+                }`}
+                autoFocus
+              />
+              {passwordError && (
+                <p className="text-xs text-red-500 text-center mt-2">Wrong code, try again 💕</p>
+              )}
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => setShowPasswordPrompt(false)}
+                  className="flex-1 px-4 py-2 rounded-full bg-gray-200 text-dark-berry text-sm hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={verifyPassword}
+                  className="flex-1 px-4 py-2 rounded-full bg-blush-rose text-white text-sm hover:bg-blush-rose/80 transition-colors"
+                >
+                  Unlock
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Input */}
         <div className="p-4 border-t border-blush-rose/20 bg-white/30">
           <div className="flex items-center gap-2">
@@ -324,7 +407,7 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
               className="flex-1 px-4 py-2.5 bg-white/70 rounded-full text-sm text-dark-berry placeholder:text-dark-berry/40 outline-none focus:ring-2 focus:ring-blush-rose/50 transition-all"
             />
             <button
-              onClick={sendMessage}
+              onClick={handleTryToSend}
               disabled={!newMessage.trim() || sending}
               className="p-2.5 rounded-full bg-blush-rose text-white hover:bg-blush-rose/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
             >
