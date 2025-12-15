@@ -273,43 +273,50 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
         </div>
 
         {/* Page Tabs with horizontal scroll */}
-        <div className="relative flex items-center border-b border-blush-rose/20">
-          <div className="flex-1 overflow-x-auto scrollbar-hide">
-            <div className="flex items-center gap-1 p-2 min-w-max">
-          {pages.map(pageName => (
-            <div 
-              key={pageName}
-              className={`group flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
-                currentPage === pageName 
-                  ? 'bg-blush-rose text-white shadow-md' 
-                  : 'bg-pastel-lavender/30 text-dark-berry hover:bg-pastel-lavender/50'
-              }`}
-              onClick={() => setCurrentPage(pageName)}
-              onDoubleClick={() => startRenaming(pageName)}
-            >
-              {editingTab === pageName ? (
-                <input
-                  type="text"
-                  value={editingName}
-                  onChange={(e) => setEditingName(e.target.value)}
-                  onBlur={finishRenaming}
-                  onKeyDown={handleRenameKeyPress}
-                  className="w-16 bg-transparent outline-none text-center"
-                  autoFocus
-                  onClick={(e) => e.stopPropagation()}
-                />
-              ) : (
-                <span>{pageName}</span>
-              )}
-            </div>
-          ))}
-              <button
-                onClick={addNewPage}
-                className="flex items-center justify-center w-8 h-8 rounded-full bg-pastel-lavender/30 hover:bg-pastel-lavender/50 text-dark-berry transition-all flex-shrink-0"
+        <div className="relative border-b border-blush-rose/20">
+          <div 
+            className="flex items-center gap-1 p-2 overflow-x-auto"
+            style={{ 
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
+          >
+            {pages.map(pageName => (
+              <button 
+                key={pageName}
+                type="button"
+                className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                  currentPage === pageName 
+                    ? 'bg-blush-rose text-white shadow-md' 
+                    : 'bg-pastel-lavender/30 text-dark-berry hover:bg-pastel-lavender/50'
+                }`}
+                onClick={() => setCurrentPage(pageName)}
+                onDoubleClick={() => startRenaming(pageName)}
               >
-                <Plus className="w-4 h-4" />
+                {editingTab === pageName ? (
+                  <input
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onBlur={finishRenaming}
+                    onKeyDown={handleRenameKeyPress}
+                    className="w-16 bg-transparent outline-none text-center"
+                    autoFocus
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <span>{pageName}</span>
+                )}
               </button>
-            </div>
+            ))}
+            <button
+              type="button"
+              onClick={addNewPage}
+              className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-pastel-lavender/30 hover:bg-pastel-lavender/50 text-dark-berry transition-all"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
