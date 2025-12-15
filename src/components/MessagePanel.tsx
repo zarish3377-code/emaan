@@ -127,10 +127,14 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
     };
   }, []);
 
-  // Auto-scroll to bottom when new messages added
+  // Auto-scroll to bottom when panel opens, page changes, or new messages added
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, currentPage]);
+    if (isOpen) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [messages, currentPage, isOpen]);
 
   const addNewPage = () => {
     const pageNumbers = pages
