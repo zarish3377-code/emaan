@@ -279,12 +279,8 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
         {/* Page Tabs with horizontal scroll */}
         <div className="relative border-b border-blush-rose/20">
           <div 
-            className="flex items-center gap-1 p-2 overflow-x-auto"
-            style={{ 
-              WebkitOverflowScrolling: 'touch',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
-            }}
+            className="flex items-center gap-1 p-2 overflow-x-auto scrollbar-soft"
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {pages.map(pageName => (
               <button 
