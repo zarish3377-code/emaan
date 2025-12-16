@@ -1,24 +1,62 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, differenceInDays, addDays, isSameDay, isAfter, startOfDay } from 'date-fns';
+import { X, CalendarIcon, Plus, Send, LogIn, LogOut, Trash2 } from 'lucide-react';
+import { format, differenceInDays, addDays, isSameDay, startOfDay } from 'date-fns';
 import { NENO_MESSAGES, NENO_START_DATE } from '@/data/nenoMessages';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface NenoPanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface NenoNote {
+  id: string;
+  day_number: number;
+  text: string;
+  author_email: string;
+  created_at: string;
+}
+
 const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [notes, setNotes] = useState<NenoNote[]>([]);
+  const [showAddNote, setShowAddNote] = useState(false);
+  const [newNoteText, setNewNoteText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const { user, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
   
   const today = startOfDay(new Date());
   const daysSinceStart = differenceInDays(today, startOfDay(NENO_START_DATE));
   const currentDayNumber = Math.min(Math.max(daysSinceStart + 1, 1), 100);
+  
+  // Fetch notes from database
+  useEffect(() => {
+    const fetchNotes = async () => {
+      const { data, error } = await supabase
+        .from('neno_notes')
+        .select('*')
+        .order('day_number', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching notes:', error);
+      } else {
+        setNotes(data || []);
+      }
+    };
+    
+    if (isOpen) {
+      fetchNotes();
+    }
+  }, [isOpen]);
   
   // Get available messages (only up to current day)
   const availableMessages = NENO_MESSAGES.slice(0, currentDayNumber);
@@ -41,6 +79,11 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
   const isDateAvailable = (date: Date) => {
     const dayNumber = differenceInDays(startOfDay(date), startOfDay(NENO_START_DATE)) + 1;
     return dayNumber >= 1 && dayNumber <= currentDayNumber;
+  };
+
+  // Get notes for a specific day
+  const getNotesForDay = (dayNumber: number) => {
+    return notes.filter(note => note.day_number === dayNumber);
   };
   
   // Scroll to selected date's message
@@ -67,6 +110,51 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
       }, 100);
     }
   }, [isOpen]);
+
+  const handleAddNote = async () => {
+    if (!newNoteText.trim() || !user?.email) return;
+    
+    setSubmitting(true);
+    const { data, error } = await supabase
+      .from('neno_notes')
+      .insert({
+        day_number: currentDayNumber,
+        text: newNoteText.trim(),
+        author_email: user.email
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      toast.error('Failed to add note');
+      console.error(error);
+    } else {
+      setNotes(prev => [...prev, data]);
+      setNewNoteText('');
+      setShowAddNote(false);
+      toast.success('Note added! 🌷');
+    }
+    setSubmitting(false);
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    const { error } = await supabase
+      .from('neno_notes')
+      .delete()
+      .eq('id', noteId);
+    
+    if (error) {
+      toast.error('Failed to delete note');
+    } else {
+      setNotes(prev => prev.filter(n => n.id !== noteId));
+      toast.success('Note deleted');
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success('Signed out');
+  };
   
   if (!isOpen) return null;
   
@@ -91,6 +179,39 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
             <h3 className="font-serif text-lg text-dark-berry">~Ur neno 🌼🌷</h3>
           </div>
           <div className="flex items-center gap-2">
+            {/* Auth buttons */}
+            {user ? (
+              <button 
+                onClick={handleSignOut}
+                className="p-1.5 rounded-full hover:bg-blush-rose/20 transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4 text-dark-berry" />
+              </button>
+            ) : (
+              <button 
+                onClick={() => navigate('/auth')}
+                className="p-1.5 rounded-full hover:bg-blush-rose/20 transition-colors"
+                title="Sign in"
+              >
+                <LogIn className="w-4 h-4 text-dark-berry" />
+              </button>
+            )}
+            
+            {/* Add note button (only for admin) */}
+            {isAdmin && (
+              <button 
+                onClick={() => setShowAddNote(!showAddNote)}
+                className={cn(
+                  "p-1.5 rounded-full transition-colors",
+                  showAddNote ? "bg-blush-rose text-white" : "hover:bg-blush-rose/20"
+                )}
+                title="Add note"
+              >
+                <Plus className="w-5 h-5 text-dark-berry" />
+              </button>
+            )}
+            
             {/* Calendar Button */}
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
@@ -127,6 +248,29 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
             </button>
           </div>
         </div>
+
+        {/* Add Note Input (only shown when admin clicks +) */}
+        {showAddNote && isAdmin && (
+          <div className="p-3 border-b border-blush-rose/20 bg-pastel-lavender/20">
+            <p className="text-[10px] text-dark-berry/60 mb-2">Add note for Day {currentDayNumber}</p>
+            <div className="flex gap-2">
+              <textarea
+                value={newNoteText}
+                onChange={(e) => setNewNoteText(e.target.value)}
+                placeholder="Write your note..."
+                className="flex-1 p-2 text-sm rounded-xl border border-blush-rose/30 bg-white/80 resize-none focus:outline-none focus:ring-2 focus:ring-blush-rose/50"
+                rows={2}
+              />
+              <button
+                onClick={handleAddNote}
+                disabled={!newNoteText.trim() || submitting}
+                className="p-2 rounded-xl bg-blush-rose text-white hover:bg-blush-rose/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
         
         {/* Messages */}
         <div 
@@ -145,43 +289,77 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
               const messageDate = getDateForDay(dayNumber);
               const isSelected = selectedDate && isSameDay(selectedDate, messageDate);
               const isToday = isSameDay(messageDate, today);
+              const dayNotes = getNotesForDay(dayNumber);
               
               return (
-                <div 
-                  key={dayNumber}
-                  id={`neno-day-${dayNumber}`}
-                  className={cn(
-                    "relative p-4 rounded-2xl shadow-sm animate-fade-in border transition-all",
-                    isSelected 
-                      ? "bg-blush-rose/30 border-blush-rose ring-2 ring-blush-rose/50" 
-                      : isToday 
-                        ? "bg-pastel-lavender/40 border-pastel-lavender" 
-                        : "bg-white/60 border-blush-rose/20"
-                  )}
-                >
-                  {/* Day badge */}
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={cn(
-                      "text-xs font-medium px-2 py-0.5 rounded-full",
-                      isToday 
-                        ? "bg-blush-rose text-white" 
-                        : "bg-pastel-lavender/50 text-dark-berry/70"
-                    )}>
-                      Day {dayNumber} {isToday && "✨"}
-                    </span>
+                <div key={dayNumber} className="space-y-2">
+                  {/* Daily Message */}
+                  <div 
+                    id={`neno-day-${dayNumber}`}
+                    className={cn(
+                      "relative p-4 rounded-2xl shadow-sm animate-fade-in border transition-all",
+                      isSelected 
+                        ? "bg-blush-rose/30 border-blush-rose ring-2 ring-blush-rose/50" 
+                        : isToday 
+                          ? "bg-pastel-lavender/40 border-pastel-lavender" 
+                          : "bg-white/60 border-blush-rose/20"
+                    )}
+                  >
+                    {/* Day badge */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={cn(
+                        "text-xs font-medium px-2 py-0.5 rounded-full",
+                        isToday 
+                          ? "bg-blush-rose text-white" 
+                          : "bg-pastel-lavender/50 text-dark-berry/70"
+                      )}>
+                        Day {dayNumber} {isToday && "✨"}
+                      </span>
+                    </div>
+                    
+                    {/* Message content */}
+                    <p className="text-dark-berry text-sm leading-relaxed whitespace-pre-wrap">
+                      {message}
+                    </p>
+                    
+                    {/* Date at bottom */}
+                    <div className="mt-3 text-right">
+                      <span className="text-[10px] text-dark-berry/40 italic">
+                        {format(messageDate, "MMMM d, yyyy")}
+                      </span>
+                    </div>
                   </div>
-                  
-                  {/* Message content */}
-                  <p className="text-dark-berry text-sm leading-relaxed whitespace-pre-wrap">
-                    {message}
-                  </p>
-                  
-                  {/* Date at bottom */}
-                  <div className="mt-3 text-right">
-                    <span className="text-[10px] text-dark-berry/40 italic">
-                      {format(messageDate, "MMMM d, yyyy")}
-                    </span>
-                  </div>
+
+                  {/* User Notes for this day */}
+                  {dayNotes.map((note) => (
+                    <div 
+                      key={note.id}
+                      className="relative p-4 rounded-2xl shadow-sm border bg-gradient-to-br from-pastel-lavender/60 to-soft-pink/40 border-pastel-lavender/50 ml-4"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-dark-berry/10 text-dark-berry/70">
+                          📝 Note
+                        </span>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleDeleteNote(note.id)}
+                            className="p-1 rounded-full hover:bg-red-100 transition-colors"
+                            title="Delete note"
+                          >
+                            <Trash2 className="w-3 h-3 text-red-400" />
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-dark-berry text-sm leading-relaxed whitespace-pre-wrap">
+                        {note.text}
+                      </p>
+                      <div className="mt-2 text-right">
+                        <span className="text-[10px] text-dark-berry/40 italic">
+                          {format(new Date(note.created_at), "MMM d, h:mm a")}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               );
             })
@@ -191,7 +369,7 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
         {/* Footer info */}
         <div className="p-3 border-t border-blush-rose/20 bg-white/30 text-center">
           <p className="text-[10px] text-dark-berry/50">
-            New message unlocks every day 🌷
+            {user ? `Signed in as ${user.email}` : 'New message unlocks every day 🌷'}
           </p>
         </div>
       </div>
