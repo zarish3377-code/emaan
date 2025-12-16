@@ -38,6 +38,30 @@ export type Database = {
         }
         Relationships: []
       }
+      neno_notes: {
+        Row: {
+          author_email: string
+          created_at: string
+          day_number: number
+          id: string
+          text: string
+        }
+        Insert: {
+          author_email: string
+          created_at?: string
+          day_number: number
+          id?: string
+          text: string
+        }
+        Update: {
+          author_email?: string
+          created_at?: string
+          day_number?: number
+          id?: string
+          text?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
