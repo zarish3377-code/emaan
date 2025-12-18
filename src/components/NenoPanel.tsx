@@ -122,15 +122,15 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
   
   // Scroll to latest message on open
   useEffect(() => {
-    if (isOpen && messagesContainerRef.current && !selectedDate) {
+    if (isOpen && messagesContainerRef.current) {
       setTimeout(() => {
         messagesContainerRef.current?.scrollTo({
           top: messagesContainerRef.current.scrollHeight,
           behavior: 'smooth'
         });
-      }, 100);
+      }, 150);
     }
-  }, [isOpen]);
+  }, [isOpen, customMessages, notes]);
 
   const handleAddNote = async () => {
     if (!newNoteText.trim() || !user?.email) return;
