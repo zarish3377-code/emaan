@@ -38,6 +38,30 @@ export type Database = {
         }
         Relationships: []
       }
+      neno_daily_messages: {
+        Row: {
+          day_number: number
+          id: string
+          message: string
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          day_number: number
+          id?: string
+          message: string
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          day_number?: number
+          id?: string
+          message?: string
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: []
+      }
       neno_notes: {
         Row: {
           author_email: string
