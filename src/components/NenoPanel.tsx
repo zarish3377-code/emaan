@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, CalendarIcon, Plus, Send, LogIn, LogOut, Trash2 } from 'lucide-react';
+import { X, CalendarIcon, Plus, Send, LogIn, LogOut, Trash2, Pencil, Check, XCircle } from 'lucide-react';
 import { format, differenceInDays, addDays, isSameDay, startOfDay } from 'date-fns';
 import { NENO_MESSAGES, NENO_START_DATE } from '@/data/nenoMessages';
 import { Calendar } from '@/components/ui/calendar';
@@ -23,6 +23,11 @@ interface NenoNote {
   created_at: string;
 }
 
+interface CustomMessage {
+  day_number: number;
+  message: string;
+}
+
 const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -30,6 +35,10 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
   const [showAddNote, setShowAddNote] = useState(false);
   const [newNoteText, setNewNoteText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [customMessages, setCustomMessages] = useState<CustomMessage[]>([]);
+  const [editingDay, setEditingDay] = useState<number | null>(null);
+  const [editText, setEditText] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
@@ -38,34 +47,46 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
   const daysSinceStart = differenceInDays(today, startOfDay(NENO_START_DATE));
   const currentDayNumber = Math.min(Math.max(daysSinceStart + 1, 1), 100);
   
-  // Fetch notes from database
+  // Fetch notes and custom messages from database
   useEffect(() => {
-    const fetchNotes = async () => {
-      const { data, error } = await supabase
-        .from('neno_notes')
-        .select('*')
-        .order('day_number', { ascending: true });
+    const fetchData = async () => {
+      const [notesRes, messagesRes] = await Promise.all([
+        supabase.from('neno_notes').select('*').order('day_number', { ascending: true }),
+        supabase.from('neno_daily_messages').select('day_number, message')
+      ]);
       
-      if (error) {
-        console.error('Error fetching notes:', error);
+      if (notesRes.error) {
+        console.error('Error fetching notes:', notesRes.error);
       } else {
-        setNotes(data || []);
+        setNotes(notesRes.data || []);
+      }
+      
+      if (messagesRes.error) {
+        console.error('Error fetching custom messages:', messagesRes.error);
+      } else {
+        setCustomMessages(messagesRes.data || []);
       }
     };
     
     if (isOpen) {
-      fetchNotes();
+      fetchData();
     }
   }, [isOpen]);
   
+  // Get message for a day (custom or default)
+  const getMessageText = (dayNumber: number): string => {
+    const custom = customMessages.find(m => m.day_number === dayNumber);
+    return custom ? custom.message : NENO_MESSAGES[dayNumber - 1] || '';
+  };
+  
   // Get available messages (only up to current day)
-  const availableMessages = NENO_MESSAGES.slice(0, currentDayNumber);
+  const availableMessages = Array.from({ length: currentDayNumber }, (_, i) => i + 1);
   
   // Calculate which message to show when a date is selected
   const getMessageForDate = (date: Date) => {
     const dayNumber = differenceInDays(startOfDay(date), startOfDay(NENO_START_DATE)) + 1;
     if (dayNumber >= 1 && dayNumber <= currentDayNumber) {
-      return { dayNumber, message: NENO_MESSAGES[dayNumber - 1] };
+      return { dayNumber, message: getMessageText(dayNumber) };
     }
     return null;
   };
@@ -154,6 +175,63 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
   const handleSignOut = async () => {
     await signOut();
     toast.success('Signed out');
+  };
+
+  const handleStartEdit = (dayNumber: number) => {
+    setEditingDay(dayNumber);
+    setEditText(getMessageText(dayNumber));
+  };
+
+  const handleCancelEdit = () => {
+    setEditingDay(null);
+    setEditText('');
+  };
+
+  const handleSaveEdit = async (dayNumber: number) => {
+    if (!editText.trim() || !user?.email) return;
+    
+    setSavingEdit(true);
+    
+    const existingCustom = customMessages.find(m => m.day_number === dayNumber);
+    
+    if (existingCustom) {
+      // Update existing
+      const { error } = await supabase
+        .from('neno_daily_messages')
+        .update({ message: editText.trim(), updated_at: new Date().toISOString() })
+        .eq('day_number', dayNumber);
+      
+      if (error) {
+        toast.error('Failed to save');
+        console.error(error);
+      } else {
+        setCustomMessages(prev => 
+          prev.map(m => m.day_number === dayNumber ? { ...m, message: editText.trim() } : m)
+        );
+        toast.success('Message updated! 🌷');
+      }
+    } else {
+      // Insert new
+      const { error } = await supabase
+        .from('neno_daily_messages')
+        .insert({
+          day_number: dayNumber,
+          message: editText.trim(),
+          updated_by: user.email
+        });
+      
+      if (error) {
+        toast.error('Failed to save');
+        console.error(error);
+      } else {
+        setCustomMessages(prev => [...prev, { day_number: dayNumber, message: editText.trim() }]);
+        toast.success('Message updated! 🌷');
+      }
+    }
+    
+    setSavingEdit(false);
+    setEditingDay(null);
+    setEditText('');
   };
   
   if (!isOpen) return null;
@@ -284,12 +362,13 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
               </p>
             </div>
           ) : (
-            availableMessages.map((message, index) => {
-              const dayNumber = index + 1;
+            availableMessages.map((dayNumber) => {
               const messageDate = getDateForDay(dayNumber);
               const isSelected = selectedDate && isSameDay(selectedDate, messageDate);
               const isToday = isSameDay(messageDate, today);
               const dayNotes = getNotesForDay(dayNumber);
+              const messageText = getMessageText(dayNumber);
+              const isEditing = editingDay === dayNumber;
               
               return (
                 <div key={dayNumber} className="space-y-2">
@@ -305,7 +384,7 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
                           : "bg-white/60 border-blush-rose/20"
                     )}
                   >
-                    {/* Day badge */}
+                    {/* Day badge + Edit button */}
                     <div className="flex items-center justify-between mb-2">
                       <span className={cn(
                         "text-xs font-medium px-2 py-0.5 rounded-full",
@@ -315,12 +394,49 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
                       )}>
                         Day {dayNumber} {isToday && "✨"}
                       </span>
+                      {isAdmin && !isEditing && (
+                        <button
+                          onClick={() => handleStartEdit(dayNumber)}
+                          className="p-1 rounded-full hover:bg-blush-rose/20 transition-colors"
+                          title="Edit message"
+                        >
+                          <Pencil className="w-3.5 h-3.5 text-dark-berry/60" />
+                        </button>
+                      )}
                     </div>
                     
-                    {/* Message content */}
-                    <p className="text-dark-berry text-sm leading-relaxed whitespace-pre-wrap">
-                      {message}
-                    </p>
+                    {/* Message content or edit textarea */}
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <textarea
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          className="w-full p-2 text-sm rounded-xl border border-blush-rose/30 bg-white/80 resize-none focus:outline-none focus:ring-2 focus:ring-blush-rose/50 text-dark-berry"
+                          rows={4}
+                          autoFocus
+                        />
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={handleCancelEdit}
+                            disabled={savingEdit}
+                            className="p-1.5 rounded-full hover:bg-gray-200 transition-colors"
+                          >
+                            <XCircle className="w-4 h-4 text-gray-500" />
+                          </button>
+                          <button
+                            onClick={() => handleSaveEdit(dayNumber)}
+                            disabled={savingEdit || !editText.trim()}
+                            className="p-1.5 rounded-full bg-blush-rose text-white hover:bg-blush-rose/80 disabled:opacity-50 transition-colors"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-dark-berry text-sm leading-relaxed whitespace-pre-wrap">
+                        {messageText}
+                      </p>
+                    )}
                     
                     {/* Date at bottom */}
                     <div className="mt-3 text-right">
