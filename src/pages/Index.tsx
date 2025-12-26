@@ -8,12 +8,15 @@ import JustSayItButton from "@/components/JustSayItButton";
 import MessagePanel from "@/components/MessagePanel";
 import NenoButton from "@/components/NenoButton";
 import NenoPanel from "@/components/NenoPanel";
+import SecretGardenButton from "@/components/SecretGardenButton";
+import SecretGarden from "@/components/SecretGarden";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
 const Index = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isMessagePanelOpen, setIsMessagePanelOpen] = useState(false);
   const [isNenoPanelOpen, setIsNenoPanelOpen] = useState(false);
+  const [isGardenOpen, setIsGardenOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,6 +71,13 @@ const Index = () => {
       <NenoPanel 
         isOpen={isNenoPanelOpen} 
         onClose={() => setIsNenoPanelOpen(false)} 
+      />
+
+      {/* Secret Garden Button & View */}
+      <SecretGardenButton onClick={() => setIsGardenOpen(true)} />
+      <SecretGarden 
+        isOpen={isGardenOpen} 
+        onClose={() => setIsGardenOpen(false)} 
       />
 
       {/* Just Say It Button & Panel */}
