@@ -86,6 +86,42 @@ export type Database = {
         }
         Relationships: []
       }
+      secret_garden: {
+        Row: {
+          created_at: string
+          daisy_count: number
+          days_cared: number
+          flowers: Json
+          id: string
+          last_growth_date: string | null
+          start_date: string
+          tulip_count: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daisy_count?: number
+          days_cared?: number
+          flowers?: Json
+          id?: string
+          last_growth_date?: string | null
+          start_date?: string
+          tulip_count?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daisy_count?: number
+          days_cared?: number
+          flowers?: Json
+          id?: string
+          last_growth_date?: string | null
+          start_date?: string
+          tulip_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
