@@ -172,8 +172,8 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
       {/* Quote at bottom */}
       <div className="absolute bottom-6 left-0 right-0 text-center">
         <p 
-          className={`font-serif text-sm italic ${timeOfDay === 'day' ? 'text-green-700' : 'text-green-300'}`}
-          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}
+          className="font-serif text-sm italic text-white"
+          style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}
         >
           "Some things grow even when we're apart, just like our love for each other 🌷🌼"
         </p>

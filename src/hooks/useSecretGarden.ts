@@ -42,8 +42,19 @@ const generateFlowerPosition = (existingFlowers: Flower[]): { x: number; y: numb
   return { x, y };
 };
 
-const createFlower = (type: 'tulip' | 'daisy', existingFlowers: Flower[]): Flower => {
-  const pos = generateFlowerPosition(existingFlowers);
+const createFlower = (type: 'tulip' | 'daisy', existingFlowers: Flower[], basePosition?: { x: number; y: number }): Flower => {
+  let pos: { x: number; y: number };
+  
+  if (basePosition) {
+    // Place daisy near the tulip (offset slightly to the right)
+    pos = {
+      x: Math.min(basePosition.x + 5 + Math.random() * 3, 95),
+      y: basePosition.y + (Math.random() * 4 - 2),
+    };
+  } else {
+    pos = generateFlowerPosition(existingFlowers);
+  }
+  
   return {
     id: `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     type,
@@ -128,11 +139,12 @@ export const useSecretGarden = () => {
       return;
     }
 
-    // Create new flowers
+    // Create new flowers - tulip and daisy grow together
     const existingFlowers = [...garden.flowers];
     const newTulip = createFlower('tulip', existingFlowers);
     existingFlowers.push(newTulip);
-    const newDaisy = createFlower('daisy', existingFlowers);
+    // Daisy grows next to the tulip
+    const newDaisy = createFlower('daisy', existingFlowers, { x: newTulip.x, y: newTulip.y });
     existingFlowers.push(newDaisy);
 
     const newTulipCount = garden.tulipCount + 1;
