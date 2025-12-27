@@ -80,15 +80,62 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
 
       {/* Sun for daytime */}
       {timeOfDay === 'day' && (
-        <div 
-          className="absolute w-20 h-20 rounded-full"
-          style={{
-            top: '8%',
-            right: '15%',
-            background: 'radial-gradient(circle, #fff9c4 0%, #ffee58 50%, #fdd835 100%)',
-            boxShadow: '0 0 60px rgba(253, 216, 53, 0.5), 0 0 120px rgba(253, 216, 53, 0.3)',
-          }}
-        />
+        <>
+          <div 
+            className="absolute w-20 h-20 rounded-full"
+            style={{
+              top: '8%',
+              right: '15%',
+              background: 'radial-gradient(circle, #fff9c4 0%, #ffee58 50%, #fdd835 100%)',
+              boxShadow: '0 0 60px rgba(253, 216, 53, 0.5), 0 0 120px rgba(253, 216, 53, 0.3)',
+            }}
+          />
+          {/* Drifting clouds */}
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={`cloud-${i}`}
+              className="absolute"
+              style={{
+                top: `${8 + i * 6 + Math.random() * 5}%`,
+                left: '-20%',
+                animation: `cloudDrift ${40 + i * 15}s linear infinite`,
+                animationDelay: `${i * -8}s`,
+              }}
+            >
+              <div 
+                className="relative"
+                style={{
+                  width: `${80 + Math.random() * 60}px`,
+                  height: `${30 + Math.random() * 20}px`,
+                  background: 'rgba(255, 255, 255, 0.8)',
+                  borderRadius: '50px',
+                  filter: 'blur(2px)',
+                }}
+              >
+                <div 
+                  className="absolute rounded-full"
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    top: '-15px',
+                    left: '20%',
+                  }}
+                />
+                <div 
+                  className="absolute rounded-full"
+                  style={{
+                    width: '50px',
+                    height: '50px',
+                    background: 'rgba(255, 255, 255, 0.85)',
+                    top: '-20px',
+                    left: '45%',
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </>
       )}
 
       {/* Grass field */}
@@ -100,7 +147,7 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
             : 'linear-gradient(180deg, #2d5a3e 0%, #234a32 30%, #1a3a26 70%, #122a1c 100%)',
         }}
       >
-        {/* Grass blades */}
+        {/* Grass blades with breeze */}
         {Array.from({ length: 200 }).map((_, i) => (
           <div
             key={`grass-${i}`}
@@ -114,8 +161,8 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
                 : `linear-gradient(to top, #1a3a26, ${Math.random() > 0.5 ? '#2d5a3e' : '#234a32'})`,
               borderRadius: '50% 50% 0 0',
               transformOrigin: 'bottom center',
-              animation: `grassSway ${2 + Math.random() * 2}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`,
+              animation: `breeze ${3 + Math.random() * 2}s ease-in-out infinite`,
+              animationDelay: `${(i / 200) * 2 + Math.random() * 0.5}s`,
             }}
           />
         ))}
@@ -201,13 +248,30 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
           75% { transform: translate(-50%, -100%) rotate(3deg); }
         }
         @keyframes flowerBloom {
-          0% { opacity: 0; transform: translate(-50%, -100%) scale(0) rotate(0deg); }
-          50% { opacity: 1; transform: translate(-50%, -100%) scale(1.1) rotate(5deg); }
+          0% { opacity: 0; transform: translate(-50%, -100%) scale(0) rotate(-10deg); }
+          40% { opacity: 1; transform: translate(-50%, -100%) scale(1.2) rotate(5deg); }
+          60% { transform: translate(-50%, -100%) scale(0.9) rotate(-3deg); }
+          80% { transform: translate(-50%, -100%) scale(1.05) rotate(2deg); }
           100% { opacity: 1; transform: translate(-50%, -100%) scale(1) rotate(0deg); }
         }
         @keyframes grassSway {
           0%, 100% { transform: rotate(0deg); }
-          50% { transform: rotate(3deg); }
+          25% { transform: rotate(2deg); }
+          50% { transform: rotate(0deg); }
+          75% { transform: rotate(-2deg); }
+        }
+        @keyframes breeze {
+          0%, 100% { transform: rotate(0deg) translateX(0); }
+          20% { transform: rotate(4deg) translateX(2px); }
+          40% { transform: rotate(-2deg) translateX(-1px); }
+          60% { transform: rotate(3deg) translateX(1px); }
+          80% { transform: rotate(-1deg) translateX(-1px); }
+        }
+        @keyframes cloudDrift {
+          0% { left: -20%; opacity: 0; }
+          5% { opacity: 1; }
+          95% { opacity: 1; }
+          100% { left: 120%; opacity: 0; }
         }
       `}</style>
     </div>
