@@ -46,10 +46,10 @@ const createFlower = (type: 'tulip' | 'daisy', existingFlowers: Flower[], basePo
   let pos: { x: number; y: number };
   
   if (basePosition) {
-    // Place daisy near the tulip (offset slightly to the right)
+    // Place daisy right next to the tulip (very close)
     pos = {
-      x: Math.min(basePosition.x + 5 + Math.random() * 3, 95),
-      y: basePosition.y + (Math.random() * 4 - 2),
+      x: Math.min(basePosition.x + 3, 95), // Only 3% offset to be side by side
+      y: basePosition.y,
     };
   } else {
     pos = generateFlowerPosition(existingFlowers);
@@ -60,8 +60,8 @@ const createFlower = (type: 'tulip' | 'daisy', existingFlowers: Flower[], basePo
     type,
     x: pos.x,
     y: pos.y,
-    scale: 0.6 + Math.random() * 0.4, // 0.6 - 1.0
-    rotation: -5 + Math.random() * 10, // -5 to 5 degrees
+    scale: 0.8 + Math.random() * 0.2, // 0.8 - 1.0 for more consistent sizing
+    rotation: -3 + Math.random() * 6, // -3 to 3 degrees for subtle rotation
     plantedAt: new Date().toISOString(),
   };
 };
