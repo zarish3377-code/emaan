@@ -56,14 +56,14 @@ const createFlowerPair = (existingFlowers: Flower[]): { tulip: Flower; daisy: Fl
     plantedAt: new Date().toISOString(),
   };
   
-  // Daisy right next to tulip (slightly to the right)
+  // Daisy right next to tulip (very close, slightly to the right)
   const daisy: Flower = {
     id: `daisy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     type: 'daisy',
-    x: Math.min(pos.x + 4, 92),
-    y: pos.y + (Math.random() * 2 - 1),
-    rotation: Math.random() * 6 - 3,
-    scale: 0.9 + Math.random() * 0.2,
+    x: Math.min(pos.x + 2.5, 94),
+    y: pos.y,
+    rotation: Math.random() * 4 - 2,
+    scale: 0.85 + Math.random() * 0.15,
     plantedAt: new Date().toISOString(),
   };
   
