@@ -100,40 +100,47 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
             : 'linear-gradient(180deg, #2d5a3e 0%, #234a32 30%, #1a3a26 70%, #122a1c 100%)',
         }}
       >
-        {/* Grass texture overlay */}
-        <div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `repeating-linear-gradient(
-              90deg,
-              transparent,
-              transparent 2px,
-              rgba(255,255,255,0.1) 2px,
-              rgba(255,255,255,0.1) 4px
-            )`,
-          }}
-        />
+        {/* Grass blades */}
+        {Array.from({ length: 80 }).map((_, i) => (
+          <div
+            key={`grass-${i}`}
+            className="absolute bottom-0"
+            style={{
+              left: `${(i / 80) * 100 + Math.random() * 2}%`,
+              width: '3px',
+              height: `${15 + Math.random() * 25}px`,
+              background: timeOfDay === 'day' 
+                ? `linear-gradient(to top, #4A9E64, ${Math.random() > 0.5 ? '#6BBF7A' : '#5BB374'})`
+                : `linear-gradient(to top, #1a3a26, ${Math.random() > 0.5 ? '#2d5a3e' : '#234a32'})`,
+              borderRadius: '50% 50% 0 0',
+              transformOrigin: 'bottom center',
+              animation: `grassSway ${2 + Math.random() * 2}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 2}s`,
+            }}
+          />
+        ))}
       </div>
 
       {/* Flowers */}
-      {garden?.flowers.map((flower) => (
+      {garden?.flowers.map((flower, index) => (
         <div
           key={flower.id}
-          className="absolute transition-all duration-1000"
+          className="absolute"
           style={{
             left: `${flower.x}%`,
             top: `${flower.y}%`,
-            transform: `translate(-50%, -100%) rotate(${flower.rotation}deg) scale(${flower.scale})`,
-            animation: `gardenSway 4s ease-in-out infinite`,
-            animationDelay: `${flowerAnimationDelays[flower.id] || 0}s`,
+            transform: `translate(-50%, -100%) rotate(${flower.rotation}deg)`,
+            animation: `gardenSway 4s ease-in-out infinite, flowerBloom 0.8s ease-out forwards`,
+            animationDelay: `${flowerAnimationDelays[flower.id] || 0}s, ${index * 0.1}s`,
           }}
         >
           <img
             src={flower.type === 'tulip' ? gardenTulip : gardenDaisy}
             alt={flower.type}
-            className="w-16 h-auto drop-shadow-md"
+            className="w-14 h-auto drop-shadow-md"
             style={{
               filter: timeOfDay === 'night' ? 'brightness(0.7)' : 'none',
+              transform: `scale(${flower.scale})`,
             }}
           />
         </div>
@@ -186,12 +193,21 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
         </div>
       )}
 
-      {/* Garden sway animation */}
+      {/* Garden animations */}
       <style>{`
         @keyframes gardenSway {
-          0%, 100% { transform: translate(-50%, -100%) rotate(var(--base-rotation, 0deg)) scale(var(--base-scale, 1)); }
-          25% { transform: translate(-50%, -100%) rotate(calc(var(--base-rotation, 0deg) - 2deg)) scale(var(--base-scale, 1)); }
-          75% { transform: translate(-50%, -100%) rotate(calc(var(--base-rotation, 0deg) + 2deg)) scale(var(--base-scale, 1)); }
+          0%, 100% { transform: translate(-50%, -100%) rotate(0deg); }
+          25% { transform: translate(-50%, -100%) rotate(-3deg); }
+          75% { transform: translate(-50%, -100%) rotate(3deg); }
+        }
+        @keyframes flowerBloom {
+          0% { opacity: 0; transform: translate(-50%, -100%) scale(0) rotate(0deg); }
+          50% { opacity: 1; transform: translate(-50%, -100%) scale(1.1) rotate(5deg); }
+          100% { opacity: 1; transform: translate(-50%, -100%) scale(1) rotate(0deg); }
+        }
+        @keyframes grassSway {
+          0%, 100% { transform: rotate(0deg); }
+          50% { transform: rotate(3deg); }
         }
       `}</style>
     </div>

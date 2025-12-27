@@ -42,14 +42,41 @@ const generateFlowerPosition = (existingFlowers: Flower[]): { x: number; y: numb
   return { x, y };
 };
 
+const createFlowerPair = (existingFlowers: Flower[]): { tulip: Flower; daisy: Flower } => {
+  const pos = generateFlowerPosition(existingFlowers);
+  
+  // Tulip on the left
+  const tulip: Flower = {
+    id: `tulip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    type: 'tulip',
+    x: pos.x,
+    y: pos.y,
+    rotation: Math.random() * 6 - 3,
+    scale: 0.9 + Math.random() * 0.2,
+    plantedAt: new Date().toISOString(),
+  };
+  
+  // Daisy right next to tulip (slightly to the right)
+  const daisy: Flower = {
+    id: `daisy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    type: 'daisy',
+    x: Math.min(pos.x + 4, 92),
+    y: pos.y + (Math.random() * 2 - 1),
+    rotation: Math.random() * 6 - 3,
+    scale: 0.9 + Math.random() * 0.2,
+    plantedAt: new Date().toISOString(),
+  };
+  
+  return { tulip, daisy };
+};
+
 const createFlower = (type: 'tulip' | 'daisy', existingFlowers: Flower[], basePosition?: { x: number; y: number }): Flower => {
   let pos: { x: number; y: number };
   
   if (basePosition) {
-    // Place daisy near the tulip (offset slightly to the right)
     pos = {
-      x: Math.min(basePosition.x + 5 + Math.random() * 3, 95),
-      y: basePosition.y + (Math.random() * 4 - 2),
+      x: Math.min(basePosition.x + 4, 92),
+      y: basePosition.y + (Math.random() * 2 - 1),
     };
   } else {
     pos = generateFlowerPosition(existingFlowers);
@@ -139,13 +166,10 @@ export const useSecretGarden = () => {
       return;
     }
 
-    // Create new flowers - tulip and daisy grow together
+    // Create new flowers - tulip and daisy grow together as a pair
     const existingFlowers = [...garden.flowers];
-    const newTulip = createFlower('tulip', existingFlowers);
-    existingFlowers.push(newTulip);
-    // Daisy grows next to the tulip
-    const newDaisy = createFlower('daisy', existingFlowers, { x: newTulip.x, y: newTulip.y });
-    existingFlowers.push(newDaisy);
+    const { tulip: newTulip, daisy: newDaisy } = createFlowerPair(existingFlowers);
+    existingFlowers.push(newTulip, newDaisy);
 
     const newTulipCount = garden.tulipCount + 1;
     const newDaisyCount = garden.daisyCount + 1;
