@@ -101,14 +101,14 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
         }}
       >
         {/* Grass blades */}
-        {Array.from({ length: 80 }).map((_, i) => (
+        {Array.from({ length: 200 }).map((_, i) => (
           <div
             key={`grass-${i}`}
             className="absolute bottom-0"
             style={{
-              left: `${(i / 80) * 100 + Math.random() * 2}%`,
-              width: '3px',
-              height: `${15 + Math.random() * 25}px`,
+              left: `${(i / 200) * 100 + (Math.random() * 0.5 - 0.25)}%`,
+              width: `${2 + Math.random() * 2}px`,
+              height: `${12 + Math.random() * 30}px`,
               background: timeOfDay === 'day' 
                 ? `linear-gradient(to top, #4A9E64, ${Math.random() > 0.5 ? '#6BBF7A' : '#5BB374'})`
                 : `linear-gradient(to top, #1a3a26, ${Math.random() > 0.5 ? '#2d5a3e' : '#234a32'})`,
