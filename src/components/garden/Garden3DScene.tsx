@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Billboard } from '@react-three/drei';
 import * as THREE from 'three';
@@ -20,94 +20,124 @@ interface Garden3DSceneProps {
   daisyTexture: THREE.Texture | null;
 }
 
-// Animated grass blade component
-const GrassBlade = ({ position, delay, timeOfDay }: { position: [number, number, number]; delay: number; timeOfDay: 'day' | 'night' }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const initialRotation = useMemo(() => Math.random() * 0.3 - 0.15, []);
-  const height = useMemo(() => 0.2 + Math.random() * 0.3, []);
-  
-  useFrame((state) => {
-    if (meshRef.current) {
-      const time = state.clock.elapsedTime + delay;
-      meshRef.current.rotation.z = initialRotation + Math.sin(time * 1.5) * 0.1;
+const worldXFromPct = (pct: number) => ((pct - 50) / 50) * 10; // -10..10
+const worldZFromPct = (pct: number) => 5 - ((pct - 45) / 50) * 5; // 5..0
+
+// ---------- Lightweight grass (instanced, mostly static) ----------
+const InstancedGrass = ({ count, timeOfDay }: { count: number; timeOfDay: 'day' | 'night' }) => {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+
+  const { positions, heights, rotations } = useMemo(() => {
+    const positions: [number, number, number][] = [];
+    const heights: number[] = [];
+    const rotations: number[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const x = (Math.random() - 0.5) * 24;
+      const z = Math.random() * 10 - 3; // -3..7
+      positions.push([x, 0, z]);
+      heights.push(0.15 + Math.random() * 0.25);
+      rotations.push(Math.random() * Math.PI * 2);
     }
-  });
+
+    return { positions, heights, rotations };
+  }, [count]);
+
+  useEffect(() => {
+    if (!meshRef.current) return;
+
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < count; i++) {
+      const [x, y, z] = positions[i];
+      dummy.position.set(x, y, z);
+      dummy.rotation.y = rotations[i];
+      dummy.scale.set(1, heights[i], 1);
+      dummy.updateMatrix();
+      meshRef.current.setMatrixAt(i, dummy.matrix);
+    }
+
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  }, [count, positions, heights, rotations]);
 
   const grassColor = timeOfDay === 'day' ? '#4a9e64' : '#1a4a2e';
-  
+
   return (
-    <mesh ref={meshRef} position={position}>
-      <coneGeometry args={[0.03, height, 4]} />
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+      <coneGeometry args={[0.03, 1, 4]} />
       <meshStandardMaterial color={grassColor} />
-    </mesh>
+    </instancedMesh>
   );
 };
 
-// Grass field with many blades
-const GrassField = ({ count = 600, timeOfDay }: { count?: number; timeOfDay: 'day' | 'night' }) => {
-  const positions = useMemo(() => {
-    const pos: [number, number, number][] = [];
-    for (let i = 0; i < count; i++) {
-      const x = (Math.random() - 0.5) * 24;
-      const z = Math.random() * 10 - 3; // -3 to 7
-      pos.push([x, 0, z]);
-    }
-    return pos;
+// A small set of animated blades to keep the scene "alive" without killing WebGL.
+const SwayGrass = ({ count, timeOfDay }: { count: number; timeOfDay: 'day' | 'night' }) => {
+  const groupRef = useRef<THREE.Group>(null);
+  const blades = useMemo(() => {
+    return Array.from({ length: count }).map((_, i) => ({
+      key: i,
+      x: (Math.random() - 0.5) * 22,
+      z: Math.random() * 9 - 2.5,
+      h: 0.25 + Math.random() * 0.35,
+      sway: Math.random() * Math.PI * 2,
+    }));
   }, [count]);
 
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    const t = state.clock.elapsedTime;
+    groupRef.current.children.forEach((child, i) => {
+      const blade = blades[i];
+      if (!blade) return;
+      child.rotation.z = Math.sin(t * 1.2 + blade.sway) * 0.12;
+    });
+  });
+
+  const grassColor = timeOfDay === 'day' ? '#57ad73' : '#1f5a36';
+
   return (
-    <group>
-      {positions.map((pos, i) => (
-        <GrassBlade key={i} position={pos} delay={i * 0.01} timeOfDay={timeOfDay} />
+    <group ref={groupRef}>
+      {blades.map((b) => (
+        <mesh key={b.key} position={[b.x, 0, b.z]}>
+          <coneGeometry args={[0.035, b.h, 4]} />
+          <meshStandardMaterial color={grassColor} />
+        </mesh>
       ))}
     </group>
   );
 };
 
-// Animated flower with bloom effect
-const FlowerSprite = ({ 
-  flower, 
-  texture, 
-  isNew 
-}: { 
-  flower: Flower; 
-  texture: THREE.Texture | null;
-  isNew: boolean;
-}) => {
+// ---------- Flowers (billboard sprites) ----------
+const FlowerSprite = ({ flower, texture }: { flower: Flower; texture: THREE.Texture | null }) => {
   const groupRef = useRef<THREE.Group>(null);
-  const scaleRef = useRef(isNew ? 0 : 1);
   const swayOffset = useMemo(() => Math.random() * Math.PI * 2, []);
-  
+
+  // Bloom is based on plantedAt; prevents "pop in" and looks like a gentle reveal.
   useFrame((state) => {
-    if (groupRef.current) {
-      // Bloom animation
-      if (scaleRef.current < 1) {
-        scaleRef.current = Math.min(scaleRef.current + 0.015, 1);
-      }
-      
-      // Gentle swaying
-      const time = state.clock.elapsedTime + swayOffset;
-      groupRef.current.rotation.z = Math.sin(time * 0.8) * 0.06;
-      groupRef.current.scale.setScalar(scaleRef.current * flower.scale * 1.2);
-    }
+    if (!groupRef.current) return;
+
+    const plantedTime = new Date(flower.plantedAt).getTime();
+    const ageMs = Date.now() - plantedTime;
+    const bloom = THREE.MathUtils.clamp(ageMs / 2500, 0, 1);
+    const eased = bloom * bloom * (3 - 2 * bloom); // smoothstep
+
+    const t = state.clock.elapsedTime + swayOffset;
+    groupRef.current.rotation.z = Math.sin(t * 0.9) * 0.05;
+    groupRef.current.scale.setScalar((0.9 + eased * 0.3) * flower.scale);
   });
 
-  // Convert percentage position to 3D world position
-  // x: 5-95% maps to -10 to 10
-  // y: 45-95% maps to z 5 to 0 (closer flowers in front)
-  const x = ((flower.x - 50) / 50) * 10;
-  const z = 5 - ((flower.y - 45) / 50) * 5;
-  
   if (!texture) return null;
 
+  const x = worldXFromPct(flower.x);
+  const z = worldZFromPct(flower.y);
+
   return (
-    <group ref={groupRef} position={[x, 0.8, z]}>
-      <Billboard follow={true} lockX={false} lockY={false} lockZ={false}>
+    <group ref={groupRef} position={[x, 0.85, z]}>
+      <Billboard>
         <mesh>
-          <planeGeometry args={[1.2, 1.8]} />
-          <meshStandardMaterial 
-            map={texture} 
-            transparent 
+          <planeGeometry args={[1.25, 1.9]} />
+          <meshStandardMaterial
+            map={texture}
+            transparent
             alphaTest={0.5}
             side={THREE.DoubleSide}
           />
@@ -117,70 +147,38 @@ const FlowerSprite = ({
   );
 };
 
-// 3D Sun with glow
-const Sun = () => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
-  
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.z = state.clock.elapsedTime * 0.1;
-    }
-    if (glowRef.current) {
-      const pulse = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.1;
-      glowRef.current.scale.setScalar(pulse);
-    }
-  });
+// ---------- Sky bodies ----------
+const Sun = () => (
+  <group position={[8, 6, -15]}>
+    <mesh>
+      <sphereGeometry args={[1.4, 24, 24]} />
+      <meshBasicMaterial color="#fdd835" />
+    </mesh>
+    <mesh>
+      <sphereGeometry args={[2.4, 24, 24]} />
+      <meshBasicMaterial color="#fff9c4" transparent opacity={0.22} />
+    </mesh>
+    <pointLight color="#fff9c4" intensity={1.6} distance={50} />
+  </group>
+);
 
-  return (
-    <group position={[8, 6, -15]}>
-      {/* Glow */}
-      <mesh ref={glowRef}>
-        <sphereGeometry args={[2.5, 32, 32]} />
-        <meshBasicMaterial color="#fff9c4" transparent opacity={0.3} />
-      </mesh>
-      {/* Sun core */}
-      <mesh ref={meshRef}>
-        <sphereGeometry args={[1.5, 32, 32]} />
-        <meshBasicMaterial color="#fdd835" />
-      </mesh>
-      <pointLight color="#fff9c4" intensity={2} distance={50} />
-    </group>
-  );
-};
+const Moon = () => (
+  <group position={[8, 5.5, -15]}>
+    <mesh>
+      <sphereGeometry args={[0.95, 24, 24]} />
+      <meshStandardMaterial color="#fffde7" emissive="#fffde7" emissiveIntensity={0.35} />
+    </mesh>
+    <mesh>
+      <sphereGeometry args={[1.8, 24, 24]} />
+      <meshBasicMaterial color="#fffde7" transparent opacity={0.16} />
+    </mesh>
+    <pointLight color="#fffde7" intensity={0.6} distance={45} />
+  </group>
+);
 
-// 3D Moon with glow
-const Moon = () => {
-  const glowRef = useRef<THREE.Mesh>(null);
-  
-  useFrame((state) => {
-    if (glowRef.current) {
-      const pulse = 1 + Math.sin(state.clock.elapsedTime) * 0.05;
-      glowRef.current.scale.setScalar(pulse);
-    }
-  });
+const Stars = ({ count }: { count: number }) => {
+  const ref = useRef<THREE.Points>(null);
 
-  return (
-    <group position={[8, 5, -15]}>
-      {/* Glow */}
-      <mesh ref={glowRef}>
-        <sphereGeometry args={[1.8, 32, 32]} />
-        <meshBasicMaterial color="#fffde7" transparent opacity={0.2} />
-      </mesh>
-      {/* Moon */}
-      <mesh>
-        <sphereGeometry args={[1, 32, 32]} />
-        <meshStandardMaterial color="#fffde7" emissive="#fffde7" emissiveIntensity={0.4} />
-      </mesh>
-      <pointLight color="#fffde7" intensity={0.6} distance={40} />
-    </group>
-  );
-};
-
-// Twinkling stars
-const Stars = ({ count = 150 }: { count?: number }) => {
-  const starsRef = useRef<THREE.Points>(null);
-  
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -192,31 +190,23 @@ const Stars = ({ count = 150 }: { count?: number }) => {
   }, [count]);
 
   useFrame((state) => {
-    if (starsRef.current) {
-      const material = starsRef.current.material as THREE.PointsMaterial;
-      material.opacity = 0.6 + Math.sin(state.clock.elapsedTime * 2) * 0.3;
-    }
+    if (!ref.current) return;
+    const m = ref.current.material as THREE.PointsMaterial;
+    m.opacity = 0.55 + Math.sin(state.clock.elapsedTime * 1.8) * 0.25;
   });
 
   return (
-    <points ref={starsRef}>
+    <points ref={ref}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={count}
-          array={positions}
-          itemSize={3}
-        />
+        <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.15} color="#ffffff" transparent opacity={0.8} sizeAttenuation />
+      <pointsMaterial size={0.14} color="#ffffff" transparent opacity={0.8} sizeAttenuation />
     </points>
   );
 };
 
-// Ground plane
 const Ground = ({ timeOfDay }: { timeOfDay: 'day' | 'night' }) => {
   const groundColor = timeOfDay === 'day' ? '#5BB374' : '#1a3a26';
-  
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 2]} receiveShadow>
       <planeGeometry args={[30, 20]} />
@@ -225,112 +215,65 @@ const Ground = ({ timeOfDay }: { timeOfDay: 'day' | 'night' }) => {
   );
 };
 
-// Sky background
-const Sky = ({ timeOfDay }: { timeOfDay: 'day' | 'night' }) => {
-  const skyColor = timeOfDay === 'day' ? '#87CEEB' : '#0f1629';
-  const horizonColor = timeOfDay === 'day' ? '#B0E0E6' : '#16213e';
-  
-  return (
-    <group>
-      {/* Sky backdrop */}
-      <mesh position={[0, 5, -20]}>
-        <planeGeometry args={[60, 25]} />
-        <meshBasicMaterial color={skyColor} />
-      </mesh>
-      {/* Horizon gradient layer */}
-      <mesh position={[0, 0, -18]}>
-        <planeGeometry args={[60, 10]} />
-        <meshBasicMaterial color={horizonColor} transparent opacity={0.7} />
-      </mesh>
-    </group>
-  );
-};
-
-// Fluffy clouds for daytime
-const Cloud = ({ position }: { position: [number, number, number] }) => {
-  const groupRef = useRef<THREE.Group>(null);
-  const speed = useMemo(() => 0.1 + Math.random() * 0.1, []);
-  
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.position.x = position[0] + Math.sin(state.clock.elapsedTime * speed) * 2;
-    }
-  });
-
-  return (
-    <group ref={groupRef} position={position}>
-      <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.8, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.9} />
-      </mesh>
-      <mesh position={[0.6, -0.1, 0]}>
-        <sphereGeometry args={[0.6, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.9} />
-      </mesh>
-      <mesh position={[-0.5, -0.1, 0]}>
-        <sphereGeometry args={[0.5, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.9} />
-      </mesh>
-    </group>
-  );
-};
-
+// ---------- Main ----------
 const Garden3DScene = ({ flowers, timeOfDay, tulipTexture, daisyTexture }: Garden3DSceneProps) => {
-  const now = Date.now();
-  
+  const [contextLost, setContextLost] = useState(false);
+
+  // If the GPU context dies (common on mobile or heavy scenes), show a graceful fallback.
+  const onCreated = ({ gl }: { gl: THREE.WebGLRenderer }) => {
+    gl.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+
+    const canvas = gl.domElement;
+    const lost = (e: Event) => {
+      e.preventDefault();
+      setContextLost(true);
+    };
+
+    canvas.addEventListener('webglcontextlost', lost as EventListener, false);
+  };
+
+  if (contextLost) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <p className="font-serif text-white/90">Your device paused the 3D garden — reopening should restore it.</p>
+      </div>
+    );
+  }
+
   return (
     <Canvas
       camera={{ position: [0, 4, 10], fov: 45 }}
       style={{ position: 'absolute', inset: 0 }}
-      gl={{ antialias: true, alpha: false }}
+      dpr={[1, 1.5]}
+      gl={{ antialias: true, alpha: false, powerPreference: 'low-power' }}
+      onCreated={onCreated}
     >
       <color attach="background" args={[timeOfDay === 'day' ? '#87CEEB' : '#0f1629']} />
-      
+
       <ambientLight intensity={timeOfDay === 'day' ? 0.7 : 0.25} />
-      <directionalLight 
-        position={[5, 8, 5]} 
-        intensity={timeOfDay === 'day' ? 1.2 : 0.4}
-        castShadow
-      />
-      
-      {/* Sky background */}
-      <Sky timeOfDay={timeOfDay} />
-      
-      {/* Sun or Moon */}
-      {timeOfDay === 'day' ? (
-        <>
-          <Sun />
-          <Cloud position={[-6, 5, -12]} />
-          <Cloud position={[3, 6, -14]} />
-          <Cloud position={[-2, 4, -10]} />
-        </>
-      ) : (
+      <directionalLight position={[5, 8, 5]} intensity={timeOfDay === 'day' ? 1.15 : 0.4} />
+
+      {timeOfDay === 'day' ? <Sun /> : (
         <>
           <Moon />
-          <Stars count={200} />
+          <Stars count={140} />
         </>
       )}
-      
-      {/* Ground */}
+
       <Ground timeOfDay={timeOfDay} />
-      
-      {/* Grass blades */}
-      <GrassField count={500} timeOfDay={timeOfDay} />
-      
+
+      {/* Lightweight grass */}
+      <InstancedGrass count={320} timeOfDay={timeOfDay} />
+      <SwayGrass count={60} timeOfDay={timeOfDay} />
+
       {/* Flowers */}
-      {flowers.map((flower) => {
-        const plantedTime = new Date(flower.plantedAt).getTime();
-        const isNew = now - plantedTime < 5000;
-        
-        return (
-          <FlowerSprite
-            key={flower.id}
-            flower={flower}
-            texture={flower.type === 'tulip' ? tulipTexture : daisyTexture}
-            isNew={isNew}
-          />
-        );
-      })}
+      {flowers.map((flower) => (
+        <FlowerSprite
+          key={flower.id}
+          flower={flower}
+          texture={flower.type === 'tulip' ? tulipTexture : daisyTexture}
+        />
+      ))}
     </Canvas>
   );
 };
