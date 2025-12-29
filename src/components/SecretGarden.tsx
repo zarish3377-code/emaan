@@ -90,29 +90,23 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
               boxShadow: '0 0 60px rgba(253, 216, 53, 0.5), 0 0 120px rgba(253, 216, 53, 0.3)',
             }}
           />
-          {/* Drifting clouds - randomly positioned */}
-          {[
-            { top: 5, startLeft: 10, size: 100, duration: 80, delay: 0 },
-            { top: 15, startLeft: 45, size: 80, duration: 95, delay: -30 },
-            { top: 8, startLeft: 70, size: 120, duration: 70, delay: -50 },
-            { top: 22, startLeft: 25, size: 90, duration: 85, delay: -15 },
-            { top: 12, startLeft: 85, size: 70, duration: 100, delay: -65 },
-          ].map((cloud, i) => (
+          {/* Drifting clouds */}
+          {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={`cloud-${i}`}
               className="absolute"
               style={{
-                top: `${cloud.top}%`,
-                left: `${cloud.startLeft}%`,
-                animation: `cloudDrift ${cloud.duration}s linear infinite`,
-                animationDelay: `${cloud.delay}s`,
+                top: `${8 + i * 6 + Math.random() * 5}%`,
+                left: '-20%',
+                animation: `cloudDrift ${40 + i * 15}s linear infinite`,
+                animationDelay: `${i * -8}s`,
               }}
             >
               <div 
                 className="relative"
                 style={{
-                  width: `${cloud.size}px`,
-                  height: `${cloud.size * 0.35}px`,
+                  width: `${80 + Math.random() * 60}px`,
+                  height: `${30 + Math.random() * 20}px`,
                   background: 'rgba(255, 255, 255, 0.8)',
                   borderRadius: '50px',
                   filter: 'blur(2px)',
@@ -121,20 +115,20 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
                 <div 
                   className="absolute rounded-full"
                   style={{
-                    width: `${cloud.size * 0.4}px`,
-                    height: `${cloud.size * 0.4}px`,
+                    width: '40px',
+                    height: '40px',
                     background: 'rgba(255, 255, 255, 0.9)',
-                    top: `-${cloud.size * 0.15}px`,
+                    top: '-15px',
                     left: '20%',
                   }}
                 />
                 <div 
                   className="absolute rounded-full"
                   style={{
-                    width: `${cloud.size * 0.5}px`,
-                    height: `${cloud.size * 0.5}px`,
+                    width: '50px',
+                    height: '50px',
                     background: 'rgba(255, 255, 255, 0.85)',
-                    top: `-${cloud.size * 0.2}px`,
+                    top: '-20px',
                     left: '45%',
                   }}
                 />
