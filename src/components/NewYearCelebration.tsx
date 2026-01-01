@@ -122,10 +122,10 @@ const NewYearCelebration = () => {
         </div>
       ))}
 
-      {/* Happy New Year text */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      {/* Happy New Year text - positioned above the FOR LOVE heading */}
+      <div className="absolute inset-x-0 top-[25%] flex justify-center">
         <h1 
-          className="text-6xl md:text-8xl font-black text-amber-900 animate-new-year-text drop-shadow-2xl"
+          className="text-5xl md:text-7xl lg:text-8xl font-black text-amber-900 animate-new-year-text drop-shadow-2xl text-center px-4"
           style={{
             textShadow: '0 4px 20px rgba(0,0,0,0.4), 0 0 60px rgba(255,215,0,0.5)',
           }}
