@@ -52,10 +52,10 @@ const NewYearCelebration = () => {
       
       setItems(celebrationItems);
       
-      // Hide celebration after 3 seconds
+      // Hide celebration after 8 seconds
       setTimeout(() => {
         setShowCelebration(false);
-      }, 3000);
+      }, 8000);
     }
   }, []);
 
@@ -122,12 +122,12 @@ const NewYearCelebration = () => {
         </div>
       ))}
 
-      {/* Happy New Year text - positioned above the FOR LOVE heading */}
-      <div className="absolute inset-x-0 top-[25%] flex justify-center">
+      {/* Happy New Year text */}
+      <div className="absolute inset-0 flex items-center justify-center">
         <h1 
-          className="text-5xl md:text-7xl lg:text-8xl font-black text-amber-900 animate-new-year-text drop-shadow-2xl text-center px-4"
+          className="text-6xl md:text-8xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-rose-500 to-pink-600 animate-new-year-text drop-shadow-2xl"
           style={{
-            textShadow: '0 4px 20px rgba(0,0,0,0.4), 0 0 60px rgba(255,215,0,0.5)',
+            textShadow: '0 0 40px rgba(255,182,193,0.8), 0 0 80px rgba(255,105,180,0.6)',
           }}
         >
           Happy New Year 2026! 🎉
