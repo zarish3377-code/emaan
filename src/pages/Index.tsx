@@ -10,6 +10,9 @@ import NenoButton from "@/components/NenoButton";
 import NenoPanel from "@/components/NenoPanel";
 import SecretGardenButton from "@/components/SecretGardenButton";
 import SecretGarden from "@/components/SecretGarden";
+import NewYearCelebration from "@/components/NewYearCelebration";
+import NewYearButton from "@/components/NewYearButton";
+import NewYearPanel from "@/components/NewYearPanel";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
 const Index = () => {
@@ -17,6 +20,7 @@ const Index = () => {
   const [isMessagePanelOpen, setIsMessagePanelOpen] = useState(false);
   const [isNenoPanelOpen, setIsNenoPanelOpen] = useState(false);
   const [isGardenOpen, setIsGardenOpen] = useState(false);
+  const [isNewYearPanelOpen, setIsNewYearPanelOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -73,11 +77,21 @@ const Index = () => {
         onClose={() => setIsNenoPanelOpen(false)} 
       />
 
+      {/* New Year Celebration (shows on Jan 1, 2026) */}
+      <NewYearCelebration />
+
       {/* Secret Garden Button & View */}
       <SecretGardenButton onClick={() => setIsGardenOpen(true)} />
       <SecretGarden 
         isOpen={isGardenOpen} 
         onClose={() => setIsGardenOpen(false)} 
+      />
+
+      {/* Happy New Year Button & Panel */}
+      <NewYearButton onClick={() => setIsNewYearPanelOpen(true)} />
+      <NewYearPanel 
+        isOpen={isNewYearPanelOpen} 
+        onClose={() => setIsNewYearPanelOpen(false)} 
       />
 
       {/* Just Say It Button & Panel */}
