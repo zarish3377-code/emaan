@@ -124,7 +124,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      neno_notes_public: {
+        Row: {
+          created_at: string | null
+          day_number: number | null
+          id: string | null
+          text: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_number?: number | null
+          id?: string | null
+          text?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          day_number?: number | null
+          id?: string | null
+          text?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

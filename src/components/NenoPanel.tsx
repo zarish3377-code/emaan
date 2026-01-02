@@ -50,7 +50,7 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
   useEffect(() => {
     const fetchData = async () => {
       const [notesRes, messagesRes] = await Promise.all([
-        supabase.from('neno_notes').select('id, day_number, text, created_at').order('day_number', { ascending: true }),
+        supabase.from('neno_notes_public').select('id, day_number, text, created_at').order('day_number', { ascending: true }),
         supabase.from('neno_daily_messages').select('day_number, message')
       ]);
       
