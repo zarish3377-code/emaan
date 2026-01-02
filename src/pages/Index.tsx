@@ -13,6 +13,8 @@ import SecretGarden from "@/components/SecretGarden";
 import NewYearCelebration from "@/components/NewYearCelebration";
 import NewYearButton from "@/components/NewYearButton";
 import NewYearPanel from "@/components/NewYearPanel";
+import CollectionButton from "@/components/CollectionButton";
+import CollectionPanel from "@/components/CollectionPanel";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
 const Index = () => {
@@ -21,6 +23,7 @@ const Index = () => {
   const [isNenoPanelOpen, setIsNenoPanelOpen] = useState(false);
   const [isGardenOpen, setIsGardenOpen] = useState(false);
   const [isNewYearPanelOpen, setIsNewYearPanelOpen] = useState(false);
+  const [isCollectionOpen, setIsCollectionOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -92,6 +95,13 @@ const Index = () => {
       <NewYearPanel 
         isOpen={isNewYearPanelOpen} 
         onClose={() => setIsNewYearPanelOpen(false)} 
+      />
+
+      {/* Collection Button & Panel */}
+      <CollectionButton onClick={() => setIsCollectionOpen(true)} />
+      <CollectionPanel 
+        isOpen={isCollectionOpen} 
+        onClose={() => setIsCollectionOpen(false)} 
       />
 
       {/* Just Say It Button & Panel */}
