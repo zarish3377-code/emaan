@@ -15,8 +15,6 @@ interface CollectionPanelProps {
   onClose: () => void;
 }
 
-const SECRET_CODE = "us against the world";
-
 // Initial media collection
 const initialMedia: MediaItem[] = [
   {
@@ -31,12 +29,6 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
   const [media] = useState<MediaItem[]>(initialMedia);
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<MediaType | 'all'>('all');
-  const [isUnlocked, setIsUnlocked] = useState(() => {
-    return localStorage.getItem('collection_unlocked') === 'true';
-  });
-  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
-  const [passwordError, setPasswordError] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedImage, setExpandedImage] = useState<MediaItem | null>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
@@ -104,35 +96,8 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
     }
   };
 
-  const handleTryToAdd = () => {
-    if (!isUnlocked) {
-      setShowPasswordPrompt(true);
-      setPasswordInput("");
-      setPasswordError(false);
-    } else {
-      setShowAddForm(true);
-    }
-  };
-
-  const verifyPassword = () => {
-    if (passwordInput.toLowerCase().trim() === SECRET_CODE) {
-      setIsUnlocked(true);
-      localStorage.setItem('collection_unlocked', 'true');
-      setShowPasswordPrompt(false);
-      setPasswordInput("");
-      setPasswordError(false);
-      setShowAddForm(true);
-    } else {
-      setPasswordError(true);
-    }
-  };
-
-  const handlePasswordKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      verifyPassword();
-    } else if (e.key === "Escape") {
-      setShowPasswordPrompt(false);
-    }
+  const handleAddClick = () => {
+    setShowAddForm(true);
   };
 
   const getMediaIcon = (type: MediaType) => {
@@ -311,56 +276,13 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
         {/* Add Button */}
         <div className="p-4 border-t border-violet-200/30 bg-white/30">
           <button
-            onClick={handleTryToAdd}
+            onClick={handleAddClick}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-violet-400 to-purple-400 text-white font-medium hover:from-violet-500 hover:to-purple-500 transition-all shadow-lg hover:shadow-xl"
           >
             <Plus className="w-4 h-4" />
             Add to Collection
           </button>
         </div>
-
-        {/* Password Prompt Modal */}
-        {showPasswordPrompt && (
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10 rounded-3xl">
-            <div className="bg-white rounded-2xl p-6 mx-4 shadow-xl max-w-[280px] w-full">
-              <h4 className="font-serif text-lg text-dark-berry text-center mb-2">🔐 Secret Code</h4>
-              <p className="text-xs text-dark-berry/60 text-center mb-4">Enter the secret code to add items</p>
-              <input
-                type="text"
-                value={passwordInput}
-                onChange={(e) => {
-                  setPasswordInput(e.target.value);
-                  setPasswordError(false);
-                }}
-                onKeyDown={handlePasswordKeyPress}
-                placeholder="enter secret code..."
-                className={`w-full px-4 py-2.5 rounded-full text-sm text-dark-berry placeholder:text-dark-berry/40 outline-none transition-all ${
-                  passwordError 
-                    ? 'bg-red-100 border-2 border-red-300 focus:ring-red-300' 
-                    : 'bg-violet-100/50 focus:ring-2 focus:ring-violet-400/50'
-                }`}
-                autoFocus
-              />
-              {passwordError && (
-                <p className="text-xs text-red-500 text-center mt-2">Wrong code, try again 💜</p>
-              )}
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => setShowPasswordPrompt(false)}
-                  className="flex-1 px-4 py-2 rounded-full bg-gray-200 text-dark-berry text-sm hover:bg-gray-300 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={verifyPassword}
-                  className="flex-1 px-4 py-2 rounded-full bg-violet-500 text-white text-sm hover:bg-violet-600 transition-colors"
-                >
-                  Unlock
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Add Form Modal */}
         {showAddForm && (
