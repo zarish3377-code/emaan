@@ -1,5 +1,6 @@
-import { useState, useRef } from 'react';
-import { X, Play, Pause, Plus, Music, Image, Video, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { X, Play, Pause, Plus, Music, Image, Video, Loader2, Upload } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 type MediaType = 'audio' | 'video' | 'image';
 
@@ -15,10 +16,12 @@ interface CollectionPanelProps {
   onClose: () => void;
 }
 
-// Initial media collection
+const SUPABASE_URL = "https://vefidkdeaoypgufencxh.supabase.co";
+
+// Initial hardcoded media
 const initialMedia: MediaItem[] = [
   {
-    id: '1',
+    id: 'initial-1',
     name: 'Ohh she loves me',
     src: '/audio/collection/Ohh_she_loves_me.mp3',
     type: 'audio'
@@ -26,20 +29,79 @@ const initialMedia: MediaItem[] = [
 ];
 
 const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
-  const [media] = useState<MediaItem[]>(initialMedia);
+  const [media, setMedia] = useState<MediaItem[]>(initialMedia);
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<MediaType | 'all'>('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedImage, setExpandedImage] = useState<MediaItem | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [itemName, setItemName] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedType, setSelectedType] = useState<MediaType>('image');
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch media from database
+  useEffect(() => {
+    const fetchMedia = async () => {
+      const { data, error } = await supabase
+        .from('collection_media')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching media:', error);
+      } else if (data) {
+        const dbMedia: MediaItem[] = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          src: `${SUPABASE_URL}/storage/v1/object/public/collection-media/${item.file_path}`,
+          type: item.type as MediaType
+        }));
+        setMedia([...initialMedia, ...dbMedia]);
+      }
+    };
+
+    fetchMedia();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('collection_media_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'collection_media'
+        },
+        (payload) => {
+          const newItem = payload.new as { id: string; name: string; file_path: string; type: string };
+          const mediaItem: MediaItem = {
+            id: newItem.id,
+            name: newItem.name,
+            src: `${SUPABASE_URL}/storage/v1/object/public/collection-media/${newItem.file_path}`,
+            type: newItem.type as MediaType
+          };
+          setMedia(prev => {
+            if (prev.some(m => m.id === mediaItem.id)) return prev;
+            return [...prev, mediaItem];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const filteredMedia = activeFilter === 'all' 
     ? media 
     : media.filter(item => item.type === activeFilter);
 
   const handlePlayAudio = (itemId: string) => {
-    // Pause all other audios and videos
     Object.entries(audioRefs.current).forEach(([id, audio]) => {
       if (id !== itemId && audio) {
         audio.pause();
@@ -47,9 +109,7 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
       }
     });
     Object.values(videoRefs.current).forEach((video) => {
-      if (video) {
-        video.pause();
-      }
+      if (video) video.pause();
     });
 
     const audio = audioRefs.current[itemId];
@@ -65,17 +125,11 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
   };
 
   const handlePlayVideo = (itemId: string) => {
-    // Pause all audios
     Object.values(audioRefs.current).forEach((audio) => {
-      if (audio) {
-        audio.pause();
-      }
+      if (audio) audio.pause();
     });
-    // Pause other videos
     Object.entries(videoRefs.current).forEach(([id, video]) => {
-      if (id !== itemId && video) {
-        video.pause();
-      }
+      if (id !== itemId && video) video.pause();
     });
 
     const video = videoRefs.current[itemId];
@@ -98,6 +152,71 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
 
   const handleAddClick = () => {
     setShowAddForm(true);
+    setUploadError(null);
+    setItemName('');
+    setSelectedFile(null);
+  };
+
+  const getAcceptedTypes = (type: MediaType) => {
+    switch (type) {
+      case 'audio': return 'audio/*';
+      case 'video': return 'video/*';
+      case 'image': return 'image/*';
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      if (!itemName) {
+        setItemName(file.name.replace(/\.[^/.]+$/, ''));
+      }
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile || !itemName.trim()) {
+      setUploadError('Please select a file and enter a name');
+      return;
+    }
+
+    setUploading(true);
+    setUploadError(null);
+
+    try {
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${selectedType}/${fileName}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('collection-media')
+        .upload(filePath, selectedFile);
+
+      if (uploadError) throw uploadError;
+
+      // Insert metadata
+      const { error: insertError } = await supabase
+        .from('collection_media')
+        .insert({
+          name: itemName.trim(),
+          file_path: filePath,
+          type: selectedType
+        });
+
+      if (insertError) throw insertError;
+
+      // Reset form
+      setShowAddForm(false);
+      setItemName('');
+      setSelectedFile(null);
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      setUploadError(error.message || 'Failed to upload file');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const getMediaIcon = (type: MediaType) => {
@@ -253,7 +372,6 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
 
         {/* Media List */}
         <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
-          {/* Grid for images, list for audio/video */}
           {activeFilter === 'image' ? (
             <div className="grid grid-cols-2 gap-3">
               {filteredMedia.map(renderMediaItem)}
@@ -287,37 +405,85 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
         {/* Add Form Modal */}
         {showAddForm && (
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10 rounded-3xl">
-            <div className="bg-white rounded-2xl p-6 mx-4 shadow-xl max-w-[280px] w-full">
-              <h4 className="font-serif text-lg text-dark-berry text-center mb-2">✨ Add Memory</h4>
-              <p className="text-xs text-dark-berry/60 text-center mb-4">
-                To add photos, videos, or songs - contact the developer 💜
-              </p>
-              <div className="flex gap-4 justify-center mb-4">
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
-                    <Music className="w-5 h-5 text-violet-500" />
-                  </div>
-                  <span className="text-xs text-dark-berry/60">Audio</span>
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
-                    <Video className="w-5 h-5 text-violet-500" />
-                  </div>
-                  <span className="text-xs text-dark-berry/60">Video</span>
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
-                    <Image className="w-5 h-5 text-violet-500" />
-                  </div>
-                  <span className="text-xs text-dark-berry/60">Image</span>
-                </div>
+            <div className="bg-white rounded-2xl p-6 mx-4 shadow-xl max-w-[300px] w-full">
+              <h4 className="font-serif text-lg text-dark-berry text-center mb-4">✨ Add Memory</h4>
+              
+              {/* Type Selection */}
+              <div className="flex gap-2 justify-center mb-4">
+                {(['image', 'audio', 'video'] as MediaType[]).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      setSelectedType(type);
+                      setSelectedFile(null);
+                    }}
+                    className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all ${
+                      selectedType === type
+                        ? 'bg-violet-500 text-white'
+                        : 'bg-violet-100 text-violet-600 hover:bg-violet-200'
+                    }`}
+                  >
+                    {type === 'audio' && <Music className="w-5 h-5" />}
+                    {type === 'video' && <Video className="w-5 h-5" />}
+                    {type === 'image' && <Image className="w-5 h-5" />}
+                    <span className="text-xs capitalize">{type}</span>
+                  </button>
+                ))}
               </div>
+
+              {/* Name Input */}
+              <input
+                type="text"
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+                placeholder="Name this memory..."
+                className="w-full px-4 py-2.5 rounded-full text-sm text-dark-berry placeholder:text-dark-berry/40 outline-none bg-violet-100/50 focus:ring-2 focus:ring-violet-400/50 mb-3"
+              />
+
+              {/* File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={getAcceptedTypes(selectedType)}
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              
               <button
-                onClick={() => setShowAddForm(false)}
-                className="w-full px-4 py-2 rounded-full bg-violet-500 text-white text-sm hover:bg-violet-600 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-violet-300 text-violet-600 hover:bg-violet-50 transition-all mb-3"
               >
-                Got it!
+                <Upload className="w-4 h-4" />
+                {selectedFile ? selectedFile.name : `Choose ${selectedType} file`}
               </button>
+
+              {uploadError && (
+                <p className="text-xs text-red-500 text-center mb-3">{uploadError}</p>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="flex-1 px-4 py-2 rounded-full bg-gray-200 text-dark-berry text-sm hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpload}
+                  disabled={uploading || !selectedFile || !itemName.trim()}
+                  className="flex-1 px-4 py-2 rounded-full bg-violet-500 text-white text-sm hover:bg-violet-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    'Upload'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}
