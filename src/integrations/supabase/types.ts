@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      collection_media: {
+        Row: {
+          created_at: string
+          file_path: string
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
       global_messages: {
         Row: {
           created_at: string
