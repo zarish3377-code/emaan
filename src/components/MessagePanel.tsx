@@ -142,13 +142,20 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
 
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || sending) return;
+    const trimmedMessage = newMessage.trim();
+    
+    // Input validation
+    if (!trimmedMessage || sending) return;
+    if (trimmedMessage.length > 2000) {
+      console.error('Message too long (max 2000 characters)');
+      return;
+    }
     
     setSending(true);
     const { error } = await supabase
       .from('global_messages')
       .insert({
-        text: newMessage.trim(),
+        text: trimmedMessage,
         page_name: currentPage,
         sender_id: userId
       });
