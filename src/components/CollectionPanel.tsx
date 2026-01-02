@@ -176,8 +176,23 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !itemName.trim()) {
+    const trimmedName = itemName.trim();
+    
+    // Input validation
+    if (!selectedFile || !trimmedName) {
       setUploadError('Please select a file and enter a name');
+      return;
+    }
+    
+    if (trimmedName.length > 100) {
+      setUploadError('Name must be 100 characters or less');
+      return;
+    }
+    
+    // File size validation (max 50MB)
+    const maxFileSize = 50 * 1024 * 1024;
+    if (selectedFile.size > maxFileSize) {
+      setUploadError('File must be 50MB or less');
       return;
     }
 
@@ -185,7 +200,19 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
     setUploadError(null);
 
     try {
-      const fileExt = selectedFile.name.split('.').pop();
+      const fileExt = selectedFile.name.split('.').pop()?.toLowerCase() || '';
+      
+      // Validate file extension
+      const allowedExtensions: Record<MediaType, string[]> = {
+        audio: ['mp3', 'wav', 'ogg', 'm4a', 'aac'],
+        video: ['mp4', 'webm', 'mov', 'avi'],
+        image: ['jpg', 'jpeg', 'png', 'gif', 'webp']
+      };
+      
+      if (!allowedExtensions[selectedType].includes(fileExt)) {
+        throw new Error(`Invalid file type. Allowed: ${allowedExtensions[selectedType].join(', ')}`);
+      }
+      
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `${selectedType}/${fileName}`;
 
@@ -200,7 +227,7 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
       const { error: insertError } = await supabase
         .from('collection_media')
         .insert({
-          name: itemName.trim(),
+          name: trimmedName,
           file_path: filePath,
           type: selectedType
         });
