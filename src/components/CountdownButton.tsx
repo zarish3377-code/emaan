@@ -1,4 +1,4 @@
-import { Heart } from "lucide-react";
+import { Clock } from "lucide-react";
 
 interface CountdownButtonProps {
   onClick: () => void;
@@ -8,10 +8,15 @@ const CountdownButton = ({ onClick }: CountdownButtonProps) => {
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-40 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500 text-white shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl active:scale-95"
+      className="fixed top-4 left-[210px] z-40 px-4 py-2 rounded-full bg-gradient-to-r from-green-300 to-emerald-400 border border-green-300/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+      style={{
+        boxShadow: '0 4px 20px rgba(134, 239, 172, 0.4), 0 0 30px rgba(52, 211, 153, 0.2)'
+      }}
       aria-label="Countdown Timer"
     >
-      <Heart className="h-6 w-6 animate-pulse fill-current" />
+      <span className="font-serif text-sm text-white group-hover:text-green-100 transition-colors flex items-center gap-1">
+        <Clock className="h-4 w-4" /> Timer
+      </span>
     </button>
   );
 };
