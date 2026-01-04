@@ -26,7 +26,7 @@ const ADMIN_EMAIL = "jellyjello3377@gmail.com";
 
 const CountdownPanel = ({ isOpen, onClose }: CountdownPanelProps) => {
   const [targetDate, setTargetDate] = useState<Date | null>(null);
-  const [meetupTitle, setMeetupTitle] = useState("Our Next Date");
+  const [meetupTitle, setMeetupTitle] = useState("Our Next Meetup");
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [floatingHearts, setFloatingHearts] = useState<FloatingHeart[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -123,7 +123,7 @@ const CountdownPanel = ({ isOpen, onClose }: CountdownPanelProps) => {
           .from('countdown_settings')
           .update({
             next_meetup_date: new Date(editDate).toISOString(),
-            meetup_title: editTitle || "Our Next Date",
+            meetup_title: editTitle || "Our Next Meetup",
             updated_by: ADMIN_EMAIL
           })
           .eq('id', existing.id);
@@ -133,13 +133,13 @@ const CountdownPanel = ({ isOpen, onClose }: CountdownPanelProps) => {
           .from('countdown_settings')
           .insert({
             next_meetup_date: new Date(editDate).toISOString(),
-            meetup_title: editTitle || "Our Next Date",
+            meetup_title: editTitle || "Our Next Meetup",
             updated_by: ADMIN_EMAIL
           });
       }
 
       setTargetDate(new Date(editDate));
-      setMeetupTitle(editTitle || "Our Next Date");
+      setMeetupTitle(editTitle || "Our Next Meetup");
       setIsEditing(false);
     } catch (error) {
       console.error('Error saving countdown:', error);
@@ -244,7 +244,7 @@ const CountdownPanel = ({ isOpen, onClose }: CountdownPanelProps) => {
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                placeholder="Our Next Date"
+                placeholder="Our Next Meetup"
                 maxLength={50}
                 className="w-full rounded-xl border border-pink-200 bg-white/80 px-4 py-3 text-foreground focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-200"
               />
@@ -293,8 +293,8 @@ const CountdownPanel = ({ isOpen, onClose }: CountdownPanelProps) => {
             <Clock className="mx-auto mb-4 h-12 w-12 text-pink-300" />
             <p className="text-muted-foreground">
               {isAdmin 
-                ? "Click the settings icon to set our next date! 💕" 
-                : "Our next date hasn't been set yet... 💕"}
+                ? "Click the settings icon to set our next meetup! 💕" 
+                : "Our next meetup hasn't been set yet... 💕"}
             </p>
           </div>
         )}

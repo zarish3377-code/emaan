@@ -8,7 +8,7 @@ const CountdownButton = ({ onClick }: CountdownButtonProps) => {
   return (
     <button
       onClick={onClick}
-      className="fixed top-4 left-[210px] z-40 px-4 py-2 rounded-full bg-gradient-to-r from-green-300 to-emerald-400 border border-green-300/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+      className="fixed top-4 left-[230px] z-40 px-4 py-2 rounded-full bg-gradient-to-r from-green-300 to-emerald-400 border border-green-300/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
       style={{
         boxShadow: '0 4px 20px rgba(134, 239, 172, 0.4), 0 0 30px rgba(52, 211, 153, 0.2)'
       }}

@@ -90,8 +90,8 @@ const HugPanel = ({ isOpen, onClose }: HugPanelProps) => {
         </div>
 
         {/* Message */}
-        <p className="mt-6 font-display text-2xl text-white drop-shadow-lg animate-fade-in">
-          sending you the biggest hug 🤗💕
+        <p className="mt-6 font-display text-xl text-white drop-shadow-lg animate-fade-in text-center px-4">
+          Let's hug for real until we hug in real 🤗💕
         </p>
       </div>
 
