@@ -15,6 +15,8 @@ import NewYearButton from "@/components/NewYearButton";
 import NewYearPanel from "@/components/NewYearPanel";
 import CollectionButton from "@/components/CollectionButton";
 import CollectionPanel from "@/components/CollectionPanel";
+import CountdownButton from "@/components/CountdownButton";
+import CountdownPanel from "@/components/CountdownPanel";
 import PasswordGate from "@/components/PasswordGate";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
@@ -25,6 +27,7 @@ const Index = () => {
   const [isGardenOpen, setIsGardenOpen] = useState(false);
   const [isNewYearPanelOpen, setIsNewYearPanelOpen] = useState(false);
   const [isCollectionOpen, setIsCollectionOpen] = useState(false);
+  const [isCountdownOpen, setIsCountdownOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -104,6 +107,13 @@ const Index = () => {
         <CollectionPanel 
           isOpen={isCollectionOpen} 
           onClose={() => setIsCollectionOpen(false)} 
+        />
+
+        {/* Countdown Button & Panel */}
+        <CountdownButton onClick={() => setIsCountdownOpen(true)} />
+        <CountdownPanel 
+          isOpen={isCountdownOpen} 
+          onClose={() => setIsCountdownOpen(false)} 
         />
 
         {/* Just Say It Button & Panel */}

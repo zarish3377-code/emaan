@@ -38,6 +38,33 @@ export type Database = {
         }
         Relationships: []
       }
+      countdown_settings: {
+        Row: {
+          created_at: string
+          id: string
+          meetup_title: string
+          next_meetup_date: string
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meetup_title?: string
+          next_meetup_date: string
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meetup_title?: string
+          next_meetup_date?: string
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: []
+      }
       global_messages: {
         Row: {
           created_at: string
