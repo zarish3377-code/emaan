@@ -192,12 +192,29 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
     setEditingName(pageName);
   };
 
-  const finishRenaming = () => {
+  const finishRenaming = async () => {
     if (editingTab && editingName.trim() && editingName !== editingTab) {
-      const newPages = pages.map(p => p === editingTab ? editingName.trim() : p);
-      setPages(newPages);
-      if (currentPage === editingTab) {
-        setCurrentPage(editingName.trim());
+      const oldName = editingTab;
+      const newName = editingName.trim();
+      
+      // Update messages in database to use new page name
+      const { error } = await supabase
+        .from('global_messages')
+        .update({ page_name: newName })
+        .eq('page_name', oldName);
+
+      if (error) {
+        console.error('Error updating page name:', error);
+      } else {
+        // Update local state
+        setMessages(prev => prev.map(m => 
+          m.page_name === oldName ? { ...m, page_name: newName } : m
+        ));
+        const newPages = pages.map(p => p === oldName ? newName : p);
+        setPages(newPages);
+        if (currentPage === oldName) {
+          setCurrentPage(newName);
+        }
       }
     }
     setEditingTab(null);
