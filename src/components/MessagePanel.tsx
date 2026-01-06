@@ -24,7 +24,7 @@ interface MessagePanelProps {
   onClose: () => void;
 }
 
-const EMOJI_OPTIONS = ['❤️', '😂', '😮', '😢', '👍', '🔥', '💕', '🥺'];
+const EMOJI_OPTIONS = ['🌷', '🩵', '🌼', '💚', '😭', '🫂', '😮‍💨', '🤦‍♀️'];
 
 // Color palette for different users
 const MESSAGE_COLORS = [
