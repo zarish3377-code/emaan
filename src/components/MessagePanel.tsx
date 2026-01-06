@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Send, Loader2, Pencil, Trash2, Check } from 'lucide-react';
+import { X, Plus, Send, Loader2, Pencil, Trash2, Check, Smile } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,10 +12,19 @@ interface Message {
   sender_id: string;
 }
 
+interface Reaction {
+  id: string;
+  message_id: string;
+  emoji: string;
+  sender_id: string;
+}
+
 interface MessagePanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const EMOJI_OPTIONS = ['❤️', '😂', '😮', '😢', '👍', '🔥', '💕', '🥺'];
 
 // Color palette for different users
 const MESSAGE_COLORS = [
@@ -55,6 +64,7 @@ const getColorForSender = (senderId: string): string => {
 const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   const { isAdmin } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [reactions, setReactions] = useState<Reaction[]>([]);
   const [pages, setPages] = useState<string[]>(["General"]);
   const [currentPage, setCurrentPage] = useState("General");
   const [newMessage, setNewMessage] = useState("");
@@ -62,26 +72,31 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   const [editingName, setEditingName] = useState("");
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingMessageText, setEditingMessageText] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [userId] = useState(() => getOrCreateUserId());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch all messages from database
+  // Fetch all messages and reactions from database
   useEffect(() => {
-    const fetchMessages = async () => {
-      const { data, error } = await supabase
-        .from('global_messages')
-        .select('*')
-        .order('created_at', { ascending: true });
+    const fetchData = async () => {
+      const [messagesRes, reactionsRes] = await Promise.all([
+        supabase
+          .from('global_messages')
+          .select('*')
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('message_reactions')
+          .select('*')
+      ]);
 
-      if (error) {
-        console.error('Error fetching messages:', error);
-      } else if (data) {
-        setMessages(data);
-        // Extract unique page names
-        const uniquePages = [...new Set(data.map(m => m.page_name))];
+      if (messagesRes.error) {
+        console.error('Error fetching messages:', messagesRes.error);
+      } else if (messagesRes.data) {
+        setMessages(messagesRes.data);
+        const uniquePages = [...new Set(messagesRes.data.map(m => m.page_name))];
         if (uniquePages.length > 0) {
           setPages(uniquePages);
           if (!uniquePages.includes(currentPage)) {
@@ -89,10 +104,15 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
           }
         }
       }
+
+      if (reactionsRes.data) {
+        setReactions(reactionsRes.data);
+      }
+
       setLoading(false);
     };
 
-    fetchMessages();
+    fetchData();
 
     // Subscribe to real-time updates
     const channel = supabase
@@ -120,6 +140,23 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
           } else if (payload.eventType === 'DELETE') {
             const deletedMsg = payload.old as Message;
             setMessages(prev => prev.filter(m => m.id !== deletedMsg.id));
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'message_reactions'
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newReaction = payload.new as Reaction;
+            setReactions(prev => [...prev, newReaction]);
+          } else if (payload.eventType === 'DELETE') {
+            const deletedReaction = payload.old as Reaction;
+            setReactions(prev => prev.filter(r => r.id !== deletedReaction.id));
           }
         }
       )
@@ -275,6 +312,69 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
     }
   };
 
+  const handleDeletePage = async (pageName: string) => {
+    const pageMessages = messages.filter(m => m.page_name === pageName);
+    if (pageMessages.length > 0) {
+      return; // Don't delete pages with messages
+    }
+    
+    setPages(prev => prev.filter(p => p !== pageName));
+    if (currentPage === pageName) {
+      setCurrentPage(pages[0] || "General");
+    }
+  };
+
+  const handleAddReaction = async (messageId: string, emoji: string) => {
+    const existingReaction = reactions.find(
+      r => r.message_id === messageId && r.emoji === emoji && r.sender_id === userId
+    );
+
+    if (existingReaction) {
+      // Remove reaction
+      const { error } = await supabase
+        .from('message_reactions')
+        .delete()
+        .eq('id', existingReaction.id);
+
+      if (!error) {
+        setReactions(prev => prev.filter(r => r.id !== existingReaction.id));
+      }
+    } else {
+      // Add reaction
+      const { data, error } = await supabase
+        .from('message_reactions')
+        .insert({
+          message_id: messageId,
+          emoji,
+          sender_id: userId
+        })
+        .select()
+        .single();
+
+      if (!error && data) {
+        setReactions(prev => [...prev, data]);
+      }
+    }
+    setShowEmojiPicker(null);
+  };
+
+  const getReactionsForMessage = (messageId: string) => {
+    const messageReactions = reactions.filter(r => r.message_id === messageId);
+    const grouped: { [emoji: string]: { count: number; hasMyReaction: boolean } } = {};
+    
+    messageReactions.forEach(r => {
+      if (!grouped[r.emoji]) {
+        grouped[r.emoji] = { count: 0, hasMyReaction: false };
+      }
+      grouped[r.emoji].count++;
+      if (r.sender_id === userId) {
+        grouped[r.emoji].hasMyReaction = true;
+      }
+    });
+    
+    return grouped;
+  };
+
   if (!isOpen) return null;
 
   const currentMessages = messages.filter(m => m.page_name === currentPage);
@@ -314,34 +414,51 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
             className="flex items-center gap-1 p-2 overflow-x-auto scrollbar-soft"
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
-            {pages.map(pageName => (
-              <button 
-                key={pageName}
-                type="button"
-                className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-                  currentPage === pageName 
-                    ? 'bg-blush-rose text-white shadow-md' 
-                    : 'bg-pastel-lavender/30 text-dark-berry hover:bg-pastel-lavender/50'
-                }`}
-                onClick={() => setCurrentPage(pageName)}
-                onDoubleClick={() => startRenaming(pageName)}
-              >
-                {editingTab === pageName ? (
-                  <input
-                    type="text"
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    onBlur={finishRenaming}
-                    onKeyDown={handleRenameKeyPress}
-                    className="w-16 bg-transparent outline-none text-center"
-                    autoFocus
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                ) : (
-                  <span>{pageName}</span>
-                )}
-              </button>
-            ))}
+            {pages.map(pageName => {
+              const pageHasMessages = messages.some(m => m.page_name === pageName);
+              const canDelete = isAdmin && !pageHasMessages && pages.length > 1;
+              
+              return (
+                <div key={pageName} className="relative flex-shrink-0 group">
+                  <button 
+                    type="button"
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                      currentPage === pageName 
+                        ? 'bg-blush-rose text-white shadow-md' 
+                        : 'bg-pastel-lavender/30 text-dark-berry hover:bg-pastel-lavender/50'
+                    }`}
+                    onClick={() => setCurrentPage(pageName)}
+                    onDoubleClick={() => startRenaming(pageName)}
+                  >
+                    {editingTab === pageName ? (
+                      <input
+                        type="text"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onBlur={finishRenaming}
+                        onKeyDown={handleRenameKeyPress}
+                        className="w-16 bg-transparent outline-none text-center"
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <span>{pageName}</span>
+                    )}
+                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePage(pageName);
+                      }}
+                      className="absolute -top-1 -right-1 w-4 h-4 bg-red-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
             <button
               type="button"
               onClick={addNewPage}
@@ -367,11 +484,12 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
               const isMyMessage = msg.sender_id === userId;
               const colorClass = getColorForSender(msg.sender_id);
               const isEditing = editingMessageId === msg.id;
+              const messageReactions = getReactionsForMessage(msg.id);
               
               return (
                 <div 
                   key={msg.id}
-                  className={`relative p-3 pb-6 rounded-2xl shadow-sm animate-fade-in border ${colorClass} ${
+                  className={`relative p-3 pb-8 rounded-2xl shadow-sm animate-fade-in border ${colorClass} ${
                     isMyMessage ? 'ml-4' : 'mr-4'
                   }`}
                 >
@@ -401,6 +519,49 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
                   ) : (
                     <p className="text-dark-berry text-sm leading-relaxed">{msg.text}</p>
                   )}
+                  
+                  {/* Reactions display */}
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {Object.entries(messageReactions).map(([emoji, data]) => (
+                      <button
+                        key={emoji}
+                        onClick={() => handleAddReaction(msg.id, emoji)}
+                        className={`px-1.5 py-0.5 text-xs rounded-full flex items-center gap-0.5 transition-all ${
+                          data.hasMyReaction 
+                            ? 'bg-blush-rose/30 border border-blush-rose' 
+                            : 'bg-white/50 hover:bg-white/70'
+                        }`}
+                      >
+                        <span>{emoji}</span>
+                        <span className="text-dark-berry/60">{data.count}</span>
+                      </button>
+                    ))}
+                    
+                    {/* Add reaction button */}
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)}
+                        className="px-1.5 py-0.5 text-xs rounded-full bg-white/50 hover:bg-white/70 transition-all"
+                      >
+                        <Smile className="w-3 h-3 text-dark-berry/50" />
+                      </button>
+                      
+                      {showEmojiPicker === msg.id && (
+                        <div className="absolute bottom-full left-0 mb-1 p-1 bg-white rounded-lg shadow-lg flex gap-1 z-10">
+                          {EMOJI_OPTIONS.map(emoji => (
+                            <button
+                              key={emoji}
+                              onClick={() => handleAddReaction(msg.id, emoji)}
+                              className="text-sm hover:scale-125 transition-transform p-0.5"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
                   <div className="absolute bottom-2 right-3 flex items-center gap-1">
                     {isAdmin && !isEditing && (
                       <>
