@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Send, Loader2 } from 'lucide-react';
+import { X, Plus, Send, Loader2, Pencil, Trash2, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Message {
   id: string;
@@ -52,12 +53,15 @@ const getColorForSender = (senderId: string): string => {
 };
 
 const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
+  const { isAdmin } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [pages, setPages] = useState<string[]>(["General"]);
   const [currentPage, setCurrentPage] = useState("General");
   const [newMessage, setNewMessage] = useState("");
   const [editingTab, setEditingTab] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingMessageText, setEditingMessageText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [userId] = useState(() => getOrCreateUserId());
@@ -96,20 +100,27 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'global_messages'
         },
         (payload) => {
-          const newMsg = payload.new as Message;
-          setMessages(prev => [...prev, newMsg]);
-          // Add page if it's new
-          setPages(prev => {
-            if (!prev.includes(newMsg.page_name)) {
-              return [...prev, newMsg.page_name];
-            }
-            return prev;
-          });
+          if (payload.eventType === 'INSERT') {
+            const newMsg = payload.new as Message;
+            setMessages(prev => [...prev, newMsg]);
+            setPages(prev => {
+              if (!prev.includes(newMsg.page_name)) {
+                return [...prev, newMsg.page_name];
+              }
+              return prev;
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedMsg = payload.new as Message;
+            setMessages(prev => prev.map(m => m.id === updatedMsg.id ? updatedMsg : m));
+          } else if (payload.eventType === 'DELETE') {
+            const deletedMsg = payload.old as Message;
+            setMessages(prev => prev.filter(m => m.id !== deletedMsg.id));
+          }
         }
       )
       .subscribe();
@@ -210,6 +221,43 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
     }
   };
 
+  const handleEditMessage = (msg: Message) => {
+    setEditingMessageId(msg.id);
+    setEditingMessageText(msg.text);
+  };
+
+  const handleSaveEdit = async (msgId: string) => {
+    if (!editingMessageText.trim()) return;
+    
+    const { error } = await supabase
+      .from('global_messages')
+      .update({ text: editingMessageText.trim() })
+      .eq('id', msgId);
+
+    if (error) {
+      console.error('Error updating message:', error);
+    } else {
+      setMessages(prev => prev.map(m => 
+        m.id === msgId ? { ...m, text: editingMessageText.trim() } : m
+      ));
+    }
+    setEditingMessageId(null);
+    setEditingMessageText("");
+  };
+
+  const handleDeleteMessage = async (msgId: string) => {
+    const { error } = await supabase
+      .from('global_messages')
+      .delete()
+      .eq('id', msgId);
+
+    if (error) {
+      console.error('Error deleting message:', error);
+    } else {
+      setMessages(prev => prev.filter(m => m.id !== msgId));
+    }
+  };
+
   if (!isOpen) return null;
 
   const currentMessages = messages.filter(m => m.page_name === currentPage);
@@ -301,6 +349,7 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
             currentMessages.map((msg) => {
               const isMyMessage = msg.sender_id === userId;
               const colorClass = getColorForSender(msg.sender_id);
+              const isEditing = editingMessageId === msg.id;
               
               return (
                 <div 
@@ -309,8 +358,49 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
                     isMyMessage ? 'ml-4' : 'mr-4'
                   }`}
                 >
-                  <p className="text-dark-berry text-sm leading-relaxed">{msg.text}</p>
+                  {isEditing ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={editingMessageText}
+                        onChange={(e) => setEditingMessageText(e.target.value)}
+                        className="flex-1 px-2 py-1 bg-white/70 rounded text-sm text-dark-berry outline-none"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSaveEdit(msg.id);
+                          if (e.key === 'Escape') {
+                            setEditingMessageId(null);
+                            setEditingMessageText("");
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => handleSaveEdit(msg.id)}
+                        className="p-1 rounded-full hover:bg-green-200 transition-colors"
+                      >
+                        <Check className="w-4 h-4 text-green-600" />
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-dark-berry text-sm leading-relaxed">{msg.text}</p>
+                  )}
                   <div className="absolute bottom-2 right-3 flex items-center gap-1">
+                    {isAdmin && !isEditing && (
+                      <>
+                        <button
+                          onClick={() => handleEditMessage(msg)}
+                          className="p-0.5 rounded hover:bg-white/50 transition-colors"
+                        >
+                          <Pencil className="w-3 h-3 text-dark-berry/50 hover:text-dark-berry" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMessage(msg.id)}
+                          className="p-0.5 rounded hover:bg-red-100 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3 text-dark-berry/50 hover:text-red-500" />
+                        </button>
+                      </>
+                    )}
                     {isMyMessage && (
                       <span className="text-[9px] text-dark-berry/40 italic">you</span>
                     )}
