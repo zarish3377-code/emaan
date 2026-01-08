@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Play, Pause, Plus, Music, Image, Video, Loader2, Upload } from 'lucide-react';
+import { X, Play, Pause, Plus, Music, Image, Video, Loader2, Upload, Trash2, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 type MediaType = 'audio' | 'video' | 'image';
 
@@ -29,6 +30,7 @@ const initialMedia: MediaItem[] = [
 ];
 
 const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
+  const { isAdmin } = useAuth();
   const [media, setMedia] = useState<MediaItem[]>(initialMedia);
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<MediaType | 'all'>('all');
@@ -39,6 +41,7 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
   const [itemName, setItemName] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedType, setSelectedType] = useState<MediaType>('image');
+  const [deleting, setDeleting] = useState<string | null>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -254,6 +257,59 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
     }
   };
 
+  const handleDelete = async (item: MediaItem) => {
+    if (!isAdmin || item.id.startsWith('initial-')) return;
+    
+    if (!confirm(`Delete "${item.name}"?`)) return;
+    
+    setDeleting(item.id);
+    try {
+      // Get the file path from the src URL
+      const filePath = item.src.replace(`${SUPABASE_URL}/storage/v1/object/public/collection-media/`, '');
+      
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('collection-media')
+        .remove([filePath]);
+      
+      if (storageError) console.error('Storage delete error:', storageError);
+      
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('collection_media')
+        .delete()
+        .eq('id', item.id);
+      
+      if (dbError) throw dbError;
+      
+      setMedia(prev => prev.filter(m => m.id !== item.id));
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      alert('Failed to delete: ' + error.message);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleDownload = async (item: MediaItem) => {
+    try {
+      const response = await fetch(item.src);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const ext = item.src.split('.').pop() || '';
+      a.download = `${item.name}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to download file');
+    }
+  };
+
   const renderMediaItem = (item: MediaItem) => {
     switch (item.type) {
       case 'audio':
@@ -291,6 +347,32 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
               </p>
             </div>
 
+            {isAdmin && (
+              <div className="flex gap-1">
+                <button
+                  onClick={() => handleDownload(item)}
+                  className="p-2 rounded-full hover:bg-violet-200/50 transition-colors"
+                  title="Download"
+                >
+                  <Download className="w-4 h-4 text-violet-500" />
+                </button>
+                {!item.id.startsWith('initial-') && (
+                  <button
+                    onClick={() => handleDelete(item)}
+                    disabled={deleting === item.id}
+                    className="p-2 rounded-full hover:bg-red-100 transition-colors disabled:opacity-50"
+                    title="Delete"
+                  >
+                    {deleting === item.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-red-500" />
+                    ) : (
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
+
             <audio
               ref={(el) => { audioRefs.current[item.id] = el; }}
               src={item.src}
@@ -316,9 +398,36 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
                 preload="metadata"
               />
             </div>
-            <div className="p-3 flex items-center gap-2">
-              <Video className="w-4 h-4 text-violet-400" />
-              <p className="font-medium text-dark-berry text-sm truncate">{item.name}</p>
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <Video className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                <p className="font-medium text-dark-berry text-sm truncate">{item.name}</p>
+              </div>
+              {isAdmin && (
+                <div className="flex gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => handleDownload(item)}
+                    className="p-1.5 rounded-full hover:bg-violet-200/50 transition-colors"
+                    title="Download"
+                  >
+                    <Download className="w-3.5 h-3.5 text-violet-500" />
+                  </button>
+                  {!item.id.startsWith('initial-') && (
+                    <button
+                      onClick={() => handleDelete(item)}
+                      disabled={deleting === item.id}
+                      className="p-1.5 rounded-full hover:bg-red-100 transition-colors disabled:opacity-50"
+                      title="Delete"
+                    >
+                      {deleting === item.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-red-500" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -337,9 +446,36 @@ const CollectionPanel = ({ isOpen, onClose }: CollectionPanelProps) => {
                 className="w-full aspect-square object-cover hover:scale-105 transition-transform duration-300"
               />
             </div>
-            <div className="p-3 flex items-center gap-2">
-              <Image className="w-4 h-4 text-violet-400" />
-              <p className="font-medium text-dark-berry text-sm truncate">{item.name}</p>
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <Image className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                <p className="font-medium text-dark-berry text-sm truncate">{item.name}</p>
+              </div>
+              {isAdmin && (
+                <div className="flex gap-1 flex-shrink-0">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDownload(item); }}
+                    className="p-1.5 rounded-full hover:bg-violet-200/50 transition-colors"
+                    title="Download"
+                  >
+                    <Download className="w-3.5 h-3.5 text-violet-500" />
+                  </button>
+                  {!item.id.startsWith('initial-') && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDelete(item); }}
+                      disabled={deleting === item.id}
+                      className="p-1.5 rounded-full hover:bg-red-100 transition-colors disabled:opacity-50"
+                      title="Delete"
+                    >
+                      {deleting === item.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-red-500" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         );
