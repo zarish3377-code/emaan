@@ -67,6 +67,7 @@ export type Database = {
       }
       global_messages: {
         Row: {
+          color: string | null
           created_at: string
           id: string
           page_name: string
@@ -74,6 +75,7 @@ export type Database = {
           text: string
         }
         Insert: {
+          color?: string | null
           created_at?: string
           id?: string
           page_name?: string
@@ -81,6 +83,7 @@ export type Database = {
           text: string
         }
         Update: {
+          color?: string | null
           created_at?: string
           id?: string
           page_name?: string
