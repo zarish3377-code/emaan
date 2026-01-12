@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Send, Loader2, Pencil, Trash2, Check, Smile } from 'lucide-react';
+import { X, Plus, Send, Loader2, Pencil, Trash2, Check, Smile, Palette } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,6 +10,7 @@ interface Message {
   page_name: string;
   created_at: string;
   sender_id: string;
+  color?: string | null;
 }
 
 interface Reaction {
@@ -29,18 +30,23 @@ const EMOJI_OPTIONS = ['🌷', '🩵', '🌼', '💚', '😭', '🫂', '😮‍�
 // Admin user ID (stored in localStorage for this user)
 const ADMIN_SENDER_ID = 'admin_jellyjello';
 
-// Color palette for different users - using custom colors
-const MESSAGE_COLORS = [
-  'bg-[#7fbbfa]/70 border-[#7fbbfa]',      // Blue
-  'bg-[#b19cd9]/70 border-[#b19cd9]',      // Purple/Lavender
-  'bg-[#7fbbfa]/70 border-[#7fbbfa]',      // Blue
-  'bg-[#b19cd9]/70 border-[#b19cd9]',      // Purple/Lavender
-  'bg-[#7fbbfa]/70 border-[#7fbbfa]',      // Blue
-  'bg-[#b19cd9]/70 border-[#b19cd9]',      // Purple/Lavender
+// Color palette for color picker
+const COLOR_OPTIONS = [
+  { name: 'Pink', value: '#FFC0CB' },
+  { name: 'Blue', value: '#7fbbfa' },
+  { name: 'Lavender', value: '#b19cd9' },
+  { name: 'Mint', value: '#98FB98' },
+  { name: 'Peach', value: '#FFDAB9' },
+  { name: 'Yellow', value: '#FFFACD' },
+  { name: 'Coral', value: '#FFB6C1' },
+  { name: 'Sky', value: '#87CEEB' },
 ];
 
-// Admin color - always pink #FFC0CB
-const ADMIN_COLOR = 'bg-[#FFC0CB]/80 border-[#FFC0CB]';
+// Default admin color
+const DEFAULT_ADMIN_COLOR = '#FFC0CB';
+
+// Default user colors for hash-based assignment
+const DEFAULT_USER_COLORS = ['#7fbbfa', '#b19cd9'];
 
 // Generate a unique ID for this user
 const getOrCreateUserId = (isAdmin: boolean): string => {
@@ -61,20 +67,21 @@ const getOrCreateUserId = (isAdmin: boolean): string => {
   return userId;
 };
 
-// Get consistent color based on sender ID
-const getColorForSender = (senderId: string): string => {
-  // Admin always gets pink
+// Get fallback color based on sender ID (when no custom color is set)
+const getFallbackColor = (senderId: string): string => {
+  // Admin always gets pink by default
   if (senderId === ADMIN_SENDER_ID) {
-    return ADMIN_COLOR;
+    return DEFAULT_ADMIN_COLOR;
   }
   
   let hash = 0;
   for (let i = 0; i < senderId.length; i++) {
     hash = senderId.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const index = Math.abs(hash) % MESSAGE_COLORS.length;
-  return MESSAGE_COLORS[index];
+  const index = Math.abs(hash) % DEFAULT_USER_COLORS.length;
+  return DEFAULT_USER_COLORS[index];
 };
+
 
 const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   const { isAdmin } = useAuth();
@@ -88,6 +95,8 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingMessageText, setEditingMessageText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string>(DEFAULT_ADMIN_COLOR);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [userId, setUserId] = useState<string>('');
@@ -225,7 +234,8 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
       .insert({
         text: trimmedMessage,
         page_name: currentPage,
-        sender_id: userId
+        sender_id: userId,
+        color: selectedColor
       });
 
     if (error) {
@@ -235,6 +245,22 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
     setNewMessage("");
     setSending(false);
     inputRef.current?.focus();
+  };
+
+  const handleChangeMessageColor = async (msgId: string, color: string) => {
+    const { error } = await supabase
+      .from('global_messages')
+      .update({ color })
+      .eq('id', msgId);
+
+    if (error) {
+      console.error('Error updating message color:', error);
+    } else {
+      setMessages(prev => prev.map(m => 
+        m.id === msgId ? { ...m, color } : m
+      ));
+    }
+    setShowColorPicker(null);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -502,16 +528,20 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
           ) : (
             currentMessages.map((msg) => {
               const isMyMessage = msg.sender_id === userId;
-              const colorClass = getColorForSender(msg.sender_id);
+              const messageColor = msg.color || getFallbackColor(msg.sender_id);
               const isEditing = editingMessageId === msg.id;
               const messageReactions = getReactionsForMessage(msg.id);
               
               return (
                 <div 
                   key={msg.id}
-                  className={`relative p-3 pb-8 rounded-2xl shadow-sm animate-fade-in border ${colorClass} ${
+                  className={`relative p-3 pb-8 rounded-2xl shadow-sm animate-fade-in border ${
                     isMyMessage ? 'ml-4' : 'mr-4'
                   }`}
+                  style={{
+                    backgroundColor: `${messageColor}B3`,
+                    borderColor: messageColor
+                  }}
                 >
                   {isEditing ? (
                     <div className="flex items-center gap-2">
@@ -585,6 +615,28 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
                   <div className="absolute bottom-2 right-3 flex items-center gap-1">
                     {isAdmin && !isEditing && (
                       <>
+                        {/* Color picker for admin */}
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowColorPicker(showColorPicker === msg.id ? null : msg.id)}
+                            className="p-0.5 rounded hover:bg-white/50 transition-colors"
+                          >
+                            <Palette className="w-3 h-3 text-dark-berry/50 hover:text-dark-berry" />
+                          </button>
+                          {showColorPicker === msg.id && (
+                            <div className="absolute bottom-full right-0 mb-1 p-2 bg-white rounded-lg shadow-lg grid grid-cols-4 gap-1 z-20 min-w-[120px]">
+                              {COLOR_OPTIONS.map(color => (
+                                <button
+                                  key={color.value}
+                                  onClick={() => handleChangeMessageColor(msg.id, color.value)}
+                                  className="w-6 h-6 rounded-full border-2 border-white shadow-sm hover:scale-110 transition-transform"
+                                  style={{ backgroundColor: color.value }}
+                                  title={color.name}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
                         <button
                           onClick={() => handleEditMessage(msg)}
                           className="p-0.5 rounded hover:bg-white/50 transition-colors"
@@ -616,6 +668,33 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
         {/* Input */}
         <div className="p-4 border-t border-blush-rose/20 bg-white/30">
           <div className="flex items-center gap-2">
+            {/* Color picker for new message */}
+            <div className="relative">
+              <button
+                onClick={() => setShowColorPicker(showColorPicker === 'new-message' ? null : 'new-message')}
+                className="w-8 h-8 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
+                style={{ backgroundColor: selectedColor }}
+                title="Choose message color"
+              />
+              {showColorPicker === 'new-message' && (
+                <div className="absolute bottom-full left-0 mb-2 p-2 bg-white rounded-lg shadow-lg grid grid-cols-4 gap-1 z-20 min-w-[120px]">
+                  {COLOR_OPTIONS.map(color => (
+                    <button
+                      key={color.value}
+                      onClick={() => {
+                        setSelectedColor(color.value);
+                        setShowColorPicker(null);
+                      }}
+                      className={`w-6 h-6 rounded-full border-2 shadow-sm hover:scale-110 transition-transform ${
+                        selectedColor === color.value ? 'border-dark-berry' : 'border-white'
+                      }`}
+                      style={{ backgroundColor: color.value }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
             <input
               ref={inputRef}
               type="text"
