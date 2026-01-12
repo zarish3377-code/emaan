@@ -29,20 +29,18 @@ const EMOJI_OPTIONS = ['🌷', '🩵', '🌼', '💚', '😭', '🫂', '😮‍�
 // Admin user ID (stored in localStorage for this user)
 const ADMIN_SENDER_ID = 'admin_jellyjello';
 
-// Color palette for different users
+// Color palette for different users - using custom colors
 const MESSAGE_COLORS = [
-  'bg-purple-200/70 border-purple-300',
-  'bg-blue-200/70 border-blue-300',
-  'bg-green-200/70 border-green-300',
-  'bg-yellow-200/70 border-yellow-300',
-  'bg-orange-200/70 border-orange-300',
-  'bg-teal-200/70 border-teal-300',
-  'bg-indigo-200/70 border-indigo-300',
-  'bg-cyan-200/70 border-cyan-300',
+  'bg-[#7fbbfa]/70 border-[#7fbbfa]',      // Blue
+  'bg-[#b19cd9]/70 border-[#b19cd9]',      // Purple/Lavender
+  'bg-[#7fbbfa]/70 border-[#7fbbfa]',      // Blue
+  'bg-[#b19cd9]/70 border-[#b19cd9]',      // Purple/Lavender
+  'bg-[#7fbbfa]/70 border-[#7fbbfa]',      // Blue
+  'bg-[#b19cd9]/70 border-[#b19cd9]',      // Purple/Lavender
 ];
 
-// Admin color - always pink
-const ADMIN_COLOR = 'bg-pink-300/80 border-pink-400';
+// Admin color - always pink #FFC0CB
+const ADMIN_COLOR = 'bg-[#FFC0CB]/80 border-[#FFC0CB]';
 
 // Generate a unique ID for this user
 const getOrCreateUserId = (isAdmin: boolean): string => {
