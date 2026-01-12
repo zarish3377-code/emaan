@@ -26,25 +26,37 @@ interface MessagePanelProps {
 
 const EMOJI_OPTIONS = ['🌷', '🩵', '🌼', '💚', '😭', '🫂', '😮‍💨', '🤦‍♀️'];
 
+// Admin user ID (stored in localStorage for this user)
+const ADMIN_SENDER_ID = 'admin_jellyjello';
+
 // Color palette for different users
 const MESSAGE_COLORS = [
-  'bg-pink-200/70 border-pink-300',
   'bg-purple-200/70 border-purple-300',
   'bg-blue-200/70 border-blue-300',
   'bg-green-200/70 border-green-300',
   'bg-yellow-200/70 border-yellow-300',
   'bg-orange-200/70 border-orange-300',
   'bg-teal-200/70 border-teal-300',
-  'bg-rose-200/70 border-rose-300',
   'bg-indigo-200/70 border-indigo-300',
   'bg-cyan-200/70 border-cyan-300',
 ];
 
+// Admin color - always pink
+const ADMIN_COLOR = 'bg-pink-300/80 border-pink-400';
+
 // Generate a unique ID for this user
-const getOrCreateUserId = (): string => {
+const getOrCreateUserId = (isAdmin: boolean): string => {
   const key = 'lovable_user_id';
+  
+  // If admin, always return admin ID
+  if (isAdmin) {
+    localStorage.setItem(key, ADMIN_SENDER_ID);
+    return ADMIN_SENDER_ID;
+  }
+  
   let userId = localStorage.getItem(key);
-  if (!userId) {
+  // If stored ID is admin ID but user is not admin, generate new one
+  if (!userId || userId === ADMIN_SENDER_ID) {
     userId = crypto.randomUUID();
     localStorage.setItem(key, userId);
   }
@@ -53,6 +65,11 @@ const getOrCreateUserId = (): string => {
 
 // Get consistent color based on sender ID
 const getColorForSender = (senderId: string): string => {
+  // Admin always gets pink
+  if (senderId === ADMIN_SENDER_ID) {
+    return ADMIN_COLOR;
+  }
+  
   let hash = 0;
   for (let i = 0; i < senderId.length; i++) {
     hash = senderId.charCodeAt(i) + ((hash << 5) - hash);
@@ -75,9 +92,14 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [userId] = useState(() => getOrCreateUserId());
+  const [userId, setUserId] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Set user ID based on admin status
+  useEffect(() => {
+    setUserId(getOrCreateUserId(isAdmin));
+  }, [isAdmin]);
 
   // Fetch all messages and reactions from database
   useEffect(() => {
