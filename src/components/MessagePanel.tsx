@@ -68,6 +68,23 @@ const getDisplayColor = (value: string): string => {
   return value;
 };
 
+// Helper to apply transparency to any color format
+const applyTransparency = (color: string): string => {
+  // If already rgba, return as-is
+  if (color.startsWith('rgba')) {
+    return color;
+  }
+  // If hex color, convert to rgba with 60% opacity
+  if (color.startsWith('#')) {
+    const hex = color.slice(1);
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    return `rgba(${r}, ${g}, ${b}, 0.6)`;
+  }
+  return color;
+};
+
 // Generate a unique ID for this user
 const getOrCreateUserId = (isAdmin: boolean): string => {
   const key = 'lovable_user_id';
@@ -549,7 +566,9 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
           ) : (
             currentMessages.map((msg) => {
               const isMyMessage = msg.sender_id === userId;
-              const messageColor = msg.color || getFallbackColor(msg.sender_id);
+              const rawColor = msg.color || getFallbackColor(msg.sender_id);
+              const messageColor = applyTransparency(rawColor);
+              const borderColor = getDisplayColor(rawColor);
               const isEditing = editingMessageId === msg.id;
               const messageReactions = getReactionsForMessage(msg.id);
               
@@ -560,8 +579,8 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
                     isMyMessage ? 'ml-4' : 'mr-4'
                   }`}
                   style={{
-                    backgroundColor: `${messageColor}B3`,
-                    borderColor: messageColor
+                    backgroundColor: messageColor,
+                    borderColor: borderColor
                   }}
                 >
                   {isEditing ? (
