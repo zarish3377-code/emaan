@@ -32,21 +32,21 @@ const ADMIN_SENDER_ID = 'admin_jellyjello';
 
 // Color palette for color picker
 const COLOR_OPTIONS = [
-  { name: 'Pink', value: '#FFC0CB' },
-  { name: 'Blue', value: '#7fbbfa' },
-  { name: 'Lavender', value: '#b19cd9' },
-  { name: 'Mint', value: '#98FB98' },
-  { name: 'Peach', value: '#FFDAB9' },
-  { name: 'Yellow', value: '#FFFACD' },
-  { name: 'Coral', value: '#FFB6C1' },
-  { name: 'Sky', value: '#87CEEB' },
+  { name: 'Pink', value: 'rgba(255, 192, 203, 0.6)' },
+  { name: 'Blue', value: 'rgba(127, 187, 250, 0.6)' },
+  { name: 'Lavender', value: 'rgba(177, 156, 217, 0.6)' },
+  { name: 'Mint', value: 'rgba(152, 251, 152, 0.6)' },
+  { name: 'Peach', value: 'rgba(255, 218, 185, 0.6)' },
+  { name: 'Yellow', value: 'rgba(255, 250, 205, 0.6)' },
+  { name: 'Coral', value: 'rgba(255, 182, 193, 0.6)' },
+  { name: 'Sky', value: 'rgba(135, 206, 235, 0.6)' },
 ];
 
 // Default admin color
-const DEFAULT_ADMIN_COLOR = '#FFC0CB';
+const DEFAULT_ADMIN_COLOR = 'rgba(255, 192, 203, 0.6)';
 
 // Default user colors for hash-based assignment
-const DEFAULT_USER_COLORS = ['#7fbbfa', '#b19cd9'];
+const DEFAULT_USER_COLORS = ['rgba(127, 187, 250, 0.6)', 'rgba(177, 156, 217, 0.6)'];
 
 // Generate a unique ID for this user
 const getOrCreateUserId = (isAdmin: boolean): string => {
