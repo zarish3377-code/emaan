@@ -32,28 +32,38 @@ const ADMIN_SENDER_ID = 'admin_jellyjello';
 
 // Color palette for color picker
 const COLOR_OPTIONS = [
-  { name: 'Pink', value: 'rgba(255, 192, 203, 0.6)', display: '#FFC0CB' },
-  { name: 'Blue', value: 'rgba(127, 187, 250, 0.6)', display: '#7fbbfa' },
-  { name: 'Lavender', value: 'rgba(177, 156, 217, 0.6)', display: '#b19cd9' },
-  { name: 'Mint', value: 'rgba(152, 251, 152, 0.6)', display: '#98FB98' },
-  { name: 'Peach', value: 'rgba(255, 218, 185, 0.6)', display: '#FFDAB9' },
-  { name: 'Yellow', value: 'rgba(255, 250, 205, 0.6)', display: '#FFFACD' },
-  { name: 'Coral', value: 'rgba(255, 182, 193, 0.6)', display: '#FFB6C1' },
-  { name: 'Sky', value: 'rgba(135, 206, 235, 0.6)', display: '#87CEEB' },
+  { name: 'Pink', rgb: '255, 192, 203', display: '#FFC0CB' },
+  { name: 'Blue', rgb: '127, 187, 250', display: '#7fbbfa' },
+  { name: 'Lavender', rgb: '177, 156, 217', display: '#b19cd9' },
+  { name: 'Mint', rgb: '152, 251, 152', display: '#98FB98' },
+  { name: 'Peach', rgb: '255, 218, 185', display: '#FFDAB9' },
+  { name: 'Yellow', rgb: '255, 250, 205', display: '#FFFACD' },
+  { name: 'Coral', rgb: '255, 182, 193', display: '#FFB6C1' },
+  { name: 'Sky', rgb: '135, 206, 235', display: '#87CEEB' },
 ];
 
-// Default admin color
-const DEFAULT_ADMIN_COLOR = 'rgba(255, 192, 203, 0.6)';
+// Default colors
+const DEFAULT_ADMIN_RGB = '255, 192, 203';
 const DEFAULT_ADMIN_DISPLAY = '#FFC0CB';
+const DEFAULT_OPACITY = 0.6;
 
-// Default user colors for hash-based assignment
+// Default user colors for hash-based assignment (with fixed opacity)
 const DEFAULT_USER_COLORS = ['rgba(127, 187, 250, 0.6)', 'rgba(177, 156, 217, 0.6)'];
 
-// Helper to get display color from value
+// Helper to build rgba from rgb and opacity
+const buildRgba = (rgb: string, opacity: number): string => {
+  return `rgba(${rgb}, ${opacity})`;
+};
+
+// Helper to get display color from rgba value
 const getDisplayColor = (value: string): string => {
-  const found = COLOR_OPTIONS.find(c => c.value === value);
-  if (found) return found.display;
-  if (value === DEFAULT_ADMIN_COLOR) return DEFAULT_ADMIN_DISPLAY;
+  // Try to find matching color by rgb portion
+  const rgbaMatch = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (rgbaMatch) {
+    const rgb = `${rgbaMatch[1]}, ${rgbaMatch[2]}, ${rgbaMatch[3]}`;
+    const found = COLOR_OPTIONS.find(c => c.rgb === rgb);
+    if (found) return found.display;
+  }
   // For old hex colors, return as-is
   return value;
 };
@@ -81,7 +91,7 @@ const getOrCreateUserId = (isAdmin: boolean): string => {
 const getFallbackColor = (senderId: string): string => {
   // Admin always gets pink by default
   if (senderId === ADMIN_SENDER_ID) {
-    return DEFAULT_ADMIN_COLOR;
+    return buildRgba(DEFAULT_ADMIN_RGB, DEFAULT_OPACITY);
   }
   
   let hash = 0;
@@ -106,7 +116,8 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
   const [editingMessageText, setEditingMessageText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
   const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
-  const [selectedColor, setSelectedColor] = useState<string>(DEFAULT_ADMIN_COLOR);
+  const [selectedRgb, setSelectedRgb] = useState<string>(DEFAULT_ADMIN_RGB);
+  const [selectedOpacity, setSelectedOpacity] = useState<number>(DEFAULT_OPACITY);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [userId, setUserId] = useState<string>('');
@@ -245,7 +256,7 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
         text: trimmedMessage,
         page_name: currentPage,
         sender_id: userId,
-        color: selectedColor
+        color: isAdmin ? buildRgba(selectedRgb, selectedOpacity) : null
       });
 
     if (error) {
@@ -634,16 +645,18 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
                             <Palette className="w-3 h-3 text-dark-berry/50 hover:text-dark-berry" />
                           </button>
                           {showColorPicker === msg.id && (
-                            <div className="absolute bottom-full right-0 mb-1 p-2 bg-white rounded-lg shadow-lg grid grid-cols-4 gap-1 z-20 min-w-[120px]">
-                              {COLOR_OPTIONS.map(color => (
-                                <button
-                                  key={color.value}
-                                  onClick={() => handleChangeMessageColor(msg.id, color.value)}
-                                  className="w-6 h-6 rounded-full border-2 border-white shadow-sm hover:scale-110 transition-transform"
-                                  style={{ backgroundColor: color.display }}
-                                  title={color.name}
-                                />
-                              ))}
+                            <div className="absolute bottom-full right-0 mb-1 p-2 bg-white rounded-lg shadow-lg z-20 min-w-[150px]">
+                              <div className="grid grid-cols-4 gap-1 mb-2">
+                                {COLOR_OPTIONS.map(color => (
+                                  <button
+                                    key={color.rgb}
+                                    onClick={() => handleChangeMessageColor(msg.id, buildRgba(color.rgb, DEFAULT_OPACITY))}
+                                    className="w-6 h-6 rounded-full border-2 border-white shadow-sm hover:scale-110 transition-transform"
+                                    style={{ backgroundColor: color.display }}
+                                    title={color.name}
+                                  />
+                                ))}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -678,33 +691,52 @@ const MessagePanel = ({ isOpen, onClose }: MessagePanelProps) => {
         {/* Input */}
         <div className="p-4 border-t border-blush-rose/20 bg-white/30">
           <div className="flex items-center gap-2">
-            {/* Color picker for new message */}
-            <div className="relative">
-              <button
-                onClick={() => setShowColorPicker(showColorPicker === 'new-message' ? null : 'new-message')}
-                className="w-8 h-8 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
-                style={{ backgroundColor: getDisplayColor(selectedColor) }}
-                title="Choose message color"
-              />
-              {showColorPicker === 'new-message' && (
-                <div className="absolute bottom-full left-0 mb-2 p-2 bg-white rounded-lg shadow-lg grid grid-cols-4 gap-1 z-20 min-w-[120px]">
-                  {COLOR_OPTIONS.map(color => (
+            {/* Color picker for new message - Admin only */}
+            {isAdmin && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowColorPicker(showColorPicker === 'new-message' ? null : 'new-message')}
+                  className="w-8 h-8 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
+                  style={{ backgroundColor: COLOR_OPTIONS.find(c => c.rgb === selectedRgb)?.display || DEFAULT_ADMIN_DISPLAY }}
+                  title="Choose message color"
+                />
+                {showColorPicker === 'new-message' && (
+                  <div className="absolute bottom-full left-0 mb-2 p-3 bg-white rounded-lg shadow-lg z-20 min-w-[160px]">
+                    <div className="grid grid-cols-4 gap-1 mb-3">
+                      {COLOR_OPTIONS.map(color => (
+                        <button
+                          key={color.rgb}
+                          onClick={() => setSelectedRgb(color.rgb)}
+                          className={`w-6 h-6 rounded-full border-2 shadow-sm hover:scale-110 transition-transform ${
+                            selectedRgb === color.rgb ? 'border-dark-berry' : 'border-white'
+                          }`}
+                          style={{ backgroundColor: color.display }}
+                          title={color.name}
+                        />
+                      ))}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-dark-berry/60 font-medium">Opacity: {Math.round(selectedOpacity * 100)}%</label>
+                      <input
+                        type="range"
+                        min="0.2"
+                        max="1"
+                        step="0.1"
+                        value={selectedOpacity}
+                        onChange={(e) => setSelectedOpacity(parseFloat(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blush-rose"
+                      />
+                    </div>
                     <button
-                      key={color.value}
-                      onClick={() => {
-                        setSelectedColor(color.value);
-                        setShowColorPicker(null);
-                      }}
-                      className={`w-6 h-6 rounded-full border-2 shadow-sm hover:scale-110 transition-transform ${
-                        selectedColor === color.value ? 'border-dark-berry' : 'border-white'
-                      }`}
-                      style={{ backgroundColor: color.display }}
-                      title={color.name}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+                      onClick={() => setShowColorPicker(null)}
+                      className="mt-2 w-full text-xs py-1 bg-blush-rose/20 text-dark-berry rounded-full hover:bg-blush-rose/30 transition-colors"
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             <input
               ref={inputRef}
               type="text"
