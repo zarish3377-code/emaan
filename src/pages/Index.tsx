@@ -17,8 +17,6 @@ import CollectionButton from "@/components/CollectionButton";
 import CollectionPanel from "@/components/CollectionPanel";
 import CountdownButton from "@/components/CountdownButton";
 import CountdownPanel from "@/components/CountdownPanel";
-import HugButton from "@/components/HugButton";
-import HugPanel from "@/components/HugPanel";
 import PasswordGate from "@/components/PasswordGate";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
@@ -30,7 +28,6 @@ const Index = () => {
   const [isNewYearPanelOpen, setIsNewYearPanelOpen] = useState(false);
   const [isCollectionOpen, setIsCollectionOpen] = useState(false);
   const [isCountdownOpen, setIsCountdownOpen] = useState(false);
-  const [isHugOpen, setIsHugOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -117,13 +114,6 @@ const Index = () => {
         <CountdownPanel 
           isOpen={isCountdownOpen} 
           onClose={() => setIsCountdownOpen(false)} 
-        />
-
-        {/* Hug Button & Panel */}
-        <HugButton onClick={() => setIsHugOpen(true)} />
-        <HugPanel 
-          isOpen={isHugOpen} 
-          onClose={() => setIsHugOpen(false)} 
         />
 
         {/* Just Say It Button & Panel */}
