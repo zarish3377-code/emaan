@@ -45,10 +45,10 @@ const COLOR_OPTIONS = [
 // Default colors
 const DEFAULT_ADMIN_RGB = '255, 192, 203';
 const DEFAULT_ADMIN_DISPLAY = '#FFC0CB';
-const DEFAULT_OPACITY = 0.6;
+const DEFAULT_OPACITY = 0.5;
 
 // Default user colors for hash-based assignment (with fixed opacity)
-const DEFAULT_USER_COLORS = ['rgba(127, 187, 250, 0.6)', 'rgba(177, 156, 217, 0.6)'];
+const DEFAULT_USER_COLORS = ['rgba(127, 187, 250, 0.5)', 'rgba(177, 156, 217, 0.5)'];
 
 // Helper to build rgba from rgb and opacity
 const buildRgba = (rgb: string, opacity: number): string => {
@@ -80,7 +80,7 @@ const applyTransparency = (color: string): string => {
     const r = parseInt(hex.substr(0, 2), 16);
     const g = parseInt(hex.substr(2, 2), 16);
     const b = parseInt(hex.substr(4, 2), 16);
-    return `rgba(${r}, ${g}, ${b}, 0.6)`;
+    return `rgba(${r}, ${g}, ${b}, 0.5)`;
   }
   return color;
 };
