@@ -107,7 +107,7 @@
   }
 
   a:hover, button:hover, [role="button"]:hover {
-    cursor: url('/images/cursor.png') 16 16, pointer;
+    cursor: url('/images/cursor-hover.png') 16 16, pointer;
   }
 
   h1, h2, h3, h4, h5, h6 {
