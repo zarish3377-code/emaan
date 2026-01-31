@@ -18,7 +18,6 @@ import CollectionPanel from "@/components/CollectionPanel";
 import CountdownButton from "@/components/CountdownButton";
 import CountdownPanel from "@/components/CountdownPanel";
 import PasswordGate from "@/components/PasswordGate";
-import BirthdayGiftWorld from "@/components/birthday/BirthdayGiftWorld";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
 const Index = () => {
@@ -123,9 +122,6 @@ const Index = () => {
           isOpen={isMessagePanelOpen} 
           onClose={() => setIsMessagePanelOpen(false)} 
         />
-
-        {/* Birthday Gift World - Hidden easter egg */}
-        <BirthdayGiftWorld />
       </main>
     </PasswordGate>
   );
