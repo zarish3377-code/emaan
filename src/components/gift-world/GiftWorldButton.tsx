@@ -45,16 +45,16 @@ const GiftWorldButton = ({ onClick }: GiftWorldButtonProps) => {
 
       {/* Main button */}
       <div
-        className={`relative flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-soft-pink via-blush-rose to-pastel-lavender border-2 border-white/50 shadow-lg transition-all duration-300 ${
+        className={`relative flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-soft-pink via-blush-rose to-pastel-lavender border-2 border-white/50 shadow-lg transition-all duration-300 ${
           isHovered ? "scale-110 animate-bounce" : "scale-100"
         }`}
       >
         <Gift
-          className={`w-5 h-5 text-dark-berry transition-transform duration-300 ${
+          className={`w-6 h-6 text-dark-berry transition-transform duration-300 ${
             isHovered ? "rotate-12 scale-110" : ""
           }`}
         />
-        <span className="font-body text-sm font-medium text-dark-berry whitespace-nowrap">
+        <span className="font-body text-base font-medium text-dark-berry whitespace-nowrap">
           lil BHD gift for Love
         </span>
 
