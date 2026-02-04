@@ -3,6 +3,8 @@ import { X } from 'lucide-react';
 import { useSecretGarden } from '@/hooks/useSecretGarden';
 import gardenTulip from '@/assets/garden_tulip.png';
 import gardenDaisy from '@/assets/garden_daisy.png';
+import moonImage from '@/assets/moon.webp';
+import starImage from '@/assets/star.svg';
 
 interface SecretGardenProps {
   isOpen: boolean;
@@ -48,31 +50,35 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
         opacity: isOpen ? 1 : 0,
       }}
     >
-      {/* Stars for night time */}
+      {/* Stars for night time - fill the whole sky */}
       {timeOfDay === 'night' && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute rounded-full bg-white animate-pulse"
+          {/* Many animated star images filling the sky */}
+          {Array.from({ length: 80 }).map((_, i) => (
+            <img
+              key={`star-${i}`}
+              src={starImage}
+              alt=""
+              className="absolute"
               style={{
-                width: Math.random() * 3 + 1 + 'px',
-                height: Math.random() * 3 + 1 + 'px',
-                top: Math.random() * 40 + '%',
-                left: Math.random() * 100 + '%',
-                animationDelay: Math.random() * 3 + 's',
-                opacity: 0.6 + Math.random() * 0.4,
+                width: `${12 + Math.random() * 20}px`,
+                height: `${12 + Math.random() * 20}px`,
+                top: `${Math.random() * 45}%`,
+                left: `${Math.random() * 100}%`,
+                opacity: 0.7 + Math.random() * 0.3,
+                animationDelay: `${Math.random() * 2}s`,
               }}
             />
           ))}
-          {/* Moon */}
-          <div 
-            className="absolute w-16 h-16 rounded-full"
+          {/* Moon image */}
+          <img 
+            src={moonImage}
+            alt="Moon"
+            className="absolute w-20 h-20 object-contain"
             style={{
-              top: '8%',
-              right: '15%',
-              background: 'radial-gradient(circle, #fffde7 0%, #fff9c4 50%, #fff59d 100%)',
-              boxShadow: '0 0 40px rgba(255, 249, 196, 0.6), 0 0 80px rgba(255, 249, 196, 0.3)',
+              top: '6%',
+              right: '12%',
+              filter: 'drop-shadow(0 0 30px rgba(255, 249, 196, 0.6))',
             }}
           />
         </div>
