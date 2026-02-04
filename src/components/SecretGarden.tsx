@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { useSecretGarden } from '@/hooks/useSecretGarden';
 import gardenTulip from '@/assets/garden_tulip.png';
 import gardenDaisy from '@/assets/garden_daisy.png';
+import moonImage from '@/assets/moon.png';
 
 interface SecretGardenProps {
   isOpen: boolean;
@@ -66,13 +67,14 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
             />
           ))}
           {/* Moon */}
-          <div 
-            className="absolute w-16 h-16 rounded-full"
+          <img 
+            src={moonImage}
+            alt="Moon"
+            className="absolute w-28 h-auto"
             style={{
-              top: '8%',
-              right: '15%',
-              background: 'radial-gradient(circle, #fffde7 0%, #fff9c4 50%, #fff59d 100%)',
-              boxShadow: '0 0 40px rgba(255, 249, 196, 0.6), 0 0 80px rgba(255, 249, 196, 0.3)',
+              top: '5%',
+              left: '10%',
+              filter: 'drop-shadow(0 0 30px rgba(255, 255, 255, 0.4))',
             }}
           />
         </div>
