@@ -88,8 +88,8 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
             alt="Sun"
             className="absolute w-80 h-auto"
             style={{
-              top: '3%',
-              right: '10%',
+              top: '1%',
+              right: '5%',
             }}
           />
           {/* Drifting clouds - randomly positioned */}
