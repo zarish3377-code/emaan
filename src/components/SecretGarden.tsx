@@ -86,7 +86,7 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
           <img 
             src={sunImage}
             alt="Sun"
-            className="absolute w-56 h-auto"
+            className="absolute w-80 h-auto"
             style={{
               top: '3%',
               right: '10%',
