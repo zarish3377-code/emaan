@@ -4,6 +4,7 @@ import { useSecretGarden } from '@/hooks/useSecretGarden';
 import gardenTulip from '@/assets/garden_tulip.png';
 import gardenDaisy from '@/assets/garden_daisy.png';
 import moonImage from '@/assets/moon.png';
+import sunImage from '@/assets/sun.png';
 
 interface SecretGardenProps {
   isOpen: boolean;
@@ -82,13 +83,13 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
       {/* Sun for daytime */}
       {timeOfDay === 'day' && (
         <>
-          <div 
-            className="absolute w-20 h-20 rounded-full"
+          <img 
+            src={sunImage}
+            alt="Sun"
+            className="absolute w-36 h-auto"
             style={{
-              top: '8%',
-              right: '15%',
-              background: 'radial-gradient(circle, #fff9c4 0%, #ffee58 50%, #fdd835 100%)',
-              boxShadow: '0 0 60px rgba(253, 216, 53, 0.5), 0 0 120px rgba(253, 216, 53, 0.3)',
+              top: '3%',
+              right: '10%',
             }}
           />
           {/* Drifting clouds - randomly positioned */}
