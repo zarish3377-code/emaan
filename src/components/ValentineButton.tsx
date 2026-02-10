@@ -12,7 +12,7 @@ const ValentineButton = ({ onClick }: ValentineButtonProps) => {
   return (
     <button
       onClick={isUnlocked ? onClick : undefined}
-      className={`fixed top-[17rem] left-4 z-40 px-4 py-2 rounded-full border shadow-lg transition-all duration-300 group ${
+      className={`fixed top-4 left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-full border shadow-lg transition-all duration-300 group ${
         isUnlocked
           ? "bg-gradient-to-r from-rose-200 to-pink-300 border-rose-300/50 hover:shadow-xl hover:scale-105 cursor-pointer"
           : "bg-gray-200 border-gray-300/50 opacity-50 cursor-not-allowed"
