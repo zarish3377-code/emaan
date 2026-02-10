@@ -93,7 +93,7 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
                   alt=""
                   className="absolute pointer-events-none"
                   style={{
-                    width: `${18 + (i % 5) * 6}px`,
+                    width: `${40 + (i % 5) * 12}px`,
                     left: `${5 + (i * 4.7) % 90}%`,
                     top: `${3 + (i * 5.3) % 90}%`,
                     opacity: 0.5 + (i % 4) * 0.12,
