@@ -17,6 +17,8 @@ import CollectionButton from "@/components/CollectionButton";
 import CollectionPanel from "@/components/CollectionPanel";
 import CountdownButton from "@/components/CountdownButton";
 import CountdownPanel from "@/components/CountdownPanel";
+import ValentineButton from "@/components/ValentineButton";
+import ValentinePanel from "@/components/ValentinePanel";
 import PasswordGate from "@/components/PasswordGate";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
@@ -28,6 +30,7 @@ const Index = () => {
   const [isNewYearPanelOpen, setIsNewYearPanelOpen] = useState(false);
   const [isCollectionOpen, setIsCollectionOpen] = useState(false);
   const [isCountdownOpen, setIsCountdownOpen] = useState(false);
+  const [isValentineOpen, setIsValentineOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -114,6 +117,13 @@ const Index = () => {
         <CountdownPanel 
           isOpen={isCountdownOpen} 
           onClose={() => setIsCountdownOpen(false)} 
+        />
+
+        {/* Valentine Button & Panel */}
+        <ValentineButton onClick={() => setIsValentineOpen(true)} />
+        <ValentinePanel 
+          isOpen={isValentineOpen} 
+          onClose={() => setIsValentineOpen(false)} 
         />
 
         {/* Just Say It Button & Panel */}
