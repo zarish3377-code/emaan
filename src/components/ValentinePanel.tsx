@@ -90,17 +90,16 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
                 const cols = 6;
                 const row = Math.floor(i / cols);
                 const col = i % cols;
-                const offsetX = row % 2 === 1 ? 8 : 0; // zigzag offset
-                const left = col * 16 + offsetX - 2; // spread across full width
-                const bottomStart = -(row * 35) - 10; // stagger start positions vertically
+                const offsetX = row % 2 === 1 ? 8 : 0;
+                const left = col * 16 + offsetX - 2;
+                const bottomStart = -(row * 35) - 10;
                 return (
                   <img
                     key={i}
                     src={floatingBunny}
                     alt=""
-                    className="absolute pointer-events-none"
+                    className="absolute pointer-events-none w-[120px] sm:w-[200px] md:w-[350px] lg:w-[500px]"
                     style={{
-                      width: '500px',
                       left: `${left}%`,
                       bottom: `${bottomStart}%`,
                       opacity: 0.22 + (i % 3) * 0.06,
