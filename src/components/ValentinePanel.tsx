@@ -86,22 +86,29 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
           <div className="flex flex-col items-center gap-4 relative">
             {/* Floating bunnies */}
             <div className="absolute inset-0 pointer-events-none" style={{ width: '100vw', height: '100vh', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
-              {Array.from({ length: 30 }).map((_, i) => (
-                <img
-                  key={i}
-                  src={floatingBunny}
-                  alt=""
-                  className="absolute pointer-events-none"
-                  style={{
-                    width: '500px',
-                    left: `${-5 + (i * 3.5) % 95}%`,
-                    bottom: `${-20 - (i * 7) % 40}%`,
-                    opacity: 0.25 + (i % 4) * 0.08,
-                    animation: `floatBunnyUp ${8 + (i % 5) * 2}s linear ${i * 0.6}s infinite`,
-                    transform: `rotate(${-10 + (i * 13) % 20}deg)`,
-                  }}
-                />
-              ))}
+              {Array.from({ length: 18 }).map((_, i) => {
+                const cols = 6;
+                const row = Math.floor(i / cols);
+                const col = i % cols;
+                const offsetX = row % 2 === 1 ? 8 : 0; // zigzag offset
+                const left = col * 16 + offsetX - 2; // spread across full width
+                const bottomStart = -(row * 35) - 10; // stagger start positions vertically
+                return (
+                  <img
+                    key={i}
+                    src={floatingBunny}
+                    alt=""
+                    className="absolute pointer-events-none"
+                    style={{
+                      width: '500px',
+                      left: `${left}%`,
+                      bottom: `${bottomStart}%`,
+                      opacity: 0.22 + (i % 3) * 0.06,
+                      animation: `floatBunnyUp ${10 + (i % 4) * 3}s linear ${i * 0.8}s infinite`,
+                    }}
+                  />
+                );
+              })}
             </div>
 
             <div
