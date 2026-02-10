@@ -259,3 +259,8 @@
   border: 2px solid transparent;
   background-clip: content-box;
 }
+
+@keyframes floatBunny {
+  0% { transform: translateY(0px) rotate(var(--tw-rotate, 0deg)); }
+  100% { transform: translateY(-12px) rotate(var(--tw-rotate, 0deg)); }
+}

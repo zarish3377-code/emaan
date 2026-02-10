@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Heart } from "lucide-react";
 import teddyImg from "@/assets/teddy.png";
+import floatingBunny from "@/assets/floating_bunny.png";
 
 interface ValentinePanelProps {
   isOpen: boolean;
@@ -81,8 +82,28 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
             </button>
           </div>
         ) : !showLetter ? (
-          /* Teddy with letter button */
-          <div className="flex flex-col items-center gap-4">
+          /* Teddy with floating bunnies and letter button */
+          <div className="flex flex-col items-center gap-4 relative">
+            {/* Floating bunnies */}
+            <div className="absolute inset-0 pointer-events-none" style={{ width: '100vw', height: '100vh', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
+              {Array.from({ length: 20 }).map((_, i) => (
+                <img
+                  key={i}
+                  src={floatingBunny}
+                  alt=""
+                  className="absolute pointer-events-none"
+                  style={{
+                    width: `${18 + (i % 5) * 6}px`,
+                    left: `${5 + (i * 4.7) % 90}%`,
+                    top: `${3 + (i * 5.3) % 90}%`,
+                    opacity: 0.5 + (i % 4) * 0.12,
+                    animation: `floatBunny ${3 + (i % 4)}s ease-in-out ${i * 0.3}s infinite alternate`,
+                    transform: `rotate(${-15 + (i * 17) % 30}deg)`,
+                  }}
+                />
+              ))}
+            </div>
+
             <div
               className={`relative transition-all duration-1000 ease-out ${
                 teddyAnimated
