@@ -86,19 +86,19 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
           <div className="flex flex-col items-center gap-4 relative">
             {/* Floating bunnies */}
             <div className="absolute inset-0 pointer-events-none" style={{ width: '100vw', height: '100vh', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
-              {Array.from({ length: 20 }).map((_, i) => (
+              {Array.from({ length: 30 }).map((_, i) => (
                 <img
                   key={i}
                   src={floatingBunny}
                   alt=""
                   className="absolute pointer-events-none"
                   style={{
-                    width: '70px',
-                    left: `${5 + (i * 4.7) % 90}%`,
-                    top: `${3 + (i * 5.3) % 90}%`,
-                    opacity: 0.5 + (i % 4) * 0.12,
-                    animation: `floatBunny ${3 + (i % 4)}s ease-in-out ${i * 0.3}s infinite alternate`,
-                    transform: `rotate(${-15 + (i * 17) % 30}deg)`,
+                    width: '500px',
+                    left: `${-5 + (i * 3.5) % 95}%`,
+                    bottom: `${-20 - (i * 7) % 40}%`,
+                    opacity: 0.25 + (i % 4) * 0.08,
+                    animation: `floatBunnyUp ${8 + (i % 5) * 2}s linear ${i * 0.6}s infinite`,
+                    transform: `rotate(${-10 + (i * 13) % 20}deg)`,
                   }}
                 />
               ))}
