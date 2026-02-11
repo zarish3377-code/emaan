@@ -264,3 +264,23 @@
   0% { transform: translateY(0); }
   100% { transform: translateY(-140vh); }
 }
+
+@keyframes promiseFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes promiseFadeIn {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes promiseImageIn {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes promisePulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(251, 113, 133, 0.3); }
+  50% { box-shadow: 0 0 35px rgba(251, 113, 133, 0.6); }
+}
