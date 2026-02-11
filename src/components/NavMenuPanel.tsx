@@ -1,3 +1,4 @@
+import { useState, useCallback, useRef } from "react";
 import { X } from "lucide-react";
 
 interface NavMenuPanelProps {
@@ -14,14 +15,24 @@ interface NavMenuPanelProps {
 }
 
 const features = [
-  { key: "neno", label: "Ur Neno", emoji: "🌼", gradient: "from-yellow-300 via-pink-200 to-orange-200", ring: "ring-yellow-300/60" },
-  { key: "garden", label: "Secret Garden", emoji: "🌸", gradient: "from-emerald-300 via-green-200 to-teal-100", ring: "ring-emerald-300/60" },
-  { key: "newyear", label: "Happy New Year", emoji: "🎊", gradient: "from-amber-300 via-yellow-200 to-rose-200", ring: "ring-amber-300/60" },
-  { key: "collection", label: "Collection", emoji: "🎵", gradient: "from-violet-400 via-purple-200 to-fuchsia-200", ring: "ring-violet-400/60" },
-  { key: "valentine", label: "My Valentine", emoji: "💌", gradient: "from-rose-400 via-pink-300 to-red-200", ring: "ring-rose-400/60" },
-  { key: "countdown", label: "Countdown", emoji: "💗", gradient: "from-pink-400 via-rose-300 to-pink-200", ring: "ring-pink-400/60" },
-  { key: "message", label: "Just Say It", emoji: "💬", gradient: "from-[#c76b8f] via-[#d98aa8] to-[#e8b4c8]", ring: "ring-[#c76b8f]/60" },
+  { key: "neno", label: "Ur Neno", emoji: "🌼", gradient: "from-yellow-300 via-pink-200 to-orange-200", ring: "ring-yellow-300/60", particles: ["🌼", "🌷", "✨", "🌻", "💛"] },
+  { key: "garden", label: "Secret Garden", emoji: "🌸", gradient: "from-emerald-300 via-green-200 to-teal-100", ring: "ring-emerald-300/60", particles: ["🌸", "🌺", "🌿", "🍃", "🌱"] },
+  { key: "newyear", label: "Happy New Year", emoji: "🎊", gradient: "from-amber-300 via-yellow-200 to-rose-200", ring: "ring-amber-300/60", particles: ["🎉", "🎊", "✨", "🥳", "🎆"] },
+  { key: "collection", label: "Collection", emoji: "🎵", gradient: "from-violet-400 via-purple-200 to-fuchsia-200", ring: "ring-violet-400/60", particles: ["🎵", "🎶", "🎧", "💜", "✨"] },
+  { key: "valentine", label: "My Valentine", emoji: "💌", gradient: "from-rose-400 via-pink-300 to-red-200", ring: "ring-rose-400/60", particles: ["❤️", "💕", "💗", "🌹", "💖"] },
+  { key: "countdown", label: "Countdown", emoji: "💗", gradient: "from-pink-400 via-rose-300 to-pink-200", ring: "ring-pink-400/60", particles: ["💗", "⏳", "💖", "✨", "💞"] },
+  { key: "message", label: "Just Say It", emoji: "💬", gradient: "from-[#c76b8f] via-[#d98aa8] to-[#e8b4c8]", ring: "ring-[#c76b8f]/60", particles: ["💬", "💌", "💕", "🫶", "✨"] },
 ];
+
+interface Particle {
+  id: number;
+  emoji: string;
+  x: number;
+  y: number;
+  angle: number;
+  distance: number;
+  delay: number;
+}
 
 const NavMenuPanel = ({
   isOpen,
@@ -35,7 +46,8 @@ const NavMenuPanel = ({
   onOpenCountdown,
   onOpenMessage,
 }: NavMenuPanelProps) => {
-  if (!isOpen) return null;
+  const [burstParticles, setBurstParticles] = useState<Particle[]>([]);
+  const idCounter = useRef(0);
 
   const handlers: Record<string, () => void> = {
     neno: onOpenNeno,
@@ -47,10 +59,59 @@ const NavMenuPanel = ({
     message: onOpenMessage,
   };
 
+  const handleClick = useCallback((e: React.MouseEvent, featureKey: string, particleEmojis: string[]) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    const newParticles: Particle[] = [];
+    for (let i = 0; i < 12; i++) {
+      newParticles.push({
+        id: idCounter.current++,
+        emoji: particleEmojis[Math.floor(Math.random() * particleEmojis.length)],
+        x: cx,
+        y: cy,
+        angle: (360 / 12) * i + (Math.random() * 20 - 10),
+        distance: 60 + Math.random() * 80,
+        delay: Math.random() * 100,
+      });
+    }
+    setBurstParticles(newParticles);
+
+    setTimeout(() => {
+      setBurstParticles([]);
+      onSelect(handlers[featureKey]);
+    }, 600);
+  }, [handlers, onSelect]);
+
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+
+      {/* Particle burst layer */}
+      {burstParticles.map((p) => {
+        const rad = (p.angle * Math.PI) / 180;
+        const tx = Math.cos(rad) * p.distance;
+        const ty = Math.sin(rad) * p.distance;
+        return (
+          <span
+            key={p.id}
+            className="fixed z-[60] pointer-events-none text-2xl"
+            style={{
+              left: p.x,
+              top: p.y,
+              animation: `navBurst 550ms ${p.delay}ms ease-out forwards`,
+              ['--tx' as string]: `${tx}px`,
+              ['--ty' as string]: `${ty}px`,
+            }}
+          >
+            {p.emoji}
+          </span>
+        );
+      })}
 
       {/* Content */}
       <div
@@ -74,7 +135,7 @@ const NavMenuPanel = ({
           {features.map((f, i) => (
             <button
               key={f.key}
-              onClick={() => onSelect(handlers[f.key])}
+              onClick={(e) => handleClick(e, f.key, f.particles)}
               className="flex flex-col items-center gap-2 animate-scale-in group"
               style={{ animationDelay: `${i * 80}ms`, animationFillMode: "both" }}
             >
