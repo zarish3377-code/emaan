@@ -4,15 +4,21 @@ import SweaterSection from "@/components/SweaterSection";
 import LetterSection from "@/components/LetterSection";
 import VideoSection from "@/components/VideoSection";
 import BackgroundMusic from "@/components/BackgroundMusic";
+import JustSayItButton from "@/components/JustSayItButton";
 import MessagePanel from "@/components/MessagePanel";
+import NenoButton from "@/components/NenoButton";
 import NenoPanel from "@/components/NenoPanel";
+import SecretGardenButton from "@/components/SecretGardenButton";
 import SecretGarden from "@/components/SecretGarden";
 import NewYearCelebration from "@/components/NewYearCelebration";
+import NewYearButton from "@/components/NewYearButton";
 import NewYearPanel from "@/components/NewYearPanel";
+import CollectionButton from "@/components/CollectionButton";
 import CollectionPanel from "@/components/CollectionPanel";
+import CountdownButton from "@/components/CountdownButton";
 import CountdownPanel from "@/components/CountdownPanel";
+import ValentineButton from "@/components/ValentineButton";
 import ValentinePanel from "@/components/ValentinePanel";
-import NavMenuButton from "@/components/NavMenuButton";
 import PasswordGate from "@/components/PasswordGate";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
@@ -75,25 +81,57 @@ const Index = () => {
           </p>
         </footer>
 
-        {/* Nav Menu */}
-        <NavMenuButton
-          onOpenNeno={() => setIsNenoPanelOpen(true)}
-          onOpenGarden={() => setIsGardenOpen(true)}
-          onOpenNewYear={() => setIsNewYearPanelOpen(true)}
-          onOpenCollection={() => setIsCollectionOpen(true)}
-          onOpenValentine={() => setIsValentineOpen(true)}
-          onOpenCountdown={() => setIsCountdownOpen(true)}
-          onOpenMessage={() => setIsMessagePanelOpen(true)}
+        {/* Neno Button & Panel */}
+        <NenoButton onClick={() => setIsNenoPanelOpen(true)} />
+        <NenoPanel 
+          isOpen={isNenoPanelOpen} 
+          onClose={() => setIsNenoPanelOpen(false)} 
         />
 
-        {/* Panels */}
-        <NenoPanel isOpen={isNenoPanelOpen} onClose={() => setIsNenoPanelOpen(false)} />
-        <SecretGarden isOpen={isGardenOpen} onClose={() => setIsGardenOpen(false)} />
-        <NewYearPanel isOpen={isNewYearPanelOpen} onClose={() => setIsNewYearPanelOpen(false)} />
-        <CollectionPanel isOpen={isCollectionOpen} onClose={() => setIsCollectionOpen(false)} />
-        <CountdownPanel isOpen={isCountdownOpen} onClose={() => setIsCountdownOpen(false)} />
-        <ValentinePanel isOpen={isValentineOpen} onClose={() => setIsValentineOpen(false)} />
-        <MessagePanel isOpen={isMessagePanelOpen} onClose={() => setIsMessagePanelOpen(false)} />
+        {/* New Year Celebration (shows on Jan 1, 2026) */}
+        <NewYearCelebration />
+
+        {/* Secret Garden Button & View */}
+        <SecretGardenButton onClick={() => setIsGardenOpen(true)} />
+        <SecretGarden 
+          isOpen={isGardenOpen} 
+          onClose={() => setIsGardenOpen(false)} 
+        />
+
+        {/* Happy New Year Button & Panel */}
+        <NewYearButton onClick={() => setIsNewYearPanelOpen(true)} />
+        <NewYearPanel 
+          isOpen={isNewYearPanelOpen} 
+          onClose={() => setIsNewYearPanelOpen(false)} 
+        />
+
+        {/* Collection Button & Panel */}
+        <CollectionButton onClick={() => setIsCollectionOpen(true)} />
+        <CollectionPanel 
+          isOpen={isCollectionOpen} 
+          onClose={() => setIsCollectionOpen(false)} 
+        />
+
+        {/* Countdown Button & Panel */}
+        <CountdownButton onClick={() => setIsCountdownOpen(true)} />
+        <CountdownPanel 
+          isOpen={isCountdownOpen} 
+          onClose={() => setIsCountdownOpen(false)} 
+        />
+
+        {/* Valentine Button & Panel */}
+        <ValentineButton onClick={() => setIsValentineOpen(true)} />
+        <ValentinePanel 
+          isOpen={isValentineOpen} 
+          onClose={() => setIsValentineOpen(false)} 
+        />
+
+        {/* Just Say It Button & Panel */}
+        <JustSayItButton onClick={() => setIsMessagePanelOpen(true)} />
+        <MessagePanel 
+          isOpen={isMessagePanelOpen} 
+          onClose={() => setIsMessagePanelOpen(false)} 
+        />
       </main>
     </PasswordGate>
   );
