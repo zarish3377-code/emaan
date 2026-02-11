@@ -14,13 +14,13 @@ interface NavMenuPanelProps {
 }
 
 const features = [
-  { key: "neno", label: "Ur Neno", emoji: "🌼", gradient: "from-yellow-200 to-pink-200" },
-  { key: "garden", label: "Secret Garden", emoji: "🌸", gradient: "from-green-200 to-pink-100" },
-  { key: "newyear", label: "Happy New Year", emoji: "🎊", gradient: "from-amber-100 to-rose-200" },
-  { key: "collection", label: "Collection", emoji: "🎵", gradient: "from-violet-200 to-purple-100" },
-  { key: "valentine", label: "My Valentine", emoji: "💌", gradient: "from-rose-200 to-pink-300" },
-  { key: "countdown", label: "Countdown", emoji: "💗", gradient: "from-pink-300 to-rose-400" },
-  { key: "message", label: "Just Say It", emoji: "💬", gradient: "from-[#d98aa8] to-[#c76b8f]" },
+  { key: "neno", label: "Ur Neno", emoji: "🌼", gradient: "from-yellow-300 via-pink-200 to-orange-200", ring: "ring-yellow-300/60" },
+  { key: "garden", label: "Secret Garden", emoji: "🌸", gradient: "from-emerald-300 via-green-200 to-teal-100", ring: "ring-emerald-300/60" },
+  { key: "newyear", label: "Happy New Year", emoji: "🎊", gradient: "from-amber-300 via-yellow-200 to-rose-200", ring: "ring-amber-300/60" },
+  { key: "collection", label: "Collection", emoji: "🎵", gradient: "from-violet-400 via-purple-200 to-fuchsia-200", ring: "ring-violet-400/60" },
+  { key: "valentine", label: "My Valentine", emoji: "💌", gradient: "from-rose-400 via-pink-300 to-red-200", ring: "ring-rose-400/60" },
+  { key: "countdown", label: "Countdown", emoji: "💗", gradient: "from-pink-400 via-rose-300 to-pink-200", ring: "ring-pink-400/60" },
+  { key: "message", label: "Just Say It", emoji: "💬", gradient: "from-[#c76b8f] via-[#d98aa8] to-[#e8b4c8]", ring: "ring-[#c76b8f]/60" },
 ];
 
 const NavMenuPanel = ({
@@ -75,15 +75,18 @@ const NavMenuPanel = ({
             <button
               key={f.key}
               onClick={() => onSelect(handlers[f.key])}
-              className={`flex flex-col items-center gap-2 animate-scale-in`}
-              style={{ animationDelay: `${i * 60}ms`, animationFillMode: "both" }}
+              className="flex flex-col items-center gap-2 animate-scale-in group"
+              style={{ animationDelay: `${i * 80}ms`, animationFillMode: "both" }}
             >
               <div
-                className={`w-20 h-20 rounded-full bg-gradient-to-br ${f.gradient} flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300`}
+                className={`w-20 h-20 rounded-full bg-gradient-to-br ${f.gradient} flex items-center justify-center shadow-xl ring-2 ${f.ring} group-hover:scale-115 group-hover:shadow-2xl group-hover:ring-4 transition-all duration-300 group-active:scale-95`}
+                style={{
+                  boxShadow: '0 6px 30px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.6)',
+                }}
               >
-                <span className="text-2xl">{f.emoji}</span>
+                <span className="text-3xl drop-shadow-md">{f.emoji}</span>
               </div>
-              <span className="text-white/90 text-xs font-serif text-center leading-tight">
+              <span className="text-white text-xs font-serif text-center leading-tight drop-shadow-md font-medium">
                 {f.label}
               </span>
             </button>
