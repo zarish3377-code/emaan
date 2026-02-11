@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Heart } from "lucide-react";
 import teddyImg from "@/assets/teddy.png";
 import floatingBunny from "@/assets/floating_bunny.png";
+import PromiseDayView from "./PromiseDayView";
 
 interface ValentinePanelProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
   const [showTeddy, setShowTeddy] = useState(false);
   const [teddyAnimated, setTeddyAnimated] = useState(false);
   const [showLetter, setShowLetter] = useState(false);
+  const [showPromise, setShowPromise] = useState(false);
 
   const handleTeddyDay = () => {
     setShowTeddy(true);
@@ -22,6 +24,7 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
     setShowTeddy(false);
     setTeddyAnimated(false);
     setShowLetter(false);
+    setShowPromise(false);
     onClose();
   };
 
@@ -62,8 +65,10 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-6 px-4 max-w-md w-full">
-        {!showTeddy ? (
-          /* Teddy Day Button */
+        {showPromise ? (
+          <PromiseDayView onBack={() => setShowPromise(false)} />
+        ) : !showTeddy ? (
+          /* Day Selection Buttons */
           <div className="animate-scale-in flex flex-col items-center gap-4">
             <h2 className="text-2xl md:text-3xl font-display text-white/90 text-center tracking-wide">
               My Valentine 🌹
@@ -71,15 +76,26 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
             <p className="text-white/60 text-sm text-center font-body mb-4">
               a little something waiting for you...
             </p>
-            <button
-              onClick={handleTeddyDay}
-              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-display text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
-              style={{
-                boxShadow: "0 8px 32px rgba(244, 63, 94, 0.5), 0 0 60px rgba(251, 113, 133, 0.2)",
-              }}
-            >
-              🧸 Teddy Day
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={handleTeddyDay}
+                className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-display text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                style={{
+                  boxShadow: "0 8px 32px rgba(244, 63, 94, 0.5), 0 0 60px rgba(251, 113, 133, 0.2)",
+                }}
+              >
+                🧸 Teddy Day
+              </button>
+              <button
+                onClick={() => setShowPromise(true)}
+                className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-300 to-rose-400 text-white font-display text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                style={{
+                  boxShadow: "0 8px 32px rgba(251, 191, 36, 0.4), 0 0 60px rgba(251, 113, 133, 0.2)",
+                }}
+              >
+                🤙🏻 Promise Day
+              </button>
+            </div>
           </div>
         ) : !showLetter ? (
           /* Teddy with floating bunnies and letter button */
