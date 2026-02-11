@@ -32,7 +32,7 @@ const petals = [
 
 // Angles spread downward in a semi-arc, -50deg to +70deg
 const petalAngles = [-50, -30, -12, 8, 28, 50, 70];
-const RADIUS = 120;
+const RADIUS = 160;
 
 const NavMenuButton = ({
   onOpenNeno,
@@ -157,7 +157,7 @@ const NavMenuButton = ({
           const tx = Math.cos(angleRad) * RADIUS;
           const ty = Math.sin(angleRad) * RADIUS;
           const isLarge = petal.size === "large";
-          const petalSize = isLarge ? 68 : 58;
+          const petalSize = isLarge ? 110 : 90;
 
           return (
             <button
@@ -188,8 +188,8 @@ const NavMenuButton = ({
               />
               {/* Emoji + Label */}
               <div className="relative z-10 flex flex-col items-center justify-center h-full pointer-events-none">
-                <span className="text-lg leading-none drop-shadow-sm">{petal.emoji}</span>
-                <span className="text-[8px] font-serif text-foreground/80 leading-tight mt-0.5 text-center max-w-[54px]">
+                <span className="text-2xl leading-none drop-shadow-sm">{petal.emoji}</span>
+                <span className="text-[10px] font-serif text-foreground/80 leading-tight mt-1 text-center max-w-[80px] font-medium">
                   {petal.label}
                 </span>
               </div>
