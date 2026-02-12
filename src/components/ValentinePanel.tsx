@@ -8,9 +8,10 @@ import HugDayView from "./HugDayView";
 interface ValentinePanelProps {
   isOpen: boolean;
   onClose: () => void;
+  backgroundAudioRef?: React.RefObject<HTMLAudioElement>;
 }
 
-const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
+const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelProps) => {
   const [showTeddy, setShowTeddy] = useState(false);
   const [teddyAnimated, setTeddyAnimated] = useState(false);
   const [showLetter, setShowLetter] = useState(false);
@@ -18,9 +19,14 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
   const [showHug, setShowHug] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Audio: play on open, stop on close
+  // Audio: play on open, stop on close; pause/resume background music
   useEffect(() => {
     if (isOpen) {
+      // Pause background music
+      if (backgroundAudioRef?.current) {
+        backgroundAudioRef.current.pause();
+      }
+
       if (!audioRef.current) {
         audioRef.current = new Audio("/audio/valentine_bgm.mp3");
         audioRef.current.loop = true;
@@ -51,8 +57,21 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
           }
         }, 60);
       }
+
+      // Resume background music
+      if (backgroundAudioRef?.current && backgroundAudioRef.current.paused) {
+        let vol = 0;
+        backgroundAudioRef.current.play().catch(() => {});
+        const fadeIn = setInterval(() => {
+          vol = Math.min(vol + 0.01, 0.25);
+          if (backgroundAudioRef.current) {
+            backgroundAudioRef.current.volume = vol;
+          }
+          if (vol >= 0.25) clearInterval(fadeIn);
+        }, 120);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, backgroundAudioRef]);
 
   const handleTeddyDay = () => {
     setShowTeddy(true);

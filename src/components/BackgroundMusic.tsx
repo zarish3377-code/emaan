@@ -1,19 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, forwardRef } from "react";
 
-const BackgroundMusic = () => {
-  const audioRef = useRef<HTMLAudioElement>(null);
+const BackgroundMusic = forwardRef<HTMLAudioElement>((_, ref) => {
+  const internalRef = useRef<HTMLAudioElement>(null);
+  const audioRef = ref || internalRef;
   const [musicStarted, setMusicStarted] = useState(false);
 
   useEffect(() => {
     const startMusic = () => {
-      if (!musicStarted && audioRef.current) {
+      if (!musicStarted && audioRef && 'current' in audioRef && audioRef.current) {
         setMusicStarted(true);
         audioRef.current.volume = 0;
         audioRef.current.play().then(() => {
           let volume = 0;
           const fadeInterval = setInterval(() => {
             volume += 0.01;
-            if (audioRef.current) {
+            if (audioRef && 'current' in audioRef && audioRef.current) {
               audioRef.current.volume = Math.min(volume, 0.25);
             }
             if (volume >= 0.25) {
@@ -36,13 +37,15 @@ const BackgroundMusic = () => {
       window.removeEventListener("click", startMusic);
       window.removeEventListener("touchstart", startMusic);
     };
-  }, [musicStarted]);
+  }, [musicStarted, audioRef]);
 
   return (
     <audio ref={audioRef} loop className="hidden">
       <source src="/audio/bgm.mp3" type="audio/mpeg" />
     </audio>
   );
-};
+});
+
+BackgroundMusic.displayName = "BackgroundMusic";
 
 export default BackgroundMusic;
