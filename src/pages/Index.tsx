@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import HeroSection from "@/components/HeroSection";
 import SweaterSection from "@/components/SweaterSection";
 import LetterSection from "@/components/LetterSection";
@@ -31,6 +31,7 @@ const Index = () => {
   const [isCollectionOpen, setIsCollectionOpen] = useState(false);
   const [isCountdownOpen, setIsCountdownOpen] = useState(false);
   const [isValentineOpen, setIsValentineOpen] = useState(false);
+  const backgroundAudioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,7 +58,7 @@ const Index = () => {
         />
 
         {/* Background Music */}
-        <BackgroundMusic />
+        <BackgroundMusic ref={backgroundAudioRef} />
 
         {/* Hero Section with Video Background */}
         <HeroSection scrollProgress={scrollProgress} />
@@ -123,7 +124,8 @@ const Index = () => {
         <ValentineButton onClick={() => setIsValentineOpen(true)} />
         <ValentinePanel 
           isOpen={isValentineOpen} 
-          onClose={() => setIsValentineOpen(false)} 
+          onClose={() => setIsValentineOpen(false)}
+          backgroundAudioRef={backgroundAudioRef}
         />
 
         {/* Just Say It Button & Panel */}
