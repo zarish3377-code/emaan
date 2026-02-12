@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Heart } from "lucide-react";
 import teddyImg from "@/assets/teddy.png";
 import floatingBunny from "@/assets/floating_bunny.png";
 import PromiseDayView from "./PromiseDayView";
+import HugDayView from "./HugDayView";
 
 interface ValentinePanelProps {
   isOpen: boolean;
@@ -14,6 +15,44 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
   const [teddyAnimated, setTeddyAnimated] = useState(false);
   const [showLetter, setShowLetter] = useState(false);
   const [showPromise, setShowPromise] = useState(false);
+  const [showHug, setShowHug] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Audio: play on open, stop on close
+  useEffect(() => {
+    if (isOpen) {
+      if (!audioRef.current) {
+        audioRef.current = new Audio("/audio/valentine_bgm.mp3");
+        audioRef.current.loop = true;
+        audioRef.current.volume = 0;
+      }
+      const audio = audioRef.current;
+      audio.play().catch(() => {});
+      // Fade in volume
+      let vol = 0;
+      const fadeIn = setInterval(() => {
+        vol = Math.min(vol + 0.02, 0.35);
+        audio.volume = vol;
+        if (vol >= 0.35) clearInterval(fadeIn);
+      }, 80);
+      return () => clearInterval(fadeIn);
+    } else {
+      if (audioRef.current) {
+        const audio = audioRef.current;
+        // Fade out
+        let vol = audio.volume;
+        const fadeOut = setInterval(() => {
+          vol = Math.max(vol - 0.03, 0);
+          audio.volume = vol;
+          if (vol <= 0) {
+            clearInterval(fadeOut);
+            audio.pause();
+            audio.currentTime = 0;
+          }
+        }, 60);
+      }
+    }
+  }, [isOpen]);
 
   const handleTeddyDay = () => {
     setShowTeddy(true);
@@ -25,6 +64,7 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
     setTeddyAnimated(false);
     setShowLetter(false);
     setShowPromise(false);
+    setShowHug(false);
     onClose();
   };
 
@@ -65,7 +105,9 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-6 px-4 max-w-md w-full">
-        {showPromise ? (
+        {showHug ? (
+          <HugDayView onBack={() => setShowHug(false)} />
+        ) : showPromise ? (
           <PromiseDayView onBack={() => setShowPromise(false)} />
         ) : !showTeddy ? (
           /* Day Selection Buttons */
@@ -76,10 +118,10 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
             <p className="text-white/60 text-sm text-center font-body mb-4">
               a little something waiting for you...
             </p>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap justify-center gap-3">
               <button
                 onClick={handleTeddyDay}
-                className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-display text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-display text-base shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
                 style={{
                   boxShadow: "0 8px 32px rgba(244, 63, 94, 0.5), 0 0 60px rgba(251, 113, 133, 0.2)",
                 }}
@@ -88,12 +130,21 @@ const ValentinePanel = ({ isOpen, onClose }: ValentinePanelProps) => {
               </button>
               <button
                 onClick={() => setShowPromise(true)}
-                className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-300 to-rose-400 text-white font-display text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-rose-400 text-white font-display text-base shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
                 style={{
                   boxShadow: "0 8px 32px rgba(251, 191, 36, 0.4), 0 0 60px rgba(251, 113, 133, 0.2)",
                 }}
               >
                 🤙🏻 Promise Day
+              </button>
+              <button
+                onClick={() => setShowHug(true)}
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-300 to-rose-400 text-white font-display text-base shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                style={{
+                  boxShadow: "0 8px 32px rgba(236, 72, 153, 0.4), 0 0 60px rgba(251, 113, 133, 0.2)",
+                }}
+              >
+                🤗 Hug Day
               </button>
             </div>
           </div>
