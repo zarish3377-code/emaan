@@ -4,6 +4,7 @@ import teddyImg from "@/assets/teddy.png";
 import floatingBunny from "@/assets/floating_bunny.png";
 import PromiseDayView from "./PromiseDayView";
 import HugDayView from "./HugDayView";
+import KissDayView from "./KissDayView";
 
 interface ValentinePanelProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
   const [showLetter, setShowLetter] = useState(false);
   const [showPromise, setShowPromise] = useState(false);
   const [showHug, setShowHug] = useState(false);
+  const [showKiss, setShowKiss] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Audio: play on open, stop on close; pause/resume background music
@@ -84,6 +86,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
     setShowLetter(false);
     setShowPromise(false);
     setShowHug(false);
+    setShowKiss(false);
     onClose();
   };
 
@@ -124,7 +127,9 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-6 px-4 max-w-md w-full">
-        {showHug ? (
+        {showKiss ? (
+          <KissDayView onBack={() => setShowKiss(false)} />
+        ) : showHug ? (
           <HugDayView onBack={() => setShowHug(false)} />
         ) : showPromise ? (
           <PromiseDayView onBack={() => setShowPromise(false)} />
@@ -164,6 +169,15 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
                 }}
               >
                 🤗 Hug Day
+              </button>
+              <button
+                onClick={() => setShowKiss(true)}
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-300 to-pink-400 text-white font-display text-base shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                style={{
+                  boxShadow: "0 8px 32px rgba(244, 171, 188, 0.4), 0 0 60px rgba(251, 113, 133, 0.2)",
+                }}
+              >
+                💋 Kiss Day
               </button>
             </div>
           </div>
