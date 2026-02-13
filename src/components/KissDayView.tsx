@@ -116,7 +116,7 @@ const KissDayView = ({ onBack }: KissDayViewProps) => {
               </p>
 
               <p className="mb-4">
-                That was maybe for the video, but behind it was just affection. I remember how I came back home so happy that you did let me, and I was thinking about your comfort—keeping it respectful—because what we have means more to me than any random action.
+                That was maybe for the video, but behind it was just affection. I remember how I came back home so happy that you did let me, and I was thinking about your comfort, keeping it respectful, because what we have means more to me than any random action.
               </p>
 
               <p className="mb-4">
@@ -136,7 +136,7 @@ const KissDayView = ({ onBack }: KissDayViewProps) => {
               </p>
 
               <p className="mb-4">
-                I love you for who you are, for how you think, for how you care, for how you stay. You are not just anyone in my life. You are my person. And that doesn't change easily—at least for me.
+                I love you for who you are, for how you think, for how you care, for how you stay. You are not just anyone in my life. You are my person. And that doesn't change easily, at least for me.
               </p>
 
               <p className="mb-4">
