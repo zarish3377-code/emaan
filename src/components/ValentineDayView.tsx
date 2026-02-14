@@ -112,8 +112,8 @@ const ValentineDayView = ({ onBack, image }: ValentineDayViewProps) => {
           <img
             src={image}
             alt="Valentine — for you"
-            className="relative z-0 object-contain"
-            style={{ animation: "valImageIn 1s ease-out both", maxWidth: "1920px", maxHeight: "1080px", width: "100%", height: "auto" }}
+            className="relative z-0 object-contain max-w-xs sm:max-w-sm md:max-w-md rounded-2xl drop-shadow-2xl"
+            style={{ animation: "valImageIn 1s ease-out both" }}
           />
 
           {/* Tap button — centered over image */}
