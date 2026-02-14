@@ -326,3 +326,25 @@
   0%, 100% { box-shadow: 0 0 20px rgba(251, 113, 133, 0.35); }
   50% { box-shadow: 0 0 35px rgba(251, 113, 133, 0.6); }
 }
+
+/* Valentine Day (main reveal) animations */
+@keyframes valImageIn {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes valFloat {
+  0% { transform: translateY(0) rotate(-2deg); opacity: inherit; }
+  50% { transform: translateY(-110vh) rotate(4deg); }
+  100% { transform: translateY(-220vh) rotate(-1deg); opacity: 0; }
+}
+
+@keyframes valBreath {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 25px rgba(251, 113, 133, 0.4); }
+  50% { transform: scale(1.06); box-shadow: 0 0 40px rgba(251, 113, 133, 0.7); }
+}
+
+@keyframes valGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(251, 113, 133, 0.3), 0 0 40px rgba(251, 113, 133, 0.15); }
+  50% { box-shadow: 0 0 35px rgba(251, 113, 133, 0.55), 0 0 70px rgba(251, 113, 133, 0.25); }
+}
