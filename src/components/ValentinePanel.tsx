@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { X, Heart } from "lucide-react";
 import teddyImg from "@/assets/teddy.png";
 import floatingBunny from "@/assets/floating_bunny.png";
+import valentineDayImg from "@/assets/valentine_day.png";
 import PromiseDayView from "./PromiseDayView";
 import HugDayView from "./HugDayView";
 import KissDayView from "./KissDayView";
@@ -129,9 +130,9 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-6 px-4 max-w-md w-full">
+      <div className={`relative z-10 flex flex-col items-center gap-6 px-4 ${showValentineDay ? 'max-w-none w-full h-full' : 'max-w-md w-full'}`}>
         {showValentineDay ? (
-          <ValentineDayView onBack={() => setShowValentineDay(false)} image={teddyImg} />
+          <ValentineDayView onBack={() => setShowValentineDay(false)} image={valentineDayImg} />
         ) : showKiss ? (
           <KissDayView onBack={() => setShowKiss(false)} />
         ) : showHug ? (
