@@ -57,7 +57,7 @@ const ValentineDayView = ({ onBack, image }: ValentineDayViewProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl relative">
+    <div className="flex flex-col items-center w-full relative">
       {/* Floating flowers — many, dreamy */}
       <div
         className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
@@ -112,7 +112,7 @@ const ValentineDayView = ({ onBack, image }: ValentineDayViewProps) => {
           <img
             src={image}
             alt="Valentine — for you"
-            className="w-72 sm:w-80 md:w-[28rem] h-auto drop-shadow-2xl rounded-2xl object-contain"
+            className="fixed inset-0 w-full h-full object-cover drop-shadow-2xl z-0"
             style={{ animation: "valImageIn 1s ease-out both" }}
           />
 
