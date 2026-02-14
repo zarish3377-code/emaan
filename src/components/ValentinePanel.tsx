@@ -5,6 +5,7 @@ import floatingBunny from "@/assets/floating_bunny.png";
 import PromiseDayView from "./PromiseDayView";
 import HugDayView from "./HugDayView";
 import KissDayView from "./KissDayView";
+import ValentineDayView from "./ValentineDayView";
 
 interface ValentinePanelProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
   const [showPromise, setShowPromise] = useState(false);
   const [showHug, setShowHug] = useState(false);
   const [showKiss, setShowKiss] = useState(false);
+  const [showValentineDay, setShowValentineDay] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Audio: play on open, stop on close; pause/resume background music
@@ -87,6 +89,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
     setShowPromise(false);
     setShowHug(false);
     setShowKiss(false);
+    setShowValentineDay(false);
     onClose();
   };
 
@@ -127,55 +130,68 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-6 px-4 max-w-md w-full">
-        {showKiss ? (
+        {showValentineDay ? (
+          <ValentineDayView onBack={() => setShowValentineDay(false)} image={teddyImg} />
+        ) : showKiss ? (
           <KissDayView onBack={() => setShowKiss(false)} />
         ) : showHug ? (
           <HugDayView onBack={() => setShowHug(false)} />
         ) : showPromise ? (
           <PromiseDayView onBack={() => setShowPromise(false)} />
         ) : !showTeddy ? (
-          /* Day Selection Buttons */
+          /* Day Selection — petal layout with Valentine center */
           <div className="animate-scale-in flex flex-col items-center gap-4">
             <h2 className="text-2xl md:text-3xl font-display text-white/90 text-center tracking-wide">
               My Valentine 🌹
             </h2>
-            <p className="text-white/60 text-sm text-center font-body mb-4">
+            <p className="text-white/60 text-sm text-center font-body mb-2">
               a little something waiting for you...
             </p>
-            <div className="flex flex-wrap justify-center gap-3">
+
+            {/* Petal layout container */}
+            <div className="relative w-72 h-72 sm:w-80 sm:h-80 flex items-center justify-center">
+              {/* Center: Valentine button — larger, glowing */}
+              <button
+                onClick={() => setShowValentineDay(true)}
+                className="absolute z-10 px-7 py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-display text-lg shadow-2xl hover:scale-110 transition-all duration-500"
+                style={{
+                  animation: "valBreath 3s ease-in-out infinite",
+                  boxShadow: "0 8px 40px rgba(244, 63, 94, 0.6), 0 0 80px rgba(251, 113, 133, 0.3)",
+                }}
+              >
+                💝 Valentine
+              </button>
+
+              {/* Surrounding day buttons in circle positions */}
+              {/* Top */}
               <button
                 onClick={handleTeddyDay}
-                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-display text-base shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
-                style={{
-                  boxShadow: "0 8px 32px rgba(244, 63, 94, 0.5), 0 0 60px rgba(251, 113, 133, 0.2)",
-                }}
+                className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                style={{ boxShadow: "0 6px 24px rgba(244, 63, 94, 0.4)" }}
               >
                 🧸 Teddy Day
               </button>
+              {/* Right */}
               <button
                 onClick={() => setShowPromise(true)}
-                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-rose-400 text-white font-display text-base shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
-                style={{
-                  boxShadow: "0 8px 32px rgba(251, 191, 36, 0.4), 0 0 60px rgba(251, 113, 133, 0.2)",
-                }}
+                className="absolute right-0 top-1/2 -translate-y-1/2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-300 to-rose-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                style={{ boxShadow: "0 6px 24px rgba(251, 191, 36, 0.35)" }}
               >
-                🤙🏻 Promise Day
+                🤙🏻 Promise
               </button>
+              {/* Bottom */}
               <button
                 onClick={() => setShowHug(true)}
-                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-300 to-rose-400 text-white font-display text-base shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
-                style={{
-                  boxShadow: "0 8px 32px rgba(236, 72, 153, 0.4), 0 0 60px rgba(251, 113, 133, 0.2)",
-                }}
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-pink-300 to-rose-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                style={{ boxShadow: "0 6px 24px rgba(236, 72, 153, 0.35)" }}
               >
                 🤗 Hug Day
               </button>
+              {/* Left */}
               <button
                 onClick={() => setShowKiss(true)}
-                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-300 to-pink-400 text-white font-display text-base shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
-                style={{
-                  boxShadow: "0 8px 32px rgba(244, 171, 188, 0.4), 0 0 60px rgba(251, 113, 133, 0.2)",
-                }}
+                className="absolute left-0 top-1/2 -translate-y-1/2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-300 to-pink-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                style={{ boxShadow: "0 6px 24px rgba(244, 171, 188, 0.35)" }}
               >
                 💋 Kiss Day
               </button>
