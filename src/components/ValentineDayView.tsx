@@ -107,20 +107,20 @@ const ValentineDayView = ({ onBack, image }: ValentineDayViewProps) => {
       )}
 
       {answered === null && !showLetter && (
-        <div className="flex flex-col items-center gap-4 z-10">
-          {/* Central Valentine image */}
+        <div className="fixed inset-0 z-10 flex flex-col items-center justify-center">
+          {/* Central Valentine image — full screen */}
           <img
             src={image}
             alt="Valentine — for you"
-            className="fixed inset-0 w-full h-full object-cover drop-shadow-2xl z-0"
+            className="absolute inset-0 w-full h-full object-cover z-0"
             style={{ animation: "valImageIn 1s ease-out both" }}
           />
 
-          {/* Tap button */}
+          {/* Tap button — centered over image */}
           {showTapButton && (
             <button
               onClick={() => setShowLetter(true)}
-              className="mt-3 group"
+              className="relative z-10 mt-auto mb-24 group"
               style={{ animation: "kissFadeIn 1s ease-out both" }}
             >
               <div className="relative">
@@ -143,7 +143,7 @@ const ValentineDayView = ({ onBack, image }: ValentineDayViewProps) => {
           {/* Back */}
           <button
             onClick={onBack}
-            className="mt-6 text-xs text-white/40 hover:text-white/70 transition-colors font-body"
+            className="relative z-10 mb-6 text-xs text-white/40 hover:text-white/70 transition-colors font-body"
           >
             ← back
           </button>
@@ -151,7 +151,7 @@ const ValentineDayView = ({ onBack, image }: ValentineDayViewProps) => {
       )}
 
       {answered === null && showLetter && (
-        <div className="animate-scale-in w-full max-h-[80vh] overflow-y-auto z-10 px-2">
+        <div className="fixed inset-0 z-10 flex items-center justify-center animate-scale-in px-4 py-6 overflow-y-auto">
           <div
             className="relative rounded-3xl bg-cream-white/95 backdrop-blur-sm p-6 md:p-10 shadow-2xl mx-auto max-w-lg"
             style={{
