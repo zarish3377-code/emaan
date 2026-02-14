@@ -112,7 +112,7 @@ const ValentineDayView = ({ onBack, image }: ValentineDayViewProps) => {
           <img
             src={image}
             alt="Valentine — for you"
-            className="relative z-0 object-contain max-w-xs sm:max-w-sm md:max-w-md rounded-2xl drop-shadow-2xl"
+            className="relative z-0 object-contain max-w-lg sm:max-w-xl md:max-w-2xl rounded-2xl drop-shadow-2xl"
             style={{ animation: "valImageIn 1s ease-out both" }}
           />
 
@@ -120,7 +120,7 @@ const ValentineDayView = ({ onBack, image }: ValentineDayViewProps) => {
           {showTapButton && (
             <button
               onClick={() => setShowLetter(true)}
-              className="relative z-10 mt-auto mb-24 group"
+              className="relative z-10 mt-6 group"
               style={{ animation: "kissFadeIn 1s ease-out both" }}
             >
               <div className="relative">
@@ -151,9 +151,9 @@ const ValentineDayView = ({ onBack, image }: ValentineDayViewProps) => {
       )}
 
       {answered === null && showLetter && (
-        <div className="fixed inset-0 z-10 flex items-center justify-center animate-scale-in px-4 py-6 overflow-y-auto">
+        <div className="fixed inset-0 z-10 flex items-center justify-center animate-scale-in px-4 py-6">
           <div
-            className="relative rounded-3xl bg-cream-white/95 backdrop-blur-sm p-6 md:p-10 shadow-2xl mx-auto max-w-lg"
+            className="relative rounded-3xl bg-cream-white/95 backdrop-blur-sm p-6 md:p-10 shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
             style={{
               boxShadow: "0 20px 60px rgba(0,0,0,0.3), 0 0 80px rgba(244, 63, 94, 0.15)",
             }}
