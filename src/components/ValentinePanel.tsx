@@ -6,6 +6,7 @@ import valentineDayImg from "@/assets/valentine_day.png";
 import PromiseDayView from "./PromiseDayView";
 import HugDayView from "./HugDayView";
 import KissDayView from "./KissDayView";
+import SlapDayView from "./SlapDayView";
 import ValentineDayView from "./ValentineDayView";
 
 interface ValentinePanelProps {
@@ -21,6 +22,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
   const [showPromise, setShowPromise] = useState(false);
   const [showHug, setShowHug] = useState(false);
   const [showKiss, setShowKiss] = useState(false);
+  const [showSlap, setShowSlap] = useState(false);
   const [showValentineDay, setShowValentineDay] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -90,6 +92,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
     setShowPromise(false);
     setShowHug(false);
     setShowKiss(false);
+    setShowSlap(false);
     setShowValentineDay(false);
     onClose();
   };
@@ -133,6 +136,8 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
       <div className={`relative z-10 flex flex-col items-center gap-6 px-4 ${showValentineDay ? 'max-w-none w-full h-full' : 'max-w-md w-full'}`}>
         {showValentineDay ? (
           <ValentineDayView onBack={() => setShowValentineDay(false)} image={valentineDayImg} />
+        ) : showSlap ? (
+          <SlapDayView onBack={() => setShowSlap(false)} />
         ) : showKiss ? (
           <KissDayView onBack={() => setShowKiss(false)} />
         ) : showHug ? (
@@ -149,8 +154,8 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
               a little something waiting for you...
             </p>
 
-            {/* Petal layout container */}
-            <div className="relative w-72 h-72 sm:w-80 sm:h-80 flex items-center justify-center">
+            {/* Petal layout container — expanded for 6 items */}
+            <div className="relative w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center">
               {/* Center: Valentine button — larger, glowing */}
               <button
                 onClick={() => setShowValentineDay(true)}
@@ -163,7 +168,6 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
                 💝 Valentine
               </button>
 
-              {/* Surrounding day buttons in circle positions */}
               {/* Top */}
               <button
                 onClick={handleTeddyDay}
@@ -172,26 +176,34 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
               >
                 🧸 Teddy Day
               </button>
-              {/* Right */}
+              {/* Top-Right */}
               <button
                 onClick={() => setShowPromise(true)}
-                className="absolute right-0 top-1/2 -translate-y-1/2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-300 to-rose-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                className="absolute top-[15%] right-0 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-300 to-rose-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
                 style={{ boxShadow: "0 6px 24px rgba(251, 191, 36, 0.35)" }}
               >
                 🤙🏻 Promise
               </button>
-              {/* Bottom */}
+              {/* Bottom-Right */}
               <button
                 onClick={() => setShowHug(true)}
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-pink-300 to-rose-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                className="absolute bottom-[15%] right-0 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-pink-300 to-rose-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
                 style={{ boxShadow: "0 6px 24px rgba(236, 72, 153, 0.35)" }}
               >
                 🤗 Hug Day
               </button>
-              {/* Left */}
+              {/* Bottom */}
+              <button
+                onClick={() => setShowSlap(true)}
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-orange-300 to-rose-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                style={{ boxShadow: "0 6px 24px rgba(251, 146, 60, 0.35)" }}
+              >
+                👋 Slap Day
+              </button>
+              {/* Bottom-Left */}
               <button
                 onClick={() => setShowKiss(true)}
-                className="absolute left-0 top-1/2 -translate-y-1/2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-300 to-pink-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                className="absolute bottom-[15%] left-0 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-300 to-pink-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
                 style={{ boxShadow: "0 6px 24px rgba(244, 171, 188, 0.35)" }}
               >
                 💋 Kiss Day
