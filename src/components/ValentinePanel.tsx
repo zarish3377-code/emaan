@@ -154,12 +154,12 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
               a little something waiting for you...
             </p>
 
-            {/* Petal layout container — expanded for 6 items */}
-            <div className="relative w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center">
+            {/* Circular petal layout */}
+            <div className="relative w-[320px] h-[320px] sm:w-[380px] sm:h-[380px] md:w-[420px] md:h-[420px] flex items-center justify-center">
               {/* Center: Valentine button — larger, glowing */}
               <button
                 onClick={() => setShowValentineDay(true)}
-                className="absolute z-10 px-7 py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-display text-lg shadow-2xl hover:scale-110 transition-all duration-500"
+                className="absolute z-10 px-8 py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-display text-lg shadow-2xl hover:scale-110 transition-all duration-500"
                 style={{
                   animation: "valBreath 3s ease-in-out infinite",
                   boxShadow: "0 8px 40px rgba(244, 63, 94, 0.6), 0 0 80px rgba(251, 113, 133, 0.3)",
@@ -168,46 +168,34 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
                 💝 Valentine
               </button>
 
-              {/* Top */}
-              <button
-                onClick={handleTeddyDay}
-                className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
-                style={{ boxShadow: "0 6px 24px rgba(244, 63, 94, 0.4)" }}
-              >
-                🧸 Teddy Day
-              </button>
-              {/* Top-Right */}
-              <button
-                onClick={() => setShowPromise(true)}
-                className="absolute top-[15%] right-0 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-300 to-rose-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
-                style={{ boxShadow: "0 6px 24px rgba(251, 191, 36, 0.35)" }}
-              >
-                🤙🏻 Promise
-              </button>
-              {/* Bottom-Right */}
-              <button
-                onClick={() => setShowHug(true)}
-                className="absolute bottom-[15%] right-0 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-pink-300 to-rose-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
-                style={{ boxShadow: "0 6px 24px rgba(236, 72, 153, 0.35)" }}
-              >
-                🤗 Hug Day
-              </button>
-              {/* Bottom */}
-              <button
-                onClick={() => setShowSlap(true)}
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-orange-300 to-rose-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
-                style={{ boxShadow: "0 6px 24px rgba(251, 146, 60, 0.35)" }}
-              >
-                👋 Slap Day
-              </button>
-              {/* Bottom-Left */}
-              <button
-                onClick={() => setShowKiss(true)}
-                className="absolute bottom-[15%] left-0 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-300 to-pink-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500"
-                style={{ boxShadow: "0 6px 24px rgba(244, 171, 188, 0.35)" }}
-              >
-                💋 Kiss Day
-              </button>
+              {/* Orbiting day buttons — evenly spaced at 60° intervals */}
+              {[
+                { label: "🧸 Teddy Day", onClick: handleTeddyDay, angle: 270, gradient: "from-rose-400 to-pink-500", shadow: "rgba(244, 63, 94, 0.4)" },
+                { label: "🤙🏻 Promise", onClick: () => setShowPromise(true), angle: 330, gradient: "from-amber-300 to-rose-400", shadow: "rgba(251, 191, 36, 0.35)" },
+                { label: "🤗 Hug Day", onClick: () => setShowHug(true), angle: 30, gradient: "from-pink-300 to-rose-400", shadow: "rgba(236, 72, 153, 0.35)" },
+                { label: "👋 Slap Day", onClick: () => setShowSlap(true), angle: 90, gradient: "from-orange-300 to-rose-400", shadow: "rgba(251, 146, 60, 0.35)" },
+                { label: "💋 Kiss Day", onClick: () => setShowKiss(true), angle: 150, gradient: "from-rose-300 to-pink-400", shadow: "rgba(244, 171, 188, 0.35)" },
+              ].map((day, i) => {
+                const radius = 140; // px from center
+                const rad = (day.angle * Math.PI) / 180;
+                const x = Math.cos(rad) * radius;
+                const y = Math.sin(rad) * radius;
+                return (
+                  <button
+                    key={i}
+                    onClick={day.onClick}
+                    className={`absolute px-4 py-2.5 rounded-2xl bg-gradient-to-r ${day.gradient} text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-500`}
+                    style={{
+                      left: "50%",
+                      top: "50%",
+                      transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                      boxShadow: `0 6px 24px ${day.shadow}`,
+                    }}
+                  >
+                    {day.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ) : !showLetter ? (
