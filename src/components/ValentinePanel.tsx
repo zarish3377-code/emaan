@@ -9,6 +9,7 @@ import KissDayView from "./KissDayView";
 import SlapDayView from "./SlapDayView";
 import KickDayView from "./KickDayView";
 import ValentineDayView from "./ValentineDayView";
+import PerfumeDayView from "./PerfumeDayView";
 
 interface ValentinePanelProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
   const [showSlap, setShowSlap] = useState(false);
   const [showKick, setShowKick] = useState(false);
   const [showValentineDay, setShowValentineDay] = useState(false);
+  const [showPerfume, setShowPerfume] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Audio: play on open, stop on close; pause/resume background music
@@ -97,6 +99,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
     setShowSlap(false);
     setShowKick(false);
     setShowValentineDay(false);
+    setShowPerfume(false);
     onClose();
   };
 
@@ -139,6 +142,8 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
       <div className={`relative z-10 flex flex-col items-center gap-6 px-4 ${showValentineDay ? 'max-w-none w-full h-full' : 'max-w-md w-full'}`}>
         {showValentineDay ? (
           <ValentineDayView onBack={() => setShowValentineDay(false)} image={valentineDayImg} />
+        ) : showPerfume ? (
+          <PerfumeDayView onBack={() => setShowPerfume(false)} />
         ) : showKick ? (
           <KickDayView onBack={() => setShowKick(false)} />
         ) : showSlap ? (
@@ -173,14 +178,15 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
                 💝 Valentine
               </button>
 
-              {/* Orbiting day buttons — evenly spaced at 60° intervals */}
+              {/* Orbiting day buttons — evenly spaced */}
               {[
-                { label: "🧸 Teddy Day", onClick: handleTeddyDay, angle: 240, gradient: "from-rose-400 to-pink-500", shadow: "rgba(244, 63, 94, 0.4)" },
-                { label: "🤙🏻 Promise", onClick: () => setShowPromise(true), angle: 300, gradient: "from-amber-300 to-rose-400", shadow: "rgba(251, 191, 36, 0.35)" },
-                { label: "🤗 Hug Day", onClick: () => setShowHug(true), angle: 0, gradient: "from-pink-300 to-rose-400", shadow: "rgba(236, 72, 153, 0.35)" },
-                { label: "👋 Slap Day", onClick: () => setShowSlap(true), angle: 60, gradient: "from-orange-300 to-rose-400", shadow: "rgba(251, 146, 60, 0.35)" },
-                { label: "🦶 Kick Day", onClick: () => setShowKick(true), angle: 120, gradient: "from-purple-300 to-rose-400", shadow: "rgba(168, 85, 247, 0.35)" },
-                { label: "💋 Kiss Day", onClick: () => setShowKiss(true), angle: 180, gradient: "from-rose-300 to-pink-400", shadow: "rgba(244, 171, 188, 0.35)" },
+                { label: "🧸 Teddy", onClick: handleTeddyDay, angle: 0, gradient: "from-rose-400 to-pink-500", shadow: "rgba(244, 63, 94, 0.4)" },
+                { label: "🤙🏻 Promise", onClick: () => setShowPromise(true), angle: 51.4, gradient: "from-amber-300 to-rose-400", shadow: "rgba(251, 191, 36, 0.35)" },
+                { label: "🤗 Hug", onClick: () => setShowHug(true), angle: 102.9, gradient: "from-pink-300 to-rose-400", shadow: "rgba(236, 72, 153, 0.35)" },
+                { label: "👋 Slap", onClick: () => setShowSlap(true), angle: 154.3, gradient: "from-orange-300 to-rose-400", shadow: "rgba(251, 146, 60, 0.35)" },
+                { label: "🦶 Kick", onClick: () => setShowKick(true), angle: 205.7, gradient: "from-purple-300 to-rose-400", shadow: "rgba(168, 85, 247, 0.35)" },
+                { label: "💋 Kiss", onClick: () => setShowKiss(true), angle: 257.1, gradient: "from-rose-300 to-pink-400", shadow: "rgba(244, 171, 188, 0.35)" },
+                { label: "🌸 Perfume", onClick: () => setShowPerfume(true), angle: 308.6, gradient: "from-pink-200 to-rose-300", shadow: "rgba(251, 207, 232, 0.35)" },
               ].map((day, i) => {
                 const radius = 140; // px from center
                 const rad = (day.angle * Math.PI) / 180;
