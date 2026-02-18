@@ -161,7 +161,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
           <PromiseDayView onBack={() => setShowPromise(false)} />
         ) : !showTeddy ? (
           /* Day Selection — petal layout with Valentine center */
-          <div className="animate-scale-in flex flex-col items-center gap-4">
+           <div className="animate-scale-in flex flex-col items-center gap-4">
             <h2 className="text-2xl md:text-3xl font-display text-white/90 text-center tracking-wide">
               My Valentine 🌹
             </h2>
@@ -169,12 +169,23 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
               a little something waiting for you...
             </p>
 
+            {/* File link in corner */}
+            <a
+              href="https://docs.google.com/document/d/1dL0hqaNeRz_ldyukTI_cprylEcIGiVhJZ4NcX3YMYoU/edit?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute top-4 left-4 z-30 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm text-white/80 font-display text-sm hover:bg-white/20 hover:text-white transition-all duration-300"
+              style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.15)" }}
+            >
+              File💐
+            </a>
+
             {/* Circular petal layout */}
             <div className="relative w-[320px] h-[320px] sm:w-[380px] sm:h-[380px] md:w-[420px] md:h-[420px] flex items-center justify-center">
               <style>{`
                 @keyframes confessionOrbit {
-                  0% { transform: translate(-50%, -50%) rotate(0deg) translateX(140px) rotate(0deg); }
-                  100% { transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg); }
+                  0% { transform: translate(-50%, -50%) rotate(0deg) translateX(185px) rotate(0deg); }
+                  100% { transform: translate(-50%, -50%) rotate(360deg) translateX(185px) rotate(-360deg); }
                 }
               `}</style>
               {/* Center: Valentine button — larger, glowing */}
@@ -227,7 +238,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
                 style={{
                   left: "50%",
                   top: "50%",
-                  animation: "confessionOrbit 5s linear infinite",
+                  animation: "confessionOrbit 8s linear infinite",
                   boxShadow: "0 6px 24px rgba(244,171,188,0.45), 0 0 15px rgba(251,113,133,0.2)",
                 }}
               >
