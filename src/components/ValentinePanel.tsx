@@ -10,6 +10,7 @@ import SlapDayView from "./SlapDayView";
 import KickDayView from "./KickDayView";
 import ValentineDayView from "./ValentineDayView";
 import PerfumeDayView from "./PerfumeDayView";
+import ConfessionDayView from "./ConfessionDayView";
 
 interface ValentinePanelProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
   const [showKick, setShowKick] = useState(false);
   const [showValentineDay, setShowValentineDay] = useState(false);
   const [showPerfume, setShowPerfume] = useState(false);
+  const [showConfession, setShowConfession] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Audio: play on open, stop on close; pause/resume background music
@@ -100,6 +102,7 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
     setShowKick(false);
     setShowValentineDay(false);
     setShowPerfume(false);
+    setShowConfession(false);
     onClose();
   };
 
@@ -142,6 +145,8 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
       <div className={`relative z-10 flex flex-col items-center gap-6 px-4 ${showValentineDay ? 'max-w-none w-full h-full' : 'max-w-md w-full'}`}>
         {showValentineDay ? (
           <ValentineDayView onBack={() => setShowValentineDay(false)} image={valentineDayImg} />
+        ) : showConfession ? (
+          <ConfessionDayView onBack={() => setShowConfession(false)} />
         ) : showPerfume ? (
           <PerfumeDayView onBack={() => setShowPerfume(false)} />
         ) : showKick ? (
@@ -166,6 +171,12 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
 
             {/* Circular petal layout */}
             <div className="relative w-[320px] h-[320px] sm:w-[380px] sm:h-[380px] md:w-[420px] md:h-[420px] flex items-center justify-center">
+              <style>{`
+                @keyframes confessionOrbit {
+                  0% { transform: translate(-50%, -50%) rotate(0deg) translateX(140px) rotate(0deg); }
+                  100% { transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg); }
+                }
+              `}</style>
               {/* Center: Valentine button — larger, glowing */}
               <button
                 onClick={() => setShowValentineDay(true)}
@@ -208,6 +219,20 @@ const ValentinePanel = ({ isOpen, onClose, backgroundAudioRef }: ValentinePanelP
                   </button>
                 );
               })}
+
+              {/* Orbiting Confession Day button */}
+              <button
+                onClick={() => setShowConfession(true)}
+                className="absolute z-20 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-pink-300 via-rose-300 to-pink-400 text-white font-display text-sm shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300"
+                style={{
+                  left: "50%",
+                  top: "50%",
+                  animation: "confessionOrbit 5s linear infinite",
+                  boxShadow: "0 6px 24px rgba(244,171,188,0.45), 0 0 15px rgba(251,113,133,0.2)",
+                }}
+              >
+                💌 Confession
+              </button>
             </div>
           </div>
         ) : !showLetter ? (
