@@ -51,20 +51,22 @@ const Bubble = ({ msg, x, y, flipped, onDone }: BubbleData & { onDone: () => voi
     const t = setTimeout(onDone, 3200);
     return () => clearTimeout(t);
   }, [onDone]);
-  const style: React.CSSProperties = {
-    left: x,
-    top: flipped ? y + 20 : y - 14,
-    ...(flipped && { animation: 'lm-bubble-in 240ms cubic-bezier(0.34,1.4,0.64,1), lm-bubble-out 300ms ease-in 2900ms forwards', transform: 'translate(-50%, 0)' }),
-  };
   return (
-    <div className="lm-bubble" style={style}>
-      <p>{msg}</p>
+    <div className="lm-bubble" style={{
+      left: x,
+      top: flipped ? y + 20 : y - 14,
+      ...(flipped && {
+        animation: 'lm-bubble-in 240ms cubic-bezier(0.34,1.4,0.64,1), lm-bubble-out 300ms ease-in 2900ms forwards',
+        transform: 'translate(-50%, 0)',
+      }),
+    }}>
+      <p style={{ margin: 0 }}>{msg}</p>
       <div className={`lm-bubble-tail ${flipped ? 'lm-bubble-tail-up' : ''}`} />
     </div>
   );
 };
 
-// ─── SVG Icons (no emojis) ───────────────────────────────
+// ─── SVG Icons ───────────────────────────────────────────
 const MoonIcon = () => (
   <svg width="9" height="9" viewBox="0 0 9 9">
     <path d="M7.5 5.5a4 4 0 01-5-3.8A4 4 0 107.5 5.5z" fill="#A898C8" />
@@ -129,11 +131,11 @@ const Petal = ({ i }: { i: number }) => {
 
 // ─── Garden ──────────────────────────────────────────────
 const flowerData = [
-  { x: 12, y: 55, color: "rgba(232,164,192,0.8)", glow: "rgba(232,164,192,0.15)" },
-  { x: 28, y: 62, color: "rgba(196,184,232,0.8)", glow: "rgba(196,184,232,0.15)" },
-  { x: 48, y: 50, color: "rgba(152,196,168,0.8)", glow: "rgba(152,196,168,0.15)" },
-  { x: 68, y: 60, color: "rgba(237,216,146,0.75)", glow: "rgba(237,216,146,0.15)" },
-  { x: 85, y: 54, color: "rgba(240,200,168,0.8)", glow: "rgba(240,200,168,0.15)" },
+  { x: 12, y: 55, color: "rgba(232,164,192,0.8)", glow: "rgba(232,164,192,0.2)" },
+  { x: 28, y: 62, color: "rgba(196,184,232,0.8)", glow: "rgba(196,184,232,0.2)" },
+  { x: 48, y: 50, color: "rgba(152,196,168,0.8)", glow: "rgba(152,196,168,0.2)" },
+  { x: 68, y: 60, color: "rgba(237,216,146,0.75)", glow: "rgba(237,216,146,0.2)" },
+  { x: 85, y: 54, color: "rgba(240,200,168,0.8)", glow: "rgba(240,200,168,0.2)" },
 ];
 const skyStars = [
   { x: 15, y: 12, s: 2, dur: 2.5, delay: 0 },
@@ -182,9 +184,12 @@ const GardenRoom = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent)
       {flowerData.map((f, i) => (
         <button key={i} className="lm-flower-group" style={{ left: `${f.x}%`, bottom: '48px' }}
           onClick={(e) => onBubble(getMsg(), e)}>
-          <div className="lm-flower-glow" style={{ background: `radial-gradient(circle, ${f.glow}, transparent 70%)`, '--glow-delay': `${i * 0.6}s` } as React.CSSProperties} />
-          <svg width="36" height="50" viewBox="0 0 36 50">
-            <path d={`M18 50 Q${16 + i}  35 18 24`} stroke="#3A7848" strokeWidth="2" fill="none" />
+          <div className="lm-flower-glow" style={{
+            background: `radial-gradient(circle, ${f.glow}, transparent 70%)`,
+            '--glow-delay': `${i * 0.6}s`,
+          } as React.CSSProperties} />
+          <svg className="lm-flower-svg" width="36" height="50" viewBox="0 0 36 50">
+            <path d={`M18 50 Q${16 + i} 35 18 24`} stroke="#3A7848" strokeWidth="2" fill="none" />
             {[0, 72, 144, 216, 288].map(deg => (
               <ellipse key={deg} cx="18" cy="11" rx="5" ry="9" fill={f.color}
                 transform={`rotate(${deg} 18 18)`} />
@@ -218,16 +223,13 @@ const BedroomRoom = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent
         <rect x="0" y="0" width="60" height="80" rx="3" fill="#3A2810" />
         <rect x="4" y="4" width="52" height="72" fill="#0D1A3A" />
         <rect x="4" y="4" width="52" height="72" fill="rgba(100,120,180,0.15)" />
-        {/* Stars in window */}
         {[[12,15],[35,25],[22,50],[40,60],[15,40],[45,18]].map(([cx,cy],i) => (
           <circle key={i} cx={cx} cy={cy} r={1.5} fill="#EEE8FF" opacity="0.8">
             <animate attributeName="opacity" values="1;0.1;1" dur={`${2+i*0.6}s`} repeatCount="indefinite" />
           </circle>
         ))}
-        {/* Cross */}
         <line x1="4" y1="40" x2="56" y2="40" stroke="rgba(58,40,16,0.8)" strokeWidth="1" />
         <line x1="30" y1="4" x2="30" y2="76" stroke="rgba(58,40,16,0.8)" strokeWidth="1" />
-        {/* Curtains */}
         <rect className="lm-curtain-l" x="-2" y="0" width="18" height="80" fill="url(#curtainG)" rx="0" />
         <rect className="lm-curtain-r" x="44" y="0" width="18" height="80" fill="url(#curtainG)" rx="0" />
         <defs>
@@ -252,20 +254,16 @@ const BedroomRoom = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent
         </defs>
       </svg>
       <div style={{
-        position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
-        width: 120, height: 100,
-        background: 'radial-gradient(ellipse at center, rgba(237,216,146,0.25) 0%, transparent 70%)',
+        position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)',
+        width: 140, height: 120,
+        background: 'radial-gradient(ellipse at center, rgba(237,216,146,0.2) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
     </button>
     {/* Bed */}
     <svg style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)' }} width="160" height="100" viewBox="0 0 160 100">
-      {/* Headboard */}
       <rect x="30" y="0" width="100" height="36" rx="6" fill="url(#hbG)" />
-      <rect x="30" y="0" width="100" height="36" rx="6" fill="url(#hbLines)" opacity="0.04" />
-      {/* Mattress */}
       <rect x="30" y="36" width="100" height="16" fill="#3A2C20" />
-      {/* Duvet */}
       <rect x="30" y="60" width="100" height="40" rx="4" fill="url(#duvetG)" />
       <line x1="30" y1="70" x2="130" y2="70" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
       <line x1="30" y1="80" x2="130" y2="80" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
@@ -277,9 +275,6 @@ const BedroomRoom = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent
         <linearGradient id="duvetG" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#5A3A28" /><stop offset="100%" stopColor="#4A2E1E" />
         </linearGradient>
-        <pattern id="hbLines" width="10" height="36" patternUnits="userSpaceOnUse">
-          <line x1="5" y1="0" x2="5" y2="36" stroke="white" strokeWidth="0.5" />
-        </pattern>
       </defs>
     </svg>
     {/* Pillow */}
@@ -298,8 +293,8 @@ const BedroomRoom = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent
 const KitchenRoom = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent) => void }) => (
   <div className="lm-room lm-kitchen lm-room-enter">
     <span className="lm-room-label">kitchen</span>
-    {/* Table + items positioned centrally */}
-    <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'flex-end', gap: 24 }}>
+    {/* Items on table */}
+    <div style={{ position: 'absolute', bottom: 38, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'flex-end', gap: 28 }}>
       {/* Plant */}
       <button className="lm-plant-btn" onClick={(e) => onBubble(kitchenMsgs.plant, e)}>
         <svg width="30" height="50" viewBox="0 0 30 50">
@@ -319,7 +314,6 @@ const KitchenRoom = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent
           <ellipse cx="18" cy="16" rx="14" ry="4" fill="#A07050" />
           <ellipse cx="18" cy="18" rx="12" ry="3" fill="#8A5030" />
           <path d="M32 24 Q40 26 40 34 Q40 42 32 44" stroke="var(--lm-peach)" strokeWidth="3" fill="none" />
-          {/* Steam */}
           <path className="lm-steam-path" d="M12 12 Q10 6 14 0" stroke="rgba(240,220,200,0.5)" strokeWidth="1.5" fill="none" style={{ '--steam-delay': '0s' } as React.CSSProperties} />
           <path className="lm-steam-path" d="M18 12 Q20 4 16 -2" stroke="rgba(240,220,200,0.5)" strokeWidth="1.5" fill="none" style={{ '--steam-delay': '0.7s' } as React.CSSProperties} />
           <path className="lm-steam-path" d="M24 12 Q22 5 26 0" stroke="rgba(240,220,200,0.5)" strokeWidth="1.5" fill="none" style={{ '--steam-delay': '1.4s' } as React.CSSProperties} />
@@ -329,7 +323,6 @@ const KitchenRoom = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent
             </linearGradient>
           </defs>
         </svg>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle, rgba(180,120,60,0.12), transparent 70%)', pointerEvents: 'none' }} />
       </button>
       {/* Kettle */}
       <button className="lm-kettle-btn" onClick={(e) => onBubble(kitchenMsgs.kettle, e)}>
@@ -347,7 +340,7 @@ const KitchenRoom = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent
         </svg>
       </button>
     </div>
-    {/* Table surface */}
+    {/* Table */}
     <svg style={{ position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)' }} width="280" height="44" viewBox="0 0 280 44">
       <rect x="0" y="0" width="280" height="14" rx="3" fill="url(#tableG)" />
       <rect x="20" y="14" width="8" height="30" fill="#6A4820" rx="1" />
@@ -384,15 +377,16 @@ const PlayCorner = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent)
   const handleHeartClick = (i: number, e: React.MouseEvent) => {
     setPoppedHeart(i);
     onBubble(getHeartMsg(), e);
-    // Spawn particles
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const parent = (e.currentTarget as HTMLElement).parentElement!;
+    const parent = (e.currentTarget as HTMLElement).closest('.lm-room') as HTMLElement;
+    if (!parent) return;
+    const parentRect = parent.getBoundingClientRect();
     const angles = [0, 45, 90, 135, 180, 225, 270, 315];
     angles.forEach(a => {
       const p = document.createElement('div');
       p.className = 'lm-particle';
       const rad = (a * Math.PI) / 180;
-      p.style.cssText = `left:${rect.left - parent.getBoundingClientRect().left + rect.width/2}px;top:${rect.top - parent.getBoundingClientRect().top + rect.height/2}px;background:${heartsData[i].color};--px:${Math.cos(rad)*24}px;--py:${Math.sin(rad)*24}px`;
+      p.style.cssText = `left:${rect.left - parentRect.left + rect.width/2}px;top:${rect.top - parentRect.top + rect.height/2}px;background:${heartsData[i].color};--px:${Math.cos(rad)*24}px;--py:${Math.sin(rad)*24}px`;
       parent.appendChild(p);
       setTimeout(() => p.remove(), 500);
     });
@@ -417,8 +411,12 @@ const PlayCorner = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent)
       </div>
       <div className="lm-ambient-obj lm-orb-float" style={{ top: '40%', left: '10%' }}>
         <svg width="10" height="10" viewBox="0 0 10 10">
-          <circle cx="5" cy="5" r="4.5" fill="radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), rgba(180,160,220,0.15))" stroke="rgba(200,185,235,0.4)" strokeWidth="0.5" />
-          <defs><radialGradient id="orbG"><stop offset="0%" stopColor="rgba(255,255,255,0.4)" /><stop offset="100%" stopColor="rgba(180,160,220,0.15)" /></radialGradient></defs>
+          <defs>
+            <radialGradient id="orbG">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.4)" />
+              <stop offset="100%" stopColor="rgba(180,160,220,0.15)" />
+            </radialGradient>
+          </defs>
           <circle cx="5" cy="5" r="4.5" fill="url(#orbG)" stroke="rgba(200,185,235,0.4)" strokeWidth="0.5" />
         </svg>
       </div>
@@ -441,13 +439,14 @@ const PlayCorner = ({ onBubble }: { onBubble: (msg: string, e: React.MouseEvent)
           '--si-dur': `${s.dur}s`, '--si-delay': `${s.delay}s`,
         } as React.CSSProperties} onClick={(e) => {
           onBubble(getStarMsg(), e);
-          // Sparkle lines
           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-          const parent = (e.currentTarget as HTMLElement).parentElement!;
+          const parent = (e.currentTarget as HTMLElement).closest('.lm-room') as HTMLElement;
+          if (!parent) return;
+          const parentRect = parent.getBoundingClientRect();
           [0, 60, 120, 180, 240, 300].forEach(a => {
             const line = document.createElement('div');
             line.className = 'lm-sparkle-line';
-            line.style.cssText = `left:${rect.left - parent.getBoundingClientRect().left + rect.width/2}px;top:${rect.top - parent.getBoundingClientRect().top + rect.height/2}px;background:${s.color};--sp-angle:${a}deg`;
+            line.style.cssText = `left:${rect.left - parentRect.left + rect.width/2}px;top:${rect.top - parentRect.top + rect.height/2}px;background:${s.color};--sp-angle:${a}deg`;
             parent.appendChild(line);
             setTimeout(() => line.remove(), 400);
           });
@@ -534,23 +533,10 @@ const LoveMode = () => {
 
   const activate = useCallback(() => {
     setPhase('entering');
-    // [0ms] veil fades in via CSS
-    // [200ms] site content hidden via parent
-    setTimeout(() => {
-      // [400ms] world visible
-      setWorldVisible(true);
-    }, 400);
-    setTimeout(() => {
-      // [600ms] rooms assemble
-      setRoomsVisible(true);
-    }, 600);
-    setTimeout(() => {
-      // [900ms] petals
-      setPetalsVisible(true);
-    }, 900);
-    setTimeout(() => {
-      setPhase('active');
-    }, 1400);
+    setTimeout(() => setWorldVisible(true), 400);
+    setTimeout(() => setRoomsVisible(true), 600);
+    setTimeout(() => setPetalsVisible(true), 900);
+    setTimeout(() => setPhase('active'), 1400);
   }, []);
 
   const deactivate = useCallback(() => {
@@ -570,7 +556,6 @@ const LoveMode = () => {
     else if (phase === 'active') deactivate();
   }, [phase, activate, deactivate]);
 
-  // Apply room-visible class after roomsVisible changes
   useEffect(() => {
     if (!roomsVisible) return;
     const rooms = document.querySelectorAll('.lm-room-enter');
@@ -619,7 +604,7 @@ const LoveMode = () => {
 
       {/* Veil */}
       {(phase === 'entering' || phase === 'active' || phase === 'exiting') && (
-        <div className={`lm-veil ${phase === 'entering' ? 'lm-veil-in' : ''} ${phase === 'exiting' ? '' : phase === 'active' ? '' : ''}`} />
+        <div className={`lm-veil ${phase === 'entering' ? 'lm-veil-in' : ''}`} />
       )}
 
       {/* Petals */}
