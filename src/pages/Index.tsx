@@ -49,6 +49,7 @@ const Index = () => {
 
   return (
     <PasswordGate>
+      <LoveMode />
       <main className="relative">
         {/* Global Background Image (visible after scroll) */}
         <div
