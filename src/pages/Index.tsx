@@ -20,6 +20,7 @@ import CountdownPanel from "@/components/CountdownPanel";
 import ValentineButton from "@/components/ValentineButton";
 import ValentinePanel from "@/components/ValentinePanel";
 import PasswordGate from "@/components/PasswordGate";
+import LoveMode from "@/components/LoveMode";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
 const Index = () => {
