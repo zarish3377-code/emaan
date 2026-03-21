@@ -44,7 +44,7 @@ const NenoPanel = ({ isOpen, onClose }: NenoPanelProps) => {
   
   const today = startOfDay(new Date());
   const daysSinceStart = differenceInDays(today, startOfDay(NENO_START_DATE));
-  const currentDayNumber = Math.min(Math.max(daysSinceStart + 1, 1), 100);
+  const currentDayNumber = Math.min(Math.max(daysSinceStart + 1, 1), NENO_MESSAGES.length);
   
   // Fetch notes and custom messages from database
   useEffect(() => {
