@@ -23,21 +23,30 @@ interface GardenState {
 }
 
 // Grid layout: flowers in rows/columns, alternating tulip-daisy-tulip-daisy
-const GRID_CONFIG = {
-  startX: 4,
-  endX: 96,
-  startY: 48,
-  colSpacing: 5,
-  rowSpacing: 8,
+// Dynamically sizes to fit ALL flowers in the visible grass area
+const GRID_AREA = {
+  startX: 2,
+  endX: 98,
+  startY: 46,
+  endY: 94,
 };
 
-const getGridPosition = (index: number): { x: number; y: number } => {
-  const cols = Math.floor((GRID_CONFIG.endX - GRID_CONFIG.startX) / GRID_CONFIG.colSpacing) + 1;
+const getGridLayout = (totalFlowers: number) => {
+  const w = GRID_AREA.endX - GRID_AREA.startX;
+  const h = GRID_AREA.endY - GRID_AREA.startY;
+  const aspect = w / h;
+  const cols = Math.ceil(Math.sqrt(totalFlowers * aspect));
+  const rows = Math.ceil(totalFlowers / cols);
+  return { cols, rows, colSpacing: w / cols, rowSpacing: h / rows };
+};
+
+const getGridPosition = (index: number, totalFlowers: number): { x: number; y: number } => {
+  const { cols, colSpacing, rowSpacing } = getGridLayout(totalFlowers);
   const row = Math.floor(index / cols);
   const col = index % cols;
   return {
-    x: GRID_CONFIG.startX + col * GRID_CONFIG.colSpacing,
-    y: GRID_CONFIG.startY + row * GRID_CONFIG.rowSpacing,
+    x: GRID_AREA.startX + col * colSpacing + colSpacing / 2,
+    y: GRID_AREA.startY + row * rowSpacing + rowSpacing / 2,
   };
 };
 
