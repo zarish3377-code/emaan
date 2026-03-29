@@ -131,43 +131,36 @@ export const useSecretGarden = () => {
 
     const today = new Date().toISOString().split('T')[0];
     
-    // Check if already grew today
-    if (garden.lastGrowthDate === today) {
-      return;
-    }
+    if (garden.lastGrowthDate === today) return;
 
-    // Calculate missed days
-    const lastDate = garden.lastGrowthDate || garden.startDate;
-    const start = new Date(lastDate);
+    // Calculate total days from start to today
+    const start = new Date(garden.startDate);
     const end = new Date(today);
-    const diffTime = end.getTime() - start.getTime();
-    const missedDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const totalDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (missedDays <= 0) return;
+    if (totalDays <= 0) return;
 
-    // Cap at 100 days to prevent performance issues
-    const daysToGrow = Math.min(missedDays, 100);
-
-    const existingFlowers = [...garden.flowers];
+    // Rebuild entire grid based on total days
+    // Each day = 1 flower in the grid (alternating tulip/daisy via checkerboard)
+    const totalFlowers = totalDays;
+    const newFlowers: Flower[] = [];
     
-    for (let i = 0; i < daysToGrow; i++) {
-      const { tulip, daisy } = createFlowerPair(existingFlowers);
-      existingFlowers.push(tulip, daisy);
+    for (let i = 0; i < totalFlowers; i++) {
+      newFlowers.push(createGridFlower(i));
     }
 
-    const newTulipCount = garden.tulipCount + daysToGrow;
-    const newDaisyCount = garden.daisyCount + daysToGrow;
-    const newDaysCared = garden.daysCared + daysToGrow;
+    const newTulipCount = newFlowers.filter(f => f.type === 'tulip').length;
+    const newDaisyCount = newFlowers.filter(f => f.type === 'daisy').length;
 
     try {
       const { error: updateError } = await supabase
         .from('secret_garden')
         .update({
-          flowers: existingFlowers as unknown as Json,
+          flowers: newFlowers as unknown as Json,
           last_growth_date: today,
           tulip_count: newTulipCount,
           daisy_count: newDaisyCount,
-          days_cared: newDaysCared,
+          days_cared: totalDays,
         })
         .eq('id', garden.id);
 
@@ -175,11 +168,11 @@ export const useSecretGarden = () => {
 
       setGarden({
         ...garden,
-        flowers: existingFlowers,
+        flowers: newFlowers,
         lastGrowthDate: today,
         tulipCount: newTulipCount,
         daisyCount: newDaisyCount,
-        daysCared: newDaysCared,
+        daysCared: totalDays,
       });
     } catch (err) {
       console.error('Error growing flowers:', err);
