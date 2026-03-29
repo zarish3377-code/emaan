@@ -177,29 +177,33 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
       </div>
 
       {/* Flowers in grid */}
-      {garden?.flowers.map((flower, index) => (
-        <div
-          key={flower.id}
-          className="absolute"
-          style={{
-            left: `${flower.x}%`,
-            top: `${flower.y}%`,
-            transform: `translate(-50%, -100%)`,
-            animation: `gardenSway 4s ease-in-out infinite, flowerBloom 0.8s ease-out forwards`,
-            animationDelay: `${flowerAnimationDelays[flower.id] || 0}s, ${index * 0.02}s`,
-          }}
-        >
-          <img
-            src={flower.type === 'tulip' ? gardenTulip : gardenDaisy}
-            alt={flower.type}
-            className="w-10 h-auto drop-shadow-md"
+      {garden?.flowers.map((flower, index) => {
+        // Scale flower size based on total count so they all fit
+        const count = garden.flowers.length;
+        const size = count > 150 ? 'w-6' : count > 100 ? 'w-7' : count > 60 ? 'w-8' : 'w-10';
+        return (
+          <div
+            key={flower.id}
+            className="absolute"
             style={{
-              filter: timeOfDay === 'night' ? 'brightness(0.7)' : 'none',
-              transform: `scale(${flower.scale})`,
+              left: `${flower.x}%`,
+              top: `${flower.y}%`,
+              transform: `translate(-50%, -50%)`,
+              animation: `gardenSway 4s ease-in-out infinite`,
+              animationDelay: `${flowerAnimationDelays[flower.id] || 0}s`,
             }}
-          />
-        </div>
-      ))}
+          >
+            <img
+              src={flower.type === 'tulip' ? gardenTulip : gardenDaisy}
+              alt={flower.type}
+              className={`${size} h-auto drop-shadow-sm`}
+              style={{
+                filter: timeOfDay === 'night' ? 'brightness(0.7)' : 'none',
+              }}
+            />
+          </div>
+        );
+      })}
 
       {/* Stats panel */}
       <div 
