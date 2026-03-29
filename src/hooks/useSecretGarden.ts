@@ -166,14 +166,28 @@ export const useSecretGarden = () => {
       return;
     }
 
-    // Create new flowers - tulip and daisy grow together as a pair
-    const existingFlowers = [...garden.flowers];
-    const { tulip: newTulip, daisy: newDaisy } = createFlowerPair(existingFlowers);
-    existingFlowers.push(newTulip, newDaisy);
+    // Calculate missed days
+    const lastDate = garden.lastGrowthDate || garden.startDate;
+    const start = new Date(lastDate);
+    const end = new Date(today);
+    const diffTime = end.getTime() - start.getTime();
+    const missedDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    const newTulipCount = garden.tulipCount + 1;
-    const newDaisyCount = garden.daisyCount + 1;
-    const newDaysCared = garden.daysCared + 1;
+    if (missedDays <= 0) return;
+
+    // Cap at 100 days to prevent performance issues
+    const daysToGrow = Math.min(missedDays, 100);
+
+    const existingFlowers = [...garden.flowers];
+    
+    for (let i = 0; i < daysToGrow; i++) {
+      const { tulip, daisy } = createFlowerPair(existingFlowers);
+      existingFlowers.push(tulip, daisy);
+    }
+
+    const newTulipCount = garden.tulipCount + daysToGrow;
+    const newDaisyCount = garden.daisyCount + daysToGrow;
+    const newDaysCared = garden.daysCared + daysToGrow;
 
     try {
       const { error: updateError } = await supabase
