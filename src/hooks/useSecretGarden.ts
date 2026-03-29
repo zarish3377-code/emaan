@@ -22,36 +22,29 @@ interface GardenState {
   daysCared: number;
 }
 
-// Grid layout: flowers arranged in rows and columns, alternating tulip/daisy
-// Grid starts at grass area (top ~48%, bottom ~92%) and spans horizontally (5%-95%)
+// Grid layout: flowers in rows/columns, alternating tulip-daisy-tulip-daisy
 const GRID_CONFIG = {
-  startX: 6,    // % from left
-  endX: 95,     // % from right  
-  startY: 48,   // % from top (grass area)
-  endY: 90,     // % from bottom
-  colSpacing: 5, // % between columns
-  rowSpacing: 8, // % between rows
+  startX: 4,
+  endX: 96,
+  startY: 48,
+  colSpacing: 5,
+  rowSpacing: 8,
 };
 
-const getGridPosition = (index: number): { x: number; y: number; col: number; row: number } => {
+const getGridPosition = (index: number): { x: number; y: number } => {
   const cols = Math.floor((GRID_CONFIG.endX - GRID_CONFIG.startX) / GRID_CONFIG.colSpacing) + 1;
   const row = Math.floor(index / cols);
   const col = index % cols;
-  
   return {
     x: GRID_CONFIG.startX + col * GRID_CONFIG.colSpacing,
     y: GRID_CONFIG.startY + row * GRID_CONFIG.rowSpacing,
-    col,
-    row,
   };
 };
 
 const createGridFlower = (index: number): Flower => {
   const pos = getGridPosition(index);
-  // Alternate: even index = tulip, odd index = daisy (checkerboard)
-  // For checkerboard: if (row + col) is even → tulip, odd → daisy
-  const type: 'tulip' | 'daisy' = (pos.row + pos.col) % 2 === 0 ? 'tulip' : 'daisy';
-  
+  // Alternate: even index = tulip, odd index = daisy
+  const type: 'tulip' | 'daisy' = index % 2 === 0 ? 'tulip' : 'daisy';
   return {
     id: `${type}-${index}-${Math.random().toString(36).substr(2, 9)}`,
     type,
@@ -140,9 +133,8 @@ export const useSecretGarden = () => {
 
     if (totalDays <= 0) return;
 
-    // Rebuild entire grid based on total days
-    // Each day = 1 flower in the grid (alternating tulip/daisy via checkerboard)
-    const totalFlowers = totalDays;
+    // Each day = 2 flowers (1 tulip + 1 daisy), so totalFlowers = totalDays * 2
+    const totalFlowers = totalDays * 2;
     const newFlowers: Flower[] = [];
     
     for (let i = 0; i < totalFlowers; i++) {
