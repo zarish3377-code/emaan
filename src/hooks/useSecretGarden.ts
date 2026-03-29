@@ -50,9 +50,8 @@ const getGridPosition = (index: number, totalFlowers: number): { x: number; y: n
   };
 };
 
-const createGridFlower = (index: number): Flower => {
-  const pos = getGridPosition(index);
-  // Alternate: even index = tulip, odd index = daisy
+const createGridFlower = (index: number, totalFlowers: number): Flower => {
+  const pos = getGridPosition(index, totalFlowers);
   const type: 'tulip' | 'daisy' = index % 2 === 0 ? 'tulip' : 'daisy';
   return {
     id: `${type}-${index}-${Math.random().toString(36).substr(2, 9)}`,
