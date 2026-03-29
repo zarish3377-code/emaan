@@ -146,7 +146,7 @@ export const useSecretGarden = () => {
     const newFlowers: Flower[] = [];
     
     for (let i = 0; i < totalFlowers; i++) {
-      newFlowers.push(createGridFlower(i));
+      newFlowers.push(createGridFlower(i, totalFlowers));
     }
 
     const newTulipCount = newFlowers.filter(f => f.type === 'tulip').length;
