@@ -22,73 +22,43 @@ interface GardenState {
   daysCared: number;
 }
 
-const generateFlowerPosition = (existingFlowers: Flower[]): { x: number; y: number } => {
-  // Generate position in bottom 60% of screen (grass area)
-  // Avoid overlapping with existing flowers
-  let attempts = 0;
-  let x: number, y: number;
-  
-  do {
-    x = 5 + Math.random() * 90; // 5-95% horizontal
-    y = 45 + Math.random() * 50; // 45-95% vertical (grass area)
-    attempts++;
-  } while (
-    attempts < 50 &&
-    existingFlowers.some(f => 
-      Math.abs(f.x - x) < 8 && Math.abs(f.y - y) < 10
-    )
-  );
-  
-  return { x, y };
+// Grid layout: flowers arranged in rows and columns, alternating tulip/daisy
+// Grid starts at grass area (top ~48%, bottom ~92%) and spans horizontally (5%-95%)
+const GRID_CONFIG = {
+  startX: 6,    // % from left
+  endX: 95,     // % from right  
+  startY: 48,   // % from top (grass area)
+  endY: 90,     // % from bottom
+  colSpacing: 5, // % between columns
+  rowSpacing: 8, // % between rows
 };
 
-const createFlowerPair = (existingFlowers: Flower[]): { tulip: Flower; daisy: Flower } => {
-  const pos = generateFlowerPosition(existingFlowers);
-  
-  // Tulip on the left
-  const tulip: Flower = {
-    id: `tulip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    type: 'tulip',
-    x: pos.x,
-    y: pos.y,
-    rotation: Math.random() * 6 - 3,
-    scale: 0.9 + Math.random() * 0.2,
-    plantedAt: new Date().toISOString(),
-  };
-  
-  // Daisy right next to tulip (very close, slightly to the right)
-  const daisy: Flower = {
-    id: `daisy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    type: 'daisy',
-    x: Math.min(pos.x + 2.5, 94),
-    y: pos.y,
-    rotation: Math.random() * 4 - 2,
-    scale: 0.85 + Math.random() * 0.15,
-    plantedAt: new Date().toISOString(),
-  };
-  
-  return { tulip, daisy };
-};
-
-const createFlower = (type: 'tulip' | 'daisy', existingFlowers: Flower[], basePosition?: { x: number; y: number }): Flower => {
-  let pos: { x: number; y: number };
-  
-  if (basePosition) {
-    pos = {
-      x: Math.min(basePosition.x + 4, 92),
-      y: basePosition.y + (Math.random() * 2 - 1),
-    };
-  } else {
-    pos = generateFlowerPosition(existingFlowers);
-  }
+const getGridPosition = (index: number): { x: number; y: number; col: number; row: number } => {
+  const cols = Math.floor((GRID_CONFIG.endX - GRID_CONFIG.startX) / GRID_CONFIG.colSpacing) + 1;
+  const row = Math.floor(index / cols);
+  const col = index % cols;
   
   return {
-    id: `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    x: GRID_CONFIG.startX + col * GRID_CONFIG.colSpacing,
+    y: GRID_CONFIG.startY + row * GRID_CONFIG.rowSpacing,
+    col,
+    row,
+  };
+};
+
+const createGridFlower = (index: number): Flower => {
+  const pos = getGridPosition(index);
+  // Alternate: even index = tulip, odd index = daisy (checkerboard)
+  // For checkerboard: if (row + col) is even → tulip, odd → daisy
+  const type: 'tulip' | 'daisy' = (pos.row + pos.col) % 2 === 0 ? 'tulip' : 'daisy';
+  
+  return {
+    id: `${type}-${index}-${Math.random().toString(36).substr(2, 9)}`,
     type,
     x: pos.x,
     y: pos.y,
-    scale: 0.6 + Math.random() * 0.4, // 0.6 - 1.0
-    rotation: -5 + Math.random() * 10, // -5 to 5 degrees
+    scale: 0.95,
+    rotation: 0,
     plantedAt: new Date().toISOString(),
   };
 };
