@@ -71,10 +71,11 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
           <img 
             src={moonImage}
             alt="Moon"
-            className="absolute w-44 h-auto animate-moon-glow"
+            className="absolute w-48 h-auto animate-moon-glow"
             style={{
               top: '3%',
               left: '8%',
+              filter: 'drop-shadow(0 0 40px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 80px rgba(200, 210, 255, 0.4)) drop-shadow(0 0 120px rgba(180, 200, 255, 0.2))',
             }}
           />
         </div>
@@ -287,10 +288,10 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
         }
         @keyframes moonGlow {
           0%, 100% { 
-            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)) drop-shadow(0 0 40px rgba(200, 200, 255, 0.2));
+            filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 80px rgba(200, 210, 255, 0.4)) drop-shadow(0 0 120px rgba(180, 200, 255, 0.2));
           }
           50% { 
-            filter: drop-shadow(0 0 35px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 60px rgba(200, 200, 255, 0.35));
+            filter: drop-shadow(0 0 60px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 100px rgba(200, 210, 255, 0.5)) drop-shadow(0 0 160px rgba(180, 200, 255, 0.3));
           }
         }
         .animate-moon-glow {
