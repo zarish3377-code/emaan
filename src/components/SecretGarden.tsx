@@ -71,11 +71,10 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
           <img 
             src={moonImage}
             alt="Moon"
-            className="absolute w-48 h-auto animate-moon-glow"
+            className="absolute w-44 h-auto animate-moon-glow"
             style={{
               top: '3%',
               left: '8%',
-              filter: 'drop-shadow(0 0 40px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 80px rgba(200, 210, 255, 0.4)) drop-shadow(0 0 120px rgba(180, 200, 255, 0.2))',
             }}
           />
         </div>
@@ -177,34 +176,30 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
         ))}
       </div>
 
-      {/* Flowers in grid */}
-      {garden?.flowers.map((flower, index) => {
-        // Scale flower size based on total count so they all fit
-        const count = garden.flowers.length;
-        const size = count > 150 ? 'w-6' : count > 100 ? 'w-7' : count > 60 ? 'w-8' : 'w-10';
-        return (
-          <div
-            key={flower.id}
-            className="absolute"
+      {/* Flowers */}
+      {garden?.flowers.map((flower, index) => (
+        <div
+          key={flower.id}
+          className="absolute"
+          style={{
+            left: `${flower.x}%`,
+            top: `${flower.y}%`,
+            transform: `translate(-50%, -100%) rotate(${flower.rotation}deg)`,
+            animation: `gardenSway 4s ease-in-out infinite, flowerBloom 0.8s ease-out forwards`,
+            animationDelay: `${flowerAnimationDelays[flower.id] || 0}s, ${index * 0.1}s`,
+          }}
+        >
+          <img
+            src={flower.type === 'tulip' ? gardenTulip : gardenDaisy}
+            alt={flower.type}
+            className="w-14 h-auto drop-shadow-md"
             style={{
-              left: `${flower.x}%`,
-              top: `${flower.y}%`,
-              transform: `translate(-50%, -50%)`,
-              animation: `gardenSway 4s ease-in-out infinite`,
-              animationDelay: `${flowerAnimationDelays[flower.id] || 0}s`,
+              filter: timeOfDay === 'night' ? 'brightness(0.7)' : 'none',
+              transform: `scale(${flower.scale})`,
             }}
-          >
-            <img
-              src={flower.type === 'tulip' ? gardenTulip : gardenDaisy}
-              alt={flower.type}
-              className={`${size} h-auto drop-shadow-sm`}
-              style={{
-                filter: timeOfDay === 'night' ? 'brightness(0.7)' : 'none',
-              }}
-            />
-          </div>
-        );
-      })}
+          />
+        </div>
+      ))}
 
       {/* Stats panel */}
       <div 
@@ -288,10 +283,10 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
         }
         @keyframes moonGlow {
           0%, 100% { 
-            filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 80px rgba(200, 210, 255, 0.4)) drop-shadow(0 0 120px rgba(180, 200, 255, 0.2));
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)) drop-shadow(0 0 40px rgba(200, 200, 255, 0.2));
           }
           50% { 
-            filter: drop-shadow(0 0 60px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 100px rgba(200, 210, 255, 0.5)) drop-shadow(0 0 160px rgba(180, 200, 255, 0.3));
+            filter: drop-shadow(0 0 35px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 60px rgba(200, 200, 255, 0.35));
           }
         }
         .animate-moon-glow {

@@ -22,44 +22,73 @@ interface GardenState {
   daysCared: number;
 }
 
-// Grid layout: flowers in rows/columns, alternating tulip-daisy-tulip-daisy
-// Dynamically sizes to fit ALL flowers in the visible grass area
-const GRID_AREA = {
-  startX: 2,
-  endX: 98,
-  startY: 46,
-  endY: 94,
+const generateFlowerPosition = (existingFlowers: Flower[]): { x: number; y: number } => {
+  // Generate position in bottom 60% of screen (grass area)
+  // Avoid overlapping with existing flowers
+  let attempts = 0;
+  let x: number, y: number;
+  
+  do {
+    x = 5 + Math.random() * 90; // 5-95% horizontal
+    y = 45 + Math.random() * 50; // 45-95% vertical (grass area)
+    attempts++;
+  } while (
+    attempts < 50 &&
+    existingFlowers.some(f => 
+      Math.abs(f.x - x) < 8 && Math.abs(f.y - y) < 10
+    )
+  );
+  
+  return { x, y };
 };
 
-const getGridLayout = (totalFlowers: number) => {
-  const w = GRID_AREA.endX - GRID_AREA.startX;
-  const h = GRID_AREA.endY - GRID_AREA.startY;
-  const aspect = w / h;
-  const cols = Math.ceil(Math.sqrt(totalFlowers * aspect));
-  const rows = Math.ceil(totalFlowers / cols);
-  return { cols, rows, colSpacing: w / cols, rowSpacing: h / rows };
-};
-
-const getGridPosition = (index: number, totalFlowers: number): { x: number; y: number } => {
-  const { cols, colSpacing, rowSpacing } = getGridLayout(totalFlowers);
-  const row = Math.floor(index / cols);
-  const col = index % cols;
-  return {
-    x: GRID_AREA.startX + col * colSpacing + colSpacing / 2,
-    y: GRID_AREA.startY + row * rowSpacing + rowSpacing / 2,
+const createFlowerPair = (existingFlowers: Flower[]): { tulip: Flower; daisy: Flower } => {
+  const pos = generateFlowerPosition(existingFlowers);
+  
+  // Tulip on the left
+  const tulip: Flower = {
+    id: `tulip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    type: 'tulip',
+    x: pos.x,
+    y: pos.y,
+    rotation: Math.random() * 6 - 3,
+    scale: 0.9 + Math.random() * 0.2,
+    plantedAt: new Date().toISOString(),
   };
+  
+  // Daisy right next to tulip (very close, slightly to the right)
+  const daisy: Flower = {
+    id: `daisy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    type: 'daisy',
+    x: Math.min(pos.x + 2.5, 94),
+    y: pos.y,
+    rotation: Math.random() * 4 - 2,
+    scale: 0.85 + Math.random() * 0.15,
+    plantedAt: new Date().toISOString(),
+  };
+  
+  return { tulip, daisy };
 };
 
-const createGridFlower = (index: number, totalFlowers: number): Flower => {
-  const pos = getGridPosition(index, totalFlowers);
-  const type: 'tulip' | 'daisy' = index % 2 === 0 ? 'tulip' : 'daisy';
+const createFlower = (type: 'tulip' | 'daisy', existingFlowers: Flower[], basePosition?: { x: number; y: number }): Flower => {
+  let pos: { x: number; y: number };
+  
+  if (basePosition) {
+    pos = {
+      x: Math.min(basePosition.x + 4, 92),
+      y: basePosition.y + (Math.random() * 2 - 1),
+    };
+  } else {
+    pos = generateFlowerPosition(existingFlowers);
+  }
+  
   return {
-    id: `${type}-${index}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     type,
     x: pos.x,
     y: pos.y,
-    scale: 0.95,
-    rotation: 0,
+    scale: 0.6 + Math.random() * 0.4, // 0.6 - 1.0
+    rotation: -5 + Math.random() * 10, // -5 to 5 degrees
     plantedAt: new Date().toISOString(),
   };
 };
@@ -132,35 +161,43 @@ export const useSecretGarden = () => {
 
     const today = new Date().toISOString().split('T')[0];
     
-    if (garden.lastGrowthDate === today) return;
-
-    // Calculate total days from start to today
-    const start = new Date(garden.startDate);
-    const end = new Date(today);
-    const totalDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (totalDays <= 0) return;
-
-    // Each day = 2 flowers (1 tulip + 1 daisy), so totalFlowers = totalDays * 2
-    const totalFlowers = totalDays * 2;
-    const newFlowers: Flower[] = [];
-    
-    for (let i = 0; i < totalFlowers; i++) {
-      newFlowers.push(createGridFlower(i, totalFlowers));
+    // Check if already grew today
+    if (garden.lastGrowthDate === today) {
+      return;
     }
 
-    const newTulipCount = newFlowers.filter(f => f.type === 'tulip').length;
-    const newDaisyCount = newFlowers.filter(f => f.type === 'daisy').length;
+    // Calculate missed days
+    const lastDate = garden.lastGrowthDate || garden.startDate;
+    const start = new Date(lastDate);
+    const end = new Date(today);
+    const diffTime = end.getTime() - start.getTime();
+    const missedDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (missedDays <= 0) return;
+
+    // Cap at 100 days to prevent performance issues
+    const daysToGrow = Math.min(missedDays, 100);
+
+    const existingFlowers = [...garden.flowers];
+    
+    for (let i = 0; i < daysToGrow; i++) {
+      const { tulip, daisy } = createFlowerPair(existingFlowers);
+      existingFlowers.push(tulip, daisy);
+    }
+
+    const newTulipCount = garden.tulipCount + daysToGrow;
+    const newDaisyCount = garden.daisyCount + daysToGrow;
+    const newDaysCared = garden.daysCared + daysToGrow;
 
     try {
       const { error: updateError } = await supabase
         .from('secret_garden')
         .update({
-          flowers: newFlowers as unknown as Json,
+          flowers: existingFlowers as unknown as Json,
           last_growth_date: today,
           tulip_count: newTulipCount,
           daisy_count: newDaisyCount,
-          days_cared: totalDays,
+          days_cared: newDaysCared,
         })
         .eq('id', garden.id);
 
@@ -168,11 +205,11 @@ export const useSecretGarden = () => {
 
       setGarden({
         ...garden,
-        flowers: newFlowers,
+        flowers: existingFlowers,
         lastGrowthDate: today,
         tulipCount: newTulipCount,
         daisyCount: newDaisyCount,
-        daysCared: totalDays,
+        daysCared: newDaysCared,
       });
     } catch (err) {
       console.error('Error growing flowers:', err);
