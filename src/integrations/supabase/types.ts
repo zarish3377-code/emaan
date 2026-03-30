@@ -233,7 +233,7 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      auto_grow_garden: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
