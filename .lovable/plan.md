@@ -2,28 +2,26 @@
 
 ## Problem
 
-The `growFlowers` function only adds **one flower pair per call** and sets `lastGrowthDate` to today. So if the garden wasn't opened for 40 days, it only catches up by 1 day instead of all 40 missed days.
+Day counting is off by 1. Currently:
+- Day 1 = Dec 10, so Day 101 = March 20, Day 137 = April 25
+- Day 101 says "37 days left" but March 20 → April 25 is only **36 days**
+- "1 day left" shows on April 25 (the birthday itself) instead of April 24
 
-The garden started around Dec 10, 2025. Today is March 29, 2026 = ~110 days. But it's stuck at 63 because the user didn't open the garden every single day.
+## Fix
 
-## Solution
+In `src/data/nenoMessages.ts`, adjust messages at indices 100-136 (days 101-137):
 
-Modify `growFlowers` in `src/hooks/useSecretGarden.ts` to **catch up on all missed days at once**:
+1. **Days 101-136**: Decrease each countdown number by 1
+   - Day 101: "37 days left" → "36 days left"
+   - Day 102: "36 days left" → "35 days left"
+   - ...continuing pattern...
+   - Day 136: "2 days left" → "1 day left"
 
-1. Calculate the number of missed days between `lastGrowthDate` and today
-2. Loop through each missed day, creating a flower pair for each
-3. Update the database with all new flowers, the correct counts, and today as `lastGrowthDate`
-4. Cap the catch-up to prevent performance issues (e.g., max 100 days at once)
+2. **Day 137 (April 25)**: Replace "1 day left" message with a **birthday message** since that IS the birthday. The user should provide the birthday message text, or I can write a celebratory one.
 
-### Changes
+This way "1 day left" correctly falls on Day 136 (April 24), and the birthday itself gets a proper birthday greeting.
 
-**File: `src/hooks/useSecretGarden.ts`**
-
-Replace the `growFlowers` function:
-- Calculate `missedDays` = difference between `lastGrowthDate` (or `startDate`) and today
-- For each missed day, call `createFlowerPair` and accumulate flowers
-- Update DB once with all new flowers and correct counts
-- Update state accordingly
-
-This ensures the garden reflects the true number of days since it started, regardless of how often it's opened.
+### Technical Detail
+- Only file changed: `src/data/nenoMessages.ts` (lines 101-137)
+- No logic changes needed — just text content fixes
 
