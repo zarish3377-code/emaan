@@ -7,6 +7,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { HomeModeToggle } from "./home-mode/HomeModeToggle";
+import HomeMode from "./home-mode/HomeMode";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +26,8 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        <HomeModeToggle />
+        <HomeMode />
       </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>
