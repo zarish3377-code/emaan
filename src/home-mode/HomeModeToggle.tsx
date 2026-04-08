@@ -40,7 +40,7 @@ export function HomeModeToggle() {
           : '0 2px 12px rgba(240,150,180,0.2), 0 1px 3px rgba(0,0,0,0.06)'
       }}
     >
-      {isActive ? '✕ leave home' : '🏠 our home'}
+      {isActive ? '✕ Leave Home' : '🏠 Our Home'}
     </button>
   )
 }
