@@ -1,6 +1,17 @@
 import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useHomeMode } from './useHomeMode'
 import HomeModeEngine from './HomeModeEngine'
+
+function getOrCreatePortalRoot() {
+  let el = document.getElementById('hm-portal')
+  if (!el) {
+    el = document.createElement('div')
+    el.id = 'hm-portal'
+    document.body.appendChild(el)
+  }
+  return el
+}
 
 export default function HomeMode() {
   const { isActive } = useHomeMode()
@@ -13,7 +24,6 @@ export default function HomeMode() {
     if (!siteRoot) return
 
     if (isActive && !prevActive.current) {
-      // Fade site out
       siteRoot.style.transition = 'opacity 0.6s ease'
       siteRoot.style.opacity = '0'
       setTimeout(() => {
@@ -23,7 +33,6 @@ export default function HomeMode() {
     }
 
     if (!isActive && prevActive.current) {
-      // Fade overlay out
       setOverlayOpacity(0)
       setTimeout(() => {
         setMounted(false)
@@ -37,7 +46,7 @@ export default function HomeMode() {
 
   if (!mounted) return null
 
-  return (
+  return createPortal(
     <div
       style={{
         position: 'fixed',
@@ -49,6 +58,7 @@ export default function HomeMode() {
       }}
     >
       <HomeModeEngine />
-    </div>
+    </div>,
+    getOrCreatePortalRoot()
   )
 }

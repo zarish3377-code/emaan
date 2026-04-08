@@ -1,9 +1,20 @@
+import { createPortal } from 'react-dom'
 import { useHomeMode } from './useHomeMode'
+
+function getOrCreateToggleRoot() {
+  let el = document.getElementById('hm-toggle-root')
+  if (!el) {
+    el = document.createElement('div')
+    el.id = 'hm-toggle-root'
+    document.body.appendChild(el)
+  }
+  return el
+}
 
 export function HomeModeToggle() {
   const { isActive, toggle } = useHomeMode()
 
-  return (
+  return createPortal(
     <button
       onClick={toggle}
       className="hm-toggle"
@@ -40,7 +51,8 @@ export function HomeModeToggle() {
           : '0 2px 12px rgba(240,150,180,0.2), 0 1px 3px rgba(0,0,0,0.06)'
       }}
     >
-      {isActive ? '✕ leave home' : '🏠 our home'}
-    </button>
+      {isActive ? '✕ Leave Home' : '🏠 Our Home'}
+    </button>,
+    getOrCreateToggleRoot()
   )
 }
