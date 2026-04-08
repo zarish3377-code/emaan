@@ -14,7 +14,7 @@ function getOrCreateToggleRoot() {
 export function HomeModeToggle() {
   const { isActive, toggle } = useHomeMode()
 
-  return (
+  return createPortal(
     <button
       onClick={toggle}
       className="hm-toggle"
@@ -52,6 +52,7 @@ export function HomeModeToggle() {
       }}
     >
       {isActive ? '✕ Leave Home' : '🏠 Our Home'}
-    </button>
+    </button>,
+    getOrCreateToggleRoot()
   )
 }
