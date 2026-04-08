@@ -1,4 +1,15 @@
+import { createPortal } from 'react-dom'
 import { useHomeMode } from './useHomeMode'
+
+function getOrCreateToggleRoot() {
+  let el = document.getElementById('hm-toggle-root')
+  if (!el) {
+    el = document.createElement('div')
+    el.id = 'hm-toggle-root'
+    document.body.appendChild(el)
+  }
+  return el
+}
 
 export function HomeModeToggle() {
   const { isActive, toggle } = useHomeMode()
