@@ -20,6 +20,7 @@ import CountdownPanel from "@/components/CountdownPanel";
 import ValentineButton from "@/components/ValentineButton";
 import ValentinePanel from "@/components/ValentinePanel";
 import PasswordGate from "@/components/PasswordGate";
+import LibraryButton from "@/components/library/LibraryButton";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
 const Index = () => {
@@ -127,6 +128,9 @@ const Index = () => {
           onClose={() => setIsValentineOpen(false)}
           backgroundAudioRef={backgroundAudioRef}
         />
+
+        {/* Library Button */}
+        <LibraryButton />
 
         {/* Just Say It Button & Panel */}
         <JustSayItButton onClick={() => setIsMessagePanelOpen(true)} />
