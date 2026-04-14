@@ -16,6 +16,9 @@ const SPINE_COLORS = [
   '#703030', '#3B3B6D', '#654321', '#4A3728', '#7B3F00',
   '#2C3E50', '#6B4423', '#4A2C2A', '#3D5C3A', '#5B3256',
   '#8C5E3C', '#4E3524', '#395144', '#6D3B47', '#4B3621',
+  '#5D3954', '#3A4E3F', '#6B3030', '#2D4A5E', '#7A5C2E',
+  '#4E2A3A', '#3B5E4A', '#6A4B2A', '#5A3040', '#3E5A3A',
+  '#704828', '#4B3A5E', '#5E3A28', '#3A5048', '#6B4A3E',
 ];
 
 const BookShelf = ({ onBookClick }: Props) => {
@@ -51,13 +54,11 @@ const BookShelf = ({ onBookClick }: Props) => {
     });
   }, [loadCover]);
 
-  // Split books into rows: 7, 6, 6, 6
-  const rows = [
-    BOOKS.slice(0, 7),
-    BOOKS.slice(7, 13),
-    BOOKS.slice(13, 19),
-    BOOKS.slice(19, 25),
-  ];
+  // Split books into rows of 8
+  const rows: typeof BOOKS[] = [];
+  for (let i = 0; i < BOOKS.length; i += 8) {
+    rows.push(BOOKS.slice(i, i + 8));
+  }
 
   let globalIdx = 0;
 
