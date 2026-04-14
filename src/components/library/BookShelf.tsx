@@ -76,7 +76,7 @@ const BookShelf = ({ onBookClick }: Props) => {
             paddingBottom: '6px',
           }}>
             {row.map((book, colIdx) => {
-              const bookIndex = rowIdx === 0 ? colIdx : rowIdx === 1 ? 7 + colIdx : rowIdx === 2 ? 13 + colIdx : 19 + colIdx;
+              const bookIndex = rowIdx * 8 + colIdx;
               const height = 120 + (bookIndex % 5) * 8 - (bookIndex % 3) * 4;
               const isHovered = hoveredBook === bookIndex;
               const cover = covers[bookIndex];
