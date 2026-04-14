@@ -17,7 +17,14 @@ const LibraryModal = ({ onClose }: Props) => {
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    // Hide Home Mode toggle while library is open
+    const toggleEl = document.getElementById('hm-toggle-root');
+    if (toggleEl) toggleEl.style.display = 'none';
+    return () => {
+      document.body.style.overflow = '';
+      const toggleEl = document.getElementById('hm-toggle-root');
+      if (toggleEl) toggleEl.style.display = '';
+    };
   }, []);
 
   const handleClose = useCallback(() => {
