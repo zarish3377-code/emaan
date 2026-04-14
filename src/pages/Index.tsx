@@ -129,6 +129,9 @@ const Index = () => {
           backgroundAudioRef={backgroundAudioRef}
         />
 
+        {/* Library Button */}
+        <LibraryButton />
+
         {/* Just Say It Button & Panel */}
         <JustSayItButton onClick={() => setIsMessagePanelOpen(true)} />
         <MessagePanel 
