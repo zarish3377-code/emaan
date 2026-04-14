@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { BOOKS, getBookUrl } from "./libraryData";
 import BookShelf from "./BookShelf";
 import PdfReader from "./PdfReader";
-import libraryBg from "/library/background.jpg";
+import libraryBg from "/library/background.png";
 
 interface Props {
   onClose: () => void;
