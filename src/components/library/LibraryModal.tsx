@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { BOOKS, getBookUrl } from "./libraryData";
 import BookShelf from "./BookShelf";
 import PdfReader from "./PdfReader";
-import libraryBg from "/library/background.jpg";
+import libraryBg from "/library/background.png";
 
 interface Props {
   onClose: () => void;
@@ -17,7 +17,14 @@ const LibraryModal = ({ onClose }: Props) => {
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    // Hide Home Mode toggle while library is open
+    const toggleEl = document.getElementById('hm-toggle-root');
+    if (toggleEl) toggleEl.style.display = 'none';
+    return () => {
+      document.body.style.overflow = '';
+      const toggleEl = document.getElementById('hm-toggle-root');
+      if (toggleEl) toggleEl.style.display = '';
+    };
   }, []);
 
   const handleClose = useCallback(() => {
@@ -122,7 +129,7 @@ const LibraryModal = ({ onClose }: Props) => {
           marginTop: '4px',
           fontStyle: 'italic',
         }}>
-          25 books, all yours
+          {BOOKS.length} books, all yours
         </p>
       </div>
 
