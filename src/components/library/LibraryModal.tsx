@@ -129,7 +129,7 @@ const LibraryModal = ({ onClose }: Props) => {
           marginTop: '4px',
           fontStyle: 'italic',
         }}>
-          25 books, all yours
+          {BOOKS.length} books, all yours
         </p>
       </div>
 
