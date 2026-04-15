@@ -8,6 +8,13 @@ interface Props {
   onBookClick: (index: number) => void;
 }
 
+// Fixed heights per book for natural shelf feel — deterministic, never random
+const FIXED_HEIGHTS: number[] = BOOKS.map((_, i) => {
+  const base = 120;
+  const offsets = [0, 8, 4, 12, 2, 10, 6, 14, 3, 11, 7, 1, 9, 5, 13];
+  return base + offsets[i % offsets.length];
+});
+
 const SPINE_COLORS = [
   '#8B2500', '#2F4F4F', '#4B0082', '#8B6914', '#556B2F',
   '#800020', '#1C3A5F', '#5C4033', '#6B3A5E', '#2E4C3E',
@@ -20,13 +27,15 @@ const SPINE_COLORS = [
   '#5A3A28',
 ];
 
-// In-memory cover cache across re-renders
+const BOOK_WIDTH = 70;
+const BOOKS_PER_ROW = 8;
+
+// In-memory cover cache persists across re-renders
 const coverCache: Record<number, string> = {};
 
 const BookShelf = ({ onBookClick }: Props) => {
-  const [covers, setCovers] = useState<Record<number, string>>(coverCache);
+  const [covers, setCovers] = useState<Record<number, string>>({ ...coverCache });
   const [hoveredBook, setHoveredBook] = useState<number | null>(null);
-  const [loadingBook, setLoadingBook] = useState<number | null>(null);
   const loadedRef = useRef<Set<number>>(new Set(Object.keys(coverCache).map(Number)));
   const observerRef = useRef<IntersectionObserver | null>(null);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -65,10 +74,10 @@ const BookShelf = ({ onBookClick }: Props) => {
         const rowIdx = Number(entry.target.getAttribute('data-row'));
         if (entry.isIntersecting && !visibleRows.current.has(rowIdx)) {
           visibleRows.current.add(rowIdx);
-          const start = rowIdx * 8;
-          const end = Math.min(start + 8, BOOKS.length);
+          const start = rowIdx * BOOKS_PER_ROW;
+          const end = Math.min(start + BOOKS_PER_ROW, BOOKS.length);
           for (let i = start; i < end; i++) {
-            setTimeout(() => loadCover(i), (i - start) * 150);
+            setTimeout(() => loadCover(i), (i - start) * 120);
           }
         }
       });
@@ -81,152 +90,151 @@ const BookShelf = ({ onBookClick }: Props) => {
     return () => observerRef.current?.disconnect();
   }, [loadCover]);
 
-  const handleBookClick = async (index: number) => {
-    setLoadingBook(index);
-    // Small delay to show spinner, then open
-    setTimeout(() => {
-      setLoadingBook(null);
-      onBookClick(index);
-    }, 100);
-  };
-
   const rows: typeof BOOKS[] = [];
-  for (let i = 0; i < BOOKS.length; i += 8) {
-    rows.push(BOOKS.slice(i, i + 8));
+  for (let i = 0; i < BOOKS.length; i += BOOKS_PER_ROW) {
+    rows.push(BOOKS.slice(i, i + BOOKS_PER_ROW));
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '900px', margin: '0 auto' }}>
-      {rows.map((row, rowIdx) => (
-        <div key={rowIdx} ref={el => { rowRefs.current[rowIdx] = el; }} data-row={rowIdx}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'flex-end',
-            gap: '8px',
-            flexWrap: 'wrap',
-            paddingBottom: '6px',
-          }}>
-            {row.map((book, colIdx) => {
-              const bookIndex = rowIdx * 8 + colIdx;
-              const height = 120 + (bookIndex % 5) * 8 - (bookIndex % 3) * 4;
-              const isHovered = hoveredBook === bookIndex;
-              const cover = covers[bookIndex];
-              const isLoading = loadingBook === bookIndex;
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', maxWidth: '900px', margin: '0 auto' }}>
+      {rows.map((row, rowIdx) => {
+        const rowHeight = Math.max(...row.map((_, ci) => FIXED_HEIGHTS[rowIdx * BOOKS_PER_ROW + ci])) + 20;
+        return (
+          <div key={rowIdx} ref={el => { rowRefs.current[rowIdx] = el; }} data-row={rowIdx}>
+            {/* Shelf row — fixed height, flex, aligned to bottom */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              gap: '8px',
+              height: `${rowHeight}px`,
+              padding: '0 12px',
+              flexWrap: 'nowrap',
+            }}>
+              {row.map((book, colIdx) => {
+                const bookIndex = rowIdx * BOOKS_PER_ROW + colIdx;
+                const height = FIXED_HEIGHTS[bookIndex];
+                const isHovered = hoveredBook === bookIndex;
+                const cover = covers[bookIndex];
 
-              return (
-                <div
-                  key={bookIndex}
-                  style={{ position: 'relative', cursor: 'pointer' }}
-                  onMouseEnter={() => setHoveredBook(bookIndex)}
-                  onMouseLeave={() => setHoveredBook(null)}
-                  onClick={() => handleBookClick(bookIndex)}
-                >
-                  {isHovered && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: `${height + 12}px`,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      background: 'rgba(20,12,5,0.92)',
-                      border: '1px solid #c9a84c',
-                      borderRadius: '8px',
-                      padding: '6px 12px',
-                      whiteSpace: 'nowrap',
-                      fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: '13px',
-                      fontStyle: 'italic',
-                      color: '#f2e0c0',
-                      zIndex: 20,
-                      pointerEvents: 'none',
-                      animation: 'lib-tooltip-in 200ms ease',
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-                    }}>
-                      🌷 {book.title}
-                    </div>
-                  )}
-                  <div style={{
-                    width: cover ? '70px' : '38px',
-                    height: `${height}px`,
-                    borderRadius: cover ? '3px' : '2px',
-                    overflow: 'hidden',
-                    transition: 'all 300ms ease',
-                    transform: isHovered ? 'translateY(-10px) scale(1.05)' : 'translateY(0)',
-                    boxShadow: isHovered
-                      ? '4px 6px 20px rgba(0,0,0,0.6), 0 0 20px rgba(201,168,76,0.15)'
-                      : '3px 4px 12px rgba(0,0,0,0.5)',
-                    filter: isHovered ? 'brightness(1.1) sepia(5%)' : 'sepia(15%) contrast(1.05) brightness(0.95)',
-                    position: 'relative',
-                  }}>
-                    {isLoading && (
+                return (
+                  <div
+                    key={bookIndex}
+                    style={{
+                      position: 'relative',
+                      width: `${BOOK_WIDTH}px`,
+                      minWidth: `${BOOK_WIDTH}px`,
+                      height: `${height}px`,
+                      flexShrink: 0,
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                    }}
+                    onMouseEnter={() => setHoveredBook(bookIndex)}
+                    onMouseLeave={() => setHoveredBook(null)}
+                    onClick={() => onBookClick(bookIndex)}
+                  >
+                    {/* Tooltip */}
+                    {isHovered && (
                       <div style={{
                         position: 'absolute',
-                        inset: 0,
-                        background: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 5,
-                        fontSize: '18px',
-                      }}>⏳</div>
-                    )}
-                    {cover ? (
-                      <img
-                        src={cover}
-                        alt={book.title}
-                        loading="lazy"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <div style={{
-                        width: '100%',
-                        height: '100%',
-                        background: `linear-gradient(180deg, ${SPINE_COLORS[bookIndex % SPINE_COLORS.length]}, ${SPINE_COLORS[bookIndex % SPINE_COLORS.length]}dd)`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '4px',
-                        animation: 'lib-shimmer 1.8s ease-in-out infinite',
+                        bottom: `${height + 10}px`,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: 'rgba(20,12,5,0.92)',
+                        border: '1px solid #c9a84c',
+                        borderRadius: '8px',
+                        padding: '6px 12px',
+                        whiteSpace: 'nowrap',
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: '13px',
+                        fontStyle: 'italic',
+                        color: '#f2e0c0',
+                        zIndex: 20,
+                        pointerEvents: 'none',
+                        animation: 'lib-tooltip-in 200ms ease',
+                        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
                       }}>
-                        <span style={{
-                          writingMode: 'vertical-rl',
-                          textOrientation: 'mixed',
-                          fontFamily: "'Cormorant Garamond', serif",
-                          fontSize: '9px',
-                          color: '#f5ead7',
-                          letterSpacing: '0.05em',
-                          fontWeight: 600,
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          maxHeight: `${height - 16}px`,
-                        }}>
-                          {book.title}
-                        </span>
+                        🌷 {book.title}
                       </div>
                     )}
+
+                    {/* Book visual — fixed size container */}
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '3px',
+                      overflow: 'hidden',
+                      transition: 'transform 300ms ease, box-shadow 300ms ease, filter 300ms ease',
+                      transform: isHovered ? 'translateY(-10px) scale(1.05)' : 'translateY(0) scale(1)',
+                      boxShadow: isHovered
+                        ? '4px 6px 20px rgba(0,0,0,0.6), 0 0 20px rgba(201,168,76,0.15)'
+                        : '3px 4px 12px rgba(0,0,0,0.5)',
+                      filter: isHovered ? 'brightness(1.1) sepia(5%)' : 'sepia(15%) contrast(1.05) brightness(0.95)',
+                      backgroundColor: SPINE_COLORS[bookIndex % SPINE_COLORS.length],
+                    }}>
+                      {cover ? (
+                        <img
+                          src={cover}
+                          alt={book.title}
+                          width={BOOK_WIDTH}
+                          height={height}
+                          decoding="async"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block',
+                          }}
+                        />
+                      ) : (
+                        /* Spine fallback — always visible immediately, no shimmer */
+                        <div style={{
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '6px',
+                          background: `linear-gradient(180deg, ${SPINE_COLORS[bookIndex % SPINE_COLORS.length]}, ${SPINE_COLORS[bookIndex % SPINE_COLORS.length]}dd)`,
+                        }}>
+                          <span style={{
+                            writingMode: 'vertical-rl',
+                            textOrientation: 'mixed',
+                            fontFamily: "'Cormorant Garamond', serif",
+                            fontSize: '9px',
+                            color: '#f5ead7',
+                            letterSpacing: '0.05em',
+                            fontWeight: 600,
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            maxHeight: `${height - 16}px`,
+                          }}>
+                            {book.title}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+            {/* Shelf bar */}
+            <div style={{
+              height: '8px',
+              background: 'linear-gradient(180deg, #5C4033, #3A2718)',
+              borderRadius: '0 0 4px 4px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+              maxWidth: '860px',
+              margin: '0 auto',
+            }} />
           </div>
-          <div style={{
-            height: '8px',
-            background: 'linear-gradient(180deg, #5C4033, #3A2718)',
-            borderRadius: '0 0 4px 4px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-            maxWidth: '860px',
-            margin: '0 auto',
-          }} />
-        </div>
-      ))}
+        );
+      })}
       <style>{`
         @keyframes lib-tooltip-in {
           from { opacity: 0; transform: translateX(-50%) translateY(4px); }
           to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-        @keyframes lib-shimmer {
-          0%, 100% { opacity: 0.95; }
-          50% { opacity: 0.75; }
         }
       `}</style>
     </div>
