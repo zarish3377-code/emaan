@@ -64,14 +64,51 @@ export function getBookUrl(fileName: string): string {
   return `${SUPABASE_BOOKS_URL}/${encodeURIComponent(fileName)}`;
 }
 
-// Bookmark types
+// ── Per-user identity ──────────────────────────────────────────────
+const ADMIN_EMAIL = 'jellyjello3377@gmail.com';
+
+export function getLibraryUserId(): string {
+  // Try to get auth user from supabase session stored in localStorage
+  const sbKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+  if (sbKey) {
+    try {
+      const session = JSON.parse(localStorage.getItem(sbKey) || '');
+      if (session?.user?.id) return session.user.id;
+    } catch {}
+  }
+  // Fallback: generate anonymous UUID
+  let id = localStorage.getItem('library_userId');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('library_userId', id);
+  }
+  return id;
+}
+
+export function getLibraryUserEmail(): string | null {
+  const sbKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+  if (sbKey) {
+    try {
+      const session = JSON.parse(localStorage.getItem(sbKey) || '');
+      return session?.user?.email || null;
+    } catch {}
+  }
+  return null;
+}
+
+export function isLibraryAdmin(): boolean {
+  return getLibraryUserEmail() === ADMIN_EMAIL;
+}
+
+// ── Bookmark types ─────────────────────────────────────────────────
 export interface Bookmark {
   page: number;
   label: string;
   timestamp: string;
+  userId?: string;
 }
 
-// Annotation types
+// ── Annotation types ───────────────────────────────────────────────
 export interface Annotation {
   id: string;
   type: 'highlight' | 'note';
@@ -80,26 +117,95 @@ export interface Annotation {
   color?: string;
   position?: { x: number; y: number };
   timestamp: string;
+  userId?: string;
 }
 
+// ── Storage helpers (per-user namespaced) ──────────────────────────
+function userBookmarksKey(userId: string, title: string) {
+  return `library_bookmarks_${userId}_${title}`;
+}
+
+function userAnnotationsKey(userId: string, title: string) {
+  return `library_annotations_${userId}_${title}`;
+}
+
+/** Get bookmarks for a specific user (or all users if admin). */
 export function getBookmarks(title: string): Bookmark[] {
+  const userId = getLibraryUserId();
+  const admin = isLibraryAdmin();
+
+  if (admin) {
+    // Collect from all users
+    return getAllUserData<Bookmark>('library_bookmarks_', title);
+  }
+
   try {
-    const raw = localStorage.getItem(`library_bookmarks_${title}`);
+    const raw = localStorage.getItem(userBookmarksKey(userId, title));
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
 
 export function saveBookmarks(title: string, bookmarks: Bookmark[]) {
-  localStorage.setItem(`library_bookmarks_${title}`, JSON.stringify(bookmarks));
+  const userId = getLibraryUserId();
+  if (!userId) { console.error("No user ID — cannot save bookmarks"); return; }
+  // Tag each bookmark with userId
+  const tagged = bookmarks.map(b => ({ ...b, userId }));
+  localStorage.setItem(userBookmarksKey(userId, title), JSON.stringify(tagged));
 }
 
 export function getAnnotations(title: string): Annotation[] {
+  const userId = getLibraryUserId();
+  const admin = isLibraryAdmin();
+
+  if (admin) {
+    return getAllUserData<Annotation>('library_annotations_', title);
+  }
+
   try {
-    const raw = localStorage.getItem(`library_annotations_${title}`);
+    const raw = localStorage.getItem(userAnnotationsKey(userId, title));
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
 
 export function saveAnnotations(title: string, annotations: Annotation[]) {
-  localStorage.setItem(`library_annotations_${title}`, JSON.stringify(annotations));
+  const userId = getLibraryUserId();
+  if (!userId) { console.error("No user ID — cannot save annotations"); return; }
+  const tagged = annotations.map(a => ({ ...a, userId }));
+  localStorage.setItem(userAnnotationsKey(userId, title), JSON.stringify(tagged));
 }
+
+/** Scan all localStorage keys matching a prefix pattern to aggregate data from all users (admin only). */
+function getAllUserData<T extends { userId?: string }>(prefix: string, title: string): T[] {
+  const all: T[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(prefix) && key.endsWith(`_${title}`)) {
+      try {
+        const items: T[] = JSON.parse(localStorage.getItem(key) || '[]');
+        all.push(...items);
+      } catch {}
+    }
+  }
+  return all;
+}
+
+// ── Migration: move old un-namespaced data to current user ────────
+(function migrateOldData() {
+  const userId = getLibraryUserId();
+  BOOKS.forEach(book => {
+    const oldBmKey = `library_bookmarks_${book.title}`;
+    const oldAnKey = `library_annotations_${book.title}`;
+    const newBmKey = userBookmarksKey(userId, book.title);
+    const newAnKey = userAnnotationsKey(userId, book.title);
+
+    // Only migrate if new key doesn't exist yet and old key does
+    if (!localStorage.getItem(newBmKey) && localStorage.getItem(oldBmKey)) {
+      localStorage.setItem(newBmKey, localStorage.getItem(oldBmKey)!);
+      localStorage.removeItem(oldBmKey);
+    }
+    if (!localStorage.getItem(newAnKey) && localStorage.getItem(oldAnKey)) {
+      localStorage.setItem(newAnKey, localStorage.getItem(oldAnKey)!);
+      localStorage.removeItem(oldAnKey);
+    }
+  });
+})();

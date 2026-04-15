@@ -124,12 +124,14 @@ const LibraryModal = ({ onClose }: Props) => {
         </h2>
         <p style={{
           fontFamily: "'Cormorant Garamond', serif",
-          fontSize: '0.85rem',
-          color: 'rgba(245,234,215,0.5)',
-          marginTop: '4px',
+          fontSize: '14px',
+          color: '#f5e6c8',
+          marginTop: '6px',
           fontStyle: 'italic',
+          letterSpacing: '0.04em',
+          opacity: 0.85,
         }}>
-          {BOOKS.length} books, all yours
+          for my girl who lives in books ✨
         </p>
       </div>
 

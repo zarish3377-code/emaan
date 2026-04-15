@@ -2,14 +2,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { BOOKS, getBookUrl } from "./libraryData";
 import * as pdfjsLib from "pdfjs-dist";
 
-// Set worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
 interface Props {
   onBookClick: (index: number) => void;
 }
 
-// Spine colors for variety
 const SPINE_COLORS = [
   '#8B2500', '#2F4F4F', '#4B0082', '#8B6914', '#556B2F',
   '#800020', '#1C3A5F', '#5C4033', '#6B3A5E', '#2E4C3E',
@@ -19,54 +17,88 @@ const SPINE_COLORS = [
   '#5D3954', '#3A4E3F', '#6B3030', '#2D4A5E', '#7A5C2E',
   '#4E2A3A', '#3B5E4A', '#6A4B2A', '#5A3040', '#3E5A3A',
   '#704828', '#4B3A5E', '#5E3A28', '#3A5048', '#6B4A3E',
+  '#5A3A28',
 ];
 
-const BookShelf = ({ onBookClick }: Props) => {
-  const [covers, setCovers] = useState<Record<number, string>>({});
-  const [hoveredBook, setHoveredBook] = useState<number | null>(null);
-  const loadedRef = useRef<Set<number>>(new Set());
+// In-memory cover cache across re-renders
+const coverCache: Record<number, string> = {};
 
-  // Generate cover thumbnails
+const BookShelf = ({ onBookClick }: Props) => {
+  const [covers, setCovers] = useState<Record<number, string>>(coverCache);
+  const [hoveredBook, setHoveredBook] = useState<number | null>(null);
+  const [loadingBook, setLoadingBook] = useState<number | null>(null);
+  const loadedRef = useRef<Set<number>>(new Set(Object.keys(coverCache).map(Number)));
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const visibleRows = useRef<Set<number>>(new Set());
+
   const loadCover = useCallback(async (index: number) => {
     if (loadedRef.current.has(index)) return;
     loadedRef.current.add(index);
     try {
       const url = getBookUrl(BOOKS[index].fileName);
-      const pdf = await pdfjsLib.getDocument({ url, disableAutoFetch: true, disableStream: true }).promise;
+      const pdf = await pdfjsLib.getDocument({
+        url,
+        disableAutoFetch: true,
+        disableStream: true,
+      }).promise;
       const page = await pdf.getPage(1);
-      const vp = page.getViewport({ scale: 0.4 });
+      const vp = page.getViewport({ scale: 0.35 });
       const canvas = document.createElement('canvas');
       canvas.width = vp.width;
       canvas.height = vp.height;
       const ctx = canvas.getContext('2d')!;
       await page.render({ canvasContext: ctx, viewport: vp }).promise;
-      setCovers(prev => ({ ...prev, [index]: canvas.toDataURL('image/jpeg', 0.6) }));
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.55);
+      coverCache[index] = dataUrl;
+      setCovers(prev => ({ ...prev, [index]: dataUrl }));
       pdf.destroy();
     } catch (err) {
-      console.warn(`Failed to load cover for ${BOOKS[index].title}`, err);
+      console.warn(`Cover failed: ${BOOKS[index].title}`, err);
     }
   }, []);
 
+  // IntersectionObserver to load covers only for visible rows
   useEffect(() => {
-    // Load covers in batches to avoid overwhelming
-    BOOKS.forEach((_, i) => {
-      setTimeout(() => loadCover(i), i * 200);
+    observerRef.current = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const rowIdx = Number(entry.target.getAttribute('data-row'));
+        if (entry.isIntersecting && !visibleRows.current.has(rowIdx)) {
+          visibleRows.current.add(rowIdx);
+          const start = rowIdx * 8;
+          const end = Math.min(start + 8, BOOKS.length);
+          for (let i = start; i < end; i++) {
+            setTimeout(() => loadCover(i), (i - start) * 150);
+          }
+        }
+      });
+    }, { threshold: 0.1 });
+
+    rowRefs.current.forEach(el => {
+      if (el) observerRef.current!.observe(el);
     });
+
+    return () => observerRef.current?.disconnect();
   }, [loadCover]);
 
-  // Split books into rows of 8
+  const handleBookClick = async (index: number) => {
+    setLoadingBook(index);
+    // Small delay to show spinner, then open
+    setTimeout(() => {
+      setLoadingBook(null);
+      onBookClick(index);
+    }, 100);
+  };
+
   const rows: typeof BOOKS[] = [];
   for (let i = 0; i < BOOKS.length; i += 8) {
     rows.push(BOOKS.slice(i, i + 8));
   }
 
-  let globalIdx = 0;
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '900px', margin: '0 auto' }}>
       {rows.map((row, rowIdx) => (
-        <div key={rowIdx}>
-          {/* Shelf row */}
+        <div key={rowIdx} ref={el => { rowRefs.current[rowIdx] = el; }} data-row={rowIdx}>
           <div style={{
             display: 'flex',
             justifyContent: 'center',
@@ -80,6 +112,7 @@ const BookShelf = ({ onBookClick }: Props) => {
               const height = 120 + (bookIndex % 5) * 8 - (bookIndex % 3) * 4;
               const isHovered = hoveredBook === bookIndex;
               const cover = covers[bookIndex];
+              const isLoading = loadingBook === bookIndex;
 
               return (
                 <div
@@ -87,9 +120,8 @@ const BookShelf = ({ onBookClick }: Props) => {
                   style={{ position: 'relative', cursor: 'pointer' }}
                   onMouseEnter={() => setHoveredBook(bookIndex)}
                   onMouseLeave={() => setHoveredBook(null)}
-                  onClick={() => onBookClick(bookIndex)}
+                  onClick={() => handleBookClick(bookIndex)}
                 >
-                  {/* Tooltip */}
                   {isHovered && (
                     <div style={{
                       position: 'absolute',
@@ -113,7 +145,6 @@ const BookShelf = ({ onBookClick }: Props) => {
                       🌷 {book.title}
                     </div>
                   )}
-                  {/* Book spine/cover */}
                   <div style={{
                     width: cover ? '70px' : '38px',
                     height: `${height}px`,
@@ -127,21 +158,35 @@ const BookShelf = ({ onBookClick }: Props) => {
                     filter: isHovered ? 'brightness(1.1) sepia(5%)' : 'sepia(15%) contrast(1.05) brightness(0.95)',
                     position: 'relative',
                   }}>
+                    {isLoading && (
+                      <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 5,
+                        fontSize: '18px',
+                      }}>⏳</div>
+                    )}
                     {cover ? (
                       <img
                         src={cover}
                         alt={book.title}
+                        loading="lazy"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                     ) : (
                       <div style={{
                         width: '100%',
                         height: '100%',
-                        background: `linear-gradient(180deg, ${SPINE_COLORS[bookIndex]}, ${SPINE_COLORS[bookIndex]}dd)`,
+                        background: `linear-gradient(180deg, ${SPINE_COLORS[bookIndex % SPINE_COLORS.length]}, ${SPINE_COLORS[bookIndex % SPINE_COLORS.length]}dd)`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         padding: '4px',
+                        animation: 'lib-shimmer 1.8s ease-in-out infinite',
                       }}>
                         <span style={{
                           writingMode: 'vertical-rl',
@@ -164,7 +209,6 @@ const BookShelf = ({ onBookClick }: Props) => {
               );
             })}
           </div>
-          {/* Shelf bar */}
           <div style={{
             height: '8px',
             background: 'linear-gradient(180deg, #5C4033, #3A2718)',
@@ -179,6 +223,10 @@ const BookShelf = ({ onBookClick }: Props) => {
         @keyframes lib-tooltip-in {
           from { opacity: 0; transform: translateX(-50%) translateY(4px); }
           to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes lib-shimmer {
+          0%, 100% { opacity: 0.95; }
+          50% { opacity: 0.75; }
         }
       `}</style>
     </div>
