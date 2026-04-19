@@ -1,14 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { BOOKS, getBookUrl } from "./libraryData";
-import * as pdfjsLib from "pdfjs-dist";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+import { useState } from "react";
+import { BOOKS } from "./libraryData";
 
 interface Props {
   onBookClick: (index: number) => void;
 }
 
-// Fixed heights per book for natural shelf feel — deterministic, never random
+// Fixed heights per book — deterministic, never random
 const FIXED_HEIGHTS: number[] = BOOKS.map((_, i) => {
   const base = 120;
   const offsets = [0, 8, 4, 12, 2, 10, 6, 14, 3, 11, 7, 1, 9, 5, 13];
@@ -30,65 +27,12 @@ const SPINE_COLORS = [
 const BOOK_WIDTH = 70;
 const BOOKS_PER_ROW = 8;
 
-// In-memory cover cache persists across re-renders
-const coverCache: Record<number, string> = {};
+// Static cover URL — pre-generated at build time, no PDF rendering in browser
+const coverUrl = (i: number) => `/library/covers/book_${String(i).padStart(2, '0')}.webp`;
 
 const BookShelf = ({ onBookClick }: Props) => {
-  const [covers, setCovers] = useState<Record<number, string>>({ ...coverCache });
   const [hoveredBook, setHoveredBook] = useState<number | null>(null);
-  const loadedRef = useRef<Set<number>>(new Set(Object.keys(coverCache).map(Number)));
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const visibleRows = useRef<Set<number>>(new Set());
-
-  const loadCover = useCallback(async (index: number) => {
-    if (loadedRef.current.has(index)) return;
-    loadedRef.current.add(index);
-    try {
-      const url = getBookUrl(BOOKS[index].fileName);
-      const pdf = await pdfjsLib.getDocument({
-        url,
-        disableAutoFetch: true,
-        disableStream: true,
-      }).promise;
-      const page = await pdf.getPage(1);
-      const vp = page.getViewport({ scale: 0.35 });
-      const canvas = document.createElement('canvas');
-      canvas.width = vp.width;
-      canvas.height = vp.height;
-      const ctx = canvas.getContext('2d')!;
-      await page.render({ canvasContext: ctx, viewport: vp }).promise;
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.55);
-      coverCache[index] = dataUrl;
-      setCovers(prev => ({ ...prev, [index]: dataUrl }));
-      pdf.destroy();
-    } catch (err) {
-      console.warn(`Cover failed: ${BOOKS[index].title}`, err);
-    }
-  }, []);
-
-  // IntersectionObserver to load covers only for visible rows
-  useEffect(() => {
-    observerRef.current = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        const rowIdx = Number(entry.target.getAttribute('data-row'));
-        if (entry.isIntersecting && !visibleRows.current.has(rowIdx)) {
-          visibleRows.current.add(rowIdx);
-          const start = rowIdx * BOOKS_PER_ROW;
-          const end = Math.min(start + BOOKS_PER_ROW, BOOKS.length);
-          for (let i = start; i < end; i++) {
-            setTimeout(() => loadCover(i), (i - start) * 120);
-          }
-        }
-      });
-    }, { threshold: 0.1 });
-
-    rowRefs.current.forEach(el => {
-      if (el) observerRef.current!.observe(el);
-    });
-
-    return () => observerRef.current?.disconnect();
-  }, [loadCover]);
+  const [failedCovers, setFailedCovers] = useState<Set<number>>(new Set());
 
   const rows: typeof BOOKS[] = [];
   for (let i = 0; i < BOOKS.length; i += BOOKS_PER_ROW) {
@@ -100,8 +44,7 @@ const BookShelf = ({ onBookClick }: Props) => {
       {rows.map((row, rowIdx) => {
         const rowHeight = Math.max(...row.map((_, ci) => FIXED_HEIGHTS[rowIdx * BOOKS_PER_ROW + ci])) + 20;
         return (
-          <div key={rowIdx} ref={el => { rowRefs.current[rowIdx] = el; }} data-row={rowIdx}>
-            {/* Shelf row — fixed height, flex, aligned to bottom */}
+          <div key={rowIdx}>
             <div style={{
               display: 'flex',
               flexDirection: 'row',
@@ -116,7 +59,8 @@ const BookShelf = ({ onBookClick }: Props) => {
                 const bookIndex = rowIdx * BOOKS_PER_ROW + colIdx;
                 const height = FIXED_HEIGHTS[bookIndex];
                 const isHovered = hoveredBook === bookIndex;
-                const cover = covers[bookIndex];
+                const showFallback = failedCovers.has(bookIndex);
+                const isAboveFold = rowIdx < 2;
 
                 return (
                   <div
@@ -173,13 +117,17 @@ const BookShelf = ({ onBookClick }: Props) => {
                       filter: isHovered ? 'brightness(1.1) sepia(5%)' : 'sepia(15%) contrast(1.05) brightness(0.95)',
                       backgroundColor: SPINE_COLORS[bookIndex % SPINE_COLORS.length],
                     }}>
-                      {cover ? (
+                      {!showFallback ? (
                         <img
-                          src={cover}
+                          src={coverUrl(bookIndex)}
                           alt={book.title}
                           width={BOOK_WIDTH}
                           height={height}
                           decoding="async"
+                          loading={isAboveFold ? "eager" : "lazy"}
+                          // @ts-ignore — fetchpriority is valid HTML5
+                          fetchpriority={isAboveFold ? "high" : "low"}
+                          onError={() => setFailedCovers(prev => new Set(prev).add(bookIndex))}
                           style={{
                             width: '100%',
                             height: '100%',
@@ -188,7 +136,7 @@ const BookShelf = ({ onBookClick }: Props) => {
                           }}
                         />
                       ) : (
-                        /* Spine fallback — always visible immediately, no shimmer */
+                        /* Spine fallback if cover .webp is missing */
                         <div style={{
                           width: '100%',
                           height: '100%',
