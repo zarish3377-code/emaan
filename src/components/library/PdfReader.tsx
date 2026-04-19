@@ -52,11 +52,14 @@ const PdfReader = ({ title, url, onBack }: Props) => {
           setLoading(false);
           return;
         }
+        // Attempt 1: range requests (fast for large PDFs)
+        // Attempt 2+: full download fallback (more reliable)
+        const useRanges = attempt === 1;
         const doc = await pdfjsLib.getDocument({
           url,
-          rangeChunkSize: 65536,
-          disableAutoFetch: true,
-          disableStream: false,
+          ...(useRanges
+            ? { rangeChunkSize: 65536, disableAutoFetch: true, disableStream: false }
+            : { disableRange: true, disableStream: true, disableAutoFetch: false }),
         }).promise;
         if (cancelled) return;
         pdfCache[url] = doc;
@@ -65,10 +68,11 @@ const PdfReader = ({ title, url, onBack }: Props) => {
         setLoading(false);
       } catch (err) {
         if (cancelled) return;
-        if (attempt < 2) {
-          loadPdf(attempt + 1);
+        console.warn(`PDF load attempt ${attempt} failed:`, err);
+        if (attempt < 3) {
+          setTimeout(() => loadPdf(attempt + 1), 400);
         } else {
-          console.error("PDF load error:", err);
+          console.error("PDF load error after retries:", err, "URL:", url);
           setLoading(false);
           setLoadError(true);
         }
