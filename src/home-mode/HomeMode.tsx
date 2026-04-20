@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useHomeMode } from './useHomeMode'
 import HomeModeEngine from './HomeModeEngine'
+import WelcomeScene from './WelcomeScene'
 
 function getOrCreatePortalRoot() {
   let el = document.getElementById('hm-root')
@@ -20,7 +21,7 @@ function ensureFonts() {
   l.id = HM_FONTS_ID
   l.rel = 'stylesheet'
   l.href =
-    'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300;1,400&family=DM+Sans:wght@300&display=swap'
+    'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300;1,400&family=Dancing+Script:wght@400;500;600&family=Caveat:wght@400;500&family=DM+Sans:wght@300&display=swap'
   document.head.appendChild(l)
 }
 
@@ -31,6 +32,10 @@ const HM_GLOBAL_CSS = `
 }
 @keyframes hm-pop-in {
   0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes hm-lightbox-in {
+  0% { transform: scale(0.9); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
 @keyframes hm-btn-enter {
@@ -73,15 +78,72 @@ const HM_GLOBAL_CSS = `
   20%, 70% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
   100% { opacity: 0; transform: translate(-50%, -50%) translateY(-10px); }
 }
+@keyframes hm-welcome-rise {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  15% { opacity: 0.8; }
+  50% { transform: translateY(-15vh) translateX(var(--hm-w-drift, 20px)); opacity: 0.6; }
+  100% { transform: translateY(-30vh) translateX(calc(var(--hm-w-drift, 20px) * -0.6)); opacity: 0.4; }
+}
+@keyframes hm-welcome-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
+}
+@keyframes hm-welcome-pulse-text {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.02); opacity: 0.7; }
+}
+@keyframes hm-welcome-line {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes hm-bf-flap-up {
+  0%, 100% { transform: rotateY(-30deg); }
+  50% { transform: rotateY(30deg); }
+}
+@keyframes hm-bf-flap-low {
+  0%, 100% { transform: rotateY(-15deg); }
+  50% { transform: rotateY(15deg); }
+}
+@keyframes hm-petal-bloom {
+  0% { transform: rotate(var(--hm-petal-rot, 0deg)) scale(0); opacity: 0; }
+  100% { transform: rotate(var(--hm-petal-rot, 0deg)) scale(1); opacity: 1; }
+}
+@keyframes hm-flower-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+@keyframes hm-leaf-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+@keyframes hm-petal-float {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  100% { transform: translate(var(--hm-pf-x, 0), -80px) rotate(180deg); opacity: 0; }
+}
+@keyframes hm-msg-bubble {
+  0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+  20%, 80% { transform: translate(-50%, -10px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -20px) scale(0.95); opacity: 0; }
+}
 .hm-room-btn:hover {
-  transform: translate(-50%, -50%) scale(1.1) translateY(-3px) !important;
+  transform: translate(-50%, -50%) scale(1.15) translateY(-3px) !important;
   z-index: 20;
 }
 .hm-room-btn:active {
-  transform: translate(-50%, -50%) scale(0.96) !important;
+  transform: translate(-50%, -50%) scale(0.92) !important;
 }
 .hm-toggle:hover {
   transform: scale(1.05) translateY(-2px);
+}
+.hm-back-btn:hover {
+  background: rgba(255,255,255,0.22) !important;
+  transform: translateX(-2px);
+}
+.hm-photo-wrap:hover .hm-photo-img {
+  filter: brightness(1.05);
+}
+.hm-photo-wrap:hover .hm-photo-zoom {
+  opacity: 1 !important;
 }
 `
 
@@ -136,18 +198,21 @@ export default function HomeMode() {
   if (!mounted) return null
 
   return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 99990,
-        opacity: overlayOpacity,
-        transition: 'opacity 500ms ease',
-        background: '#0a0514',
-      }}
-    >
-      <HomeModeEngine />
-    </div>,
+    <>
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 99990,
+          opacity: overlayOpacity,
+          transition: 'opacity 500ms ease',
+          background: '#0a0514',
+        }}
+      >
+        <HomeModeEngine />
+      </div>
+      <WelcomeScene />
+    </>,
     getOrCreatePortalRoot()
   )
 }

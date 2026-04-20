@@ -5,14 +5,14 @@ import RoomScene from './RoomScene'
 import Particles from './Particles'
 import PhotoPopup from './PhotoPopup'
 import FeaturePlaceholder from './FeaturePlaceholder'
+import DockedHubButtons from './DockedHubButtons'
 
-const ENTRANCE_BG = '/home-mode/entrance_bg.png'
+const HUB_BG = '/home-mode/entrance_bg.png'
 
 export default function HomeModeEngine() {
   const { view } = useHomeMode()
-  const bg = view === 'hub' ? ENTRANCE_BG : ROOM_BG[view]
+  const bg = view === 'hub' ? HUB_BG : ROOM_BG[view]
 
-  // Crossfade backgrounds when room changes
   const [currentBg, setCurrentBg] = useState(bg)
   const [prevBg, setPrevBg] = useState<string | null>(null)
   const [prevOpacity, setPrevOpacity] = useState(0)
@@ -34,7 +34,6 @@ export default function HomeModeEngine() {
 
   return (
     <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-      {/* Backgrounds (crossfade) */}
       <div
         key={`bg-${currentBg}`}
         style={{
@@ -61,7 +60,6 @@ export default function HomeModeEngine() {
         />
       )}
 
-      {/* Soft vignette */}
       <div
         style={{
           position: 'absolute',
@@ -76,6 +74,7 @@ export default function HomeModeEngine() {
 
       {view === 'hub' ? <Hub /> : <RoomScene room={view} />}
 
+      <DockedHubButtons />
       <PhotoPopup />
       <FeaturePlaceholder />
     </div>
