@@ -122,7 +122,7 @@ export default function CrystalHeart() {
       // audio-driven intensity
       let bass = 0.3
       if (analyser && freqData) {
-        analyser.getByteFrequencyData(freqData)
+        analyser.getByteFrequencyData(freqData as Uint8Array<ArrayBuffer>)
         let sum = 0
         for (let i = 0; i < freqData.length; i++) sum += freqData[i]
         bass = sum / (freqData.length * 255)

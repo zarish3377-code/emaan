@@ -9,7 +9,7 @@ interface P {
   q: number
   D: number
   force: number
-  f: number
+  f: string
   trace: { x: number; y: number }[]
 }
 
