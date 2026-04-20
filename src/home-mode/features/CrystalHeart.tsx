@@ -146,7 +146,7 @@ export default function CrystalHeart() {
       let bass = 0
       let mid = 0
       if (analyserRef.current && dataArrayRef.current && isPlayingRef.current) {
-        analyserRef.current.getByteFrequencyData(dataArrayRef.current)
+        analyserRef.current.getByteFrequencyData(dataArrayRef.current as Uint8Array<ArrayBuffer>)
         let bassSum = 0
         for (let i = 0; i < 8; i++) bassSum += dataArrayRef.current[i]
         bass = bassSum / 8
