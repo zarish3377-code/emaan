@@ -2,6 +2,14 @@ import { HM_CONFIG, Room, useHomeMode } from './useHomeMode'
 import RoomButton from './RoomButton'
 import { ROOM_BUTTONS } from './roomConfig'
 
+const FILTERS = [
+  'none',
+  'hue-rotate(40deg) brightness(1.1)',
+  'hue-rotate(90deg) saturate(1.2)',
+  'hue-rotate(180deg) brightness(0.9)',
+  'hue-rotate(270deg) saturate(0.8) brightness(1.15)',
+]
+
 export default function RoomScene({ room }: { room: Room }) {
   const { setView, showPopup, openFeature } = useHomeMode()
   const buttons = ROOM_BUTTONS[room]
@@ -14,15 +22,12 @@ export default function RoomScene({ room }: { room: Room }) {
           x={b.x}
           y={b.y}
           size={88}
-          color={b.color}
-          light={b.light}
-          shadow={b.shadow}
+          cssFilter={FILTERS[i % FILTERS.length]}
           floatAmp={b.floatAmp}
           floatDur={b.floatDur}
           floatDelay={b.floatDelay}
           stagger={i * 80}
           label={b.label}
-          icon={b.icon}
           onClick={() => {
             if (b.action.kind === 'popup') {
               showPopup(
@@ -36,14 +41,15 @@ export default function RoomScene({ room }: { room: Room }) {
         />
       ))}
 
-      {/* Back button */}
+      {/* Back to hub */}
       <button
         type="button"
         onClick={() => setView('hub')}
         style={{
           position: 'absolute',
           bottom: 24,
-          left: 24,
+          left: '50%',
+          transform: 'translateX(-50%)',
           fontFamily: "'Cormorant Garamond', serif",
           fontStyle: 'italic',
           fontSize: 14,
@@ -59,7 +65,7 @@ export default function RoomScene({ room }: { room: Room }) {
           animation: 'hm-fade-in 400ms ease 200ms backwards',
         }}
       >
-        ← back
+        ← back to hub
       </button>
     </div>
   )

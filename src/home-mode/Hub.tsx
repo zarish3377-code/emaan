@@ -1,67 +1,65 @@
-import { useHomeMode } from './useHomeMode'
+import { Room, useHomeMode } from './useHomeMode'
 import RoomButton from './RoomButton'
-import { IconFlower, IconHouse, IconKettle } from './icons'
+
+interface HubBtnDef {
+  room: Room
+  label: string
+  filter: string
+  floatAmp: number
+  floatDur: number
+  floatDelay: number
+}
+
+export const HUB_BUTTONS: HubBtnDef[] = [
+  {
+    room: 'bedroom',
+    label: 'bedroom',
+    filter: 'hue-rotate(300deg) saturate(1.05)',
+    floatAmp: 10,
+    floatDur: 3.4,
+    floatDelay: 0,
+  },
+  {
+    room: 'kitchen',
+    label: 'kitchen',
+    filter: 'none',
+    floatAmp: 12,
+    floatDur: 4.2,
+    floatDelay: 0.4,
+  },
+  {
+    room: 'garden',
+    label: 'garden',
+    filter: 'hue-rotate(80deg) saturate(1.1)',
+    floatAmp: 11,
+    floatDur: 3.8,
+    floatDelay: 0.8,
+  },
+]
 
 export default function Hub() {
   const { setView } = useHomeMode()
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-      }}
-    >
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'auto' }}>
-        <RoomButton
-          x={22}
-          y={50}
-          size={120}
-          color="#E07090"
-          light="#FFB0C8"
-          shadow="rgba(232,112,144,0.45)"
-          floatAmp={10}
-          floatDur={3.4}
-          floatDelay={0}
-          stagger={0}
-          label="home"
-          icon={<IconHouse size={36} />}
-          onClick={() => setView('home')}
-        />
-        <RoomButton
-          x={50}
-          y={42}
-          size={120}
-          color="#E09A60"
-          light="#FFCAA0"
-          shadow="rgba(224,154,96,0.45)"
-          floatAmp={12}
-          floatDur={4.2}
-          floatDelay={0.4}
-          stagger={120}
-          label="kitchen"
-          icon={<IconKettle size={36} />}
-          onClick={() => setView('kitchen')}
-        />
-        <RoomButton
-          x={78}
-          y={50}
-          size={120}
-          color="#6CAE6C"
-          light="#A8D8A8"
-          shadow="rgba(108,174,108,0.45)"
-          floatAmp={11}
-          floatDur={3.8}
-          floatDelay={0.8}
-          stagger={240}
-          label="garden"
-          icon={<IconFlower size={36} />}
-          onClick={() => setView('garden')}
-        />
+        {HUB_BUTTONS.map((b, i) => (
+          <RoomButton
+            key={b.room}
+            x={[22, 50, 78][i]}
+            y={[50, 42, 50][i]}
+            size={130}
+            cssFilter={b.filter}
+            floatAmp={b.floatAmp}
+            floatDur={b.floatDur}
+            floatDelay={b.floatDelay}
+            stagger={i * 120}
+            label={b.label}
+            onClick={() => setView(b.room)}
+          />
+        ))}
       </div>
 
-      {/* Welcome line */}
       <div
         style={{
           position: 'absolute',
