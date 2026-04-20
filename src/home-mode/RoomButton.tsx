@@ -1,73 +1,59 @@
-import { CSSProperties, ReactNode } from 'react'
+import { CSSProperties } from 'react'
+import { HM_BUTTON_PNG } from './useHomeMode'
 
 interface Props {
   /** position in % of viewport (0–100) */
   x: number
   y: number
-  /** circle diameter px */
+  /** PNG render size (px) */
   size?: number
-  /** main color (used for radial gradient) */
-  color: string
-  /** lighter highlight (defaults to white-tinted color) */
-  light?: string
-  /** soft glow color (rgba) */
-  shadow: string
+  /** CSS filter for color variation */
+  cssFilter?: string
   /** float animation params */
   floatAmp?: number
   floatDur?: number
   floatDelay?: number
   label: string
-  icon: ReactNode
   onClick: () => void
-  /** entry animation stagger */
+  /** entry animation stagger ms */
   stagger?: number
 }
 
 export default function RoomButton({
   x,
   y,
-  size = 80,
-  color,
-  light,
-  shadow,
+  size = 90,
+  cssFilter = 'none',
   floatAmp = 10,
   floatDur = 4,
   floatDelay = 0,
   label,
-  icon,
   onClick,
   stagger = 0,
 }: Props) {
-  const lightColor = light ?? `${color}cc`
   const style: CSSProperties = {
     position: 'absolute',
     left: `${x}%`,
     top: `${y}%`,
-    width: size,
-    height: size,
     transform: 'translate(-50%, -50%)',
-    borderRadius: '50%',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: 4,
     cursor: 'pointer',
     userSelect: 'none',
-    border: '2px solid rgba(255,255,255,0.28)',
-    background: `radial-gradient(circle at 35% 30%, ${lightColor}, ${color})`,
-    boxShadow: `0 8px 32px ${shadow}, 0 0 0 6px rgba(255,255,255,0.06), inset 0 -8px 14px rgba(0,0,0,0.12)`,
-    backdropFilter: 'blur(4px)',
-    WebkitBackdropFilter: 'blur(4px)',
+    background: 'transparent',
+    border: 'none',
+    padding: 0,
     color: 'white',
-    // CSS variables for the float keyframes
     ['--hm-float-amp' as string]: `${floatAmp}px`,
     ['--hm-float-dur' as string]: `${floatDur}s`,
     ['--hm-float-delay' as string]: `${floatDelay}s`,
     ['--hm-stagger' as string]: `${stagger}ms`,
     animation: `hm-btn-enter 480ms cubic-bezier(0.34, 1.4, 0.64, 1) var(--hm-stagger) backwards, hm-btn-float var(--hm-float-dur) ease-in-out var(--hm-float-delay) infinite`,
     transition:
-      'transform 200ms cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 200ms ease',
+      'transform 200ms cubic-bezier(0.34, 1.4, 0.64, 1), filter 200ms ease',
   }
 
   return (
@@ -76,37 +62,32 @@ export default function RoomButton({
       className="hm-room-btn"
       style={style}
       onClick={onClick}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.zIndex = '10'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.zIndex = ''
-      }}
     >
       <div
         style={{
-          width: size * 0.42,
-          height: size * 0.42,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))',
+          width: size,
+          height: size,
+          backgroundImage: `url(${HM_BUTTON_PNG})`,
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          filter: `${cssFilter} drop-shadow(0 4px 16px rgba(0,0,0,0.3))`,
+          transition: 'filter 200ms ease',
         }}
-      >
-        {icon}
-      </div>
+      />
       <span
         style={{
           fontFamily: "'Cormorant Garamond', serif",
           fontStyle: 'italic',
-          fontSize: size > 100 ? 13 : 11,
-          color: 'rgba(255,255,255,0.95)',
-          letterSpacing: '0.03em',
+          fontSize: 11,
+          color: 'rgba(255,255,255,0.92)',
+          letterSpacing: '0.04em',
           lineHeight: 1.15,
-          maxWidth: size - 12,
           textAlign: 'center',
-          textShadow: '0 1px 2px rgba(0,0,0,0.35)',
-          padding: '0 4px',
+          textShadow: '0 1px 4px rgba(0,0,0,0.55)',
+          marginTop: 2,
+          opacity: 0.9,
+          maxWidth: size + 20,
         }}
       >
         {label}

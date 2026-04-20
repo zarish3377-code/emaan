@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type Room = 'home' | 'kitchen' | 'garden'
+export type Room = 'bedroom' | 'kitchen' | 'garden'
 export type View = 'hub' | Room
 
 export type FeatureKey =
@@ -22,10 +22,12 @@ interface ActivePopup {
 interface HomeModeStore {
   isActive: boolean
   view: View
+  showWelcome: boolean
   activePopup: ActivePopup | null
   activeFeature: FeatureKey | null
   toggle: () => void
   setView: (v: View) => void
+  setShowWelcome: (b: boolean) => void
   showPopup: (photo: string, message: string) => void
   hidePopup: () => void
   openFeature: (k: FeatureKey) => void
@@ -35,23 +37,25 @@ interface HomeModeStore {
 export const useHomeMode = create<HomeModeStore>((set) => ({
   isActive: false,
   view: 'hub',
+  showWelcome: false,
   activePopup: null,
   activeFeature: null,
   toggle: () =>
     set((s) => ({
       isActive: !s.isActive,
       view: 'hub',
+      showWelcome: !s.isActive, // turning ON shows welcome
       activePopup: null,
       activeFeature: null,
     })),
   setView: (view) => set({ view }),
+  setShowWelcome: (showWelcome) => set({ showWelcome }),
   showPopup: (photo, message) => set({ activePopup: { photo, message } }),
   hidePopup: () => set({ activePopup: null }),
   openFeature: (activeFeature) => set({ activeFeature }),
   closeFeature: () => set({ activeFeature: null }),
 }))
 
-// Photo + message config — edit these any time.
 export const HM_CONFIG = {
   photos: {
     home_01: '/home-mode/photos/home_01.jpg',
@@ -73,7 +77,19 @@ export const HM_CONFIG = {
 } as const
 
 export const ROOM_BG: Record<Room, string> = {
-  home: '/home-mode/entrance_bg.png',
+  bedroom: '/home-mode/bedroom_bg.png',
   kitchen: '/home-mode/kitchen_bg.png',
   garden: '/home-mode/garden_bg.png',
 }
+
+// PNG asset used by every floating room button
+export const HM_BUTTON_PNG = '/home-mode/button.png'
+
+// Filter variations to differentiate buttons (5 per room)
+export const BUTTON_FILTERS = [
+  'none',
+  'hue-rotate(40deg) brightness(1.1)',
+  'hue-rotate(90deg) saturate(1.2)',
+  'hue-rotate(180deg) brightness(0.9)',
+  'hue-rotate(270deg) saturate(0.8) brightness(1.15)',
+]
