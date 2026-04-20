@@ -92,6 +92,7 @@ export default function CanvasPulse() {
         time += 0.05
       }
       const factor = 1 + n * 0.05
+      void factor
 
       ctx.fillStyle = 'rgba(0,0,0,0.18)'
       ctx.fillRect(0, 0, W, H)
