@@ -245,7 +245,7 @@ export default function CrystalHeart() {
       audioCtxRef.current = ctx
       sourceRef.current = src
       analyserRef.current = analyser
-      dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount)
+      dataArrayRef.current = new Uint8Array(new ArrayBuffer(analyser.frequencyBinCount))
     }
     if (audioCtxRef.current.state === 'suspended') {
       await audioCtxRef.current.resume()
