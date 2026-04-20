@@ -49,6 +49,30 @@ const HM_GLOBAL_CSS = `
   90% { opacity: 0.3; }
   100% { transform: translateY(-100vh) translateX(calc(var(--hm-p-drift, 0px) * -0.5)); opacity: 0; }
 }
+@keyframes hm-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.92; }
+  50% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+}
+@keyframes hm-flap {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.18); }
+}
+@keyframes hm-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+@keyframes hm-bloom {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes hm-draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes hm-wish {
+  0% { opacity: 0; transform: translate(-50%, -50%) translateY(10px); }
+  20%, 70% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateY(-10px); }
+}
 .hm-room-btn:hover {
   transform: translate(-50%, -50%) scale(1.1) translateY(-3px) !important;
   z-index: 20;
