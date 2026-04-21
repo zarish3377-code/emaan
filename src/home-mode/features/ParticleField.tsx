@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import FeatureOverlay, { featureCaption } from './FeatureOverlay'
+import { getNextMessage, showHMMessage } from '../messages'
 
 interface Star {
   x: number
@@ -16,14 +17,6 @@ interface Burst {
   vy: number
   life: number
 }
-interface Msg {
-  x: number
-  y: number
-  text: string
-  life: number
-}
-
-const MSGS = ['make a wish', 'i see you', "you're a star", 'beautiful', '✨']
 
 export default function ParticleField() {
   const canvasRef = useRef<HTMLCanvasElement>(null)

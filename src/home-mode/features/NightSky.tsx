@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import FeatureOverlay, { featureCaption } from './FeatureOverlay'
+import { getNextMessage, showHMMessage } from '../messages'
 
 interface Star {
   x: number
@@ -20,19 +21,9 @@ interface ShootingStar {
 }
 interface Constellation {
   pts: { x: number; y: number }[]
-  label: string
   life: number
   drawn: number
 }
-
-const WISHES = [
-  'i wish you always feel loved',
-  'i wish your days get easier',
-  'i wish you knew how special you are',
-  'i wish you the softest sleep tonight',
-  'i wish i could tell you every day',
-]
-const NAMES = ['yours', 'the soft one', 'named after you', 'the brave', 'little light']
 
 export default function NightSky() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
