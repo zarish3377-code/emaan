@@ -39,10 +39,8 @@ export default function ParticleField() {
       })
     }
     const bursts: Burst[] = []
-    const msgs: Msg[] = []
     let mx = -1000
     let my = -1000
-    let pressing = false
 
     const onMove = (e: MouseEvent | TouchEvent) => {
       const t = 'touches' in e ? e.touches[0] : (e as MouseEvent)
@@ -67,12 +65,7 @@ export default function ParticleField() {
           life: 50,
         })
       }
-      msgs.push({
-        x: t.clientX,
-        y: t.clientY - 10,
-        text: MSGS[Math.floor(Math.random() * MSGS.length)],
-        life: 70,
-      })
+      showHMMessage(getNextMessage())
     }
     canvas.addEventListener('mousemove', onMove)
     canvas.addEventListener('touchmove', onMove)

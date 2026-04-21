@@ -65,14 +65,7 @@ export default function NightSky() {
         life: 0,
         maxLife: 50 + Math.random() * 30,
       })
-      const w = WISHES[Math.floor(Math.random() * WISHES.length)]
-      if (wishRef.current) {
-        wishRef.current.textContent = w
-        wishRef.current.style.animation = 'none'
-        // reflow
-        void wishRef.current.offsetWidth
-        wishRef.current.style.animation = 'hm-wish 2.8s ease forwards'
-      }
+      showHMMessage(getNextMessage())
     }
 
     const onClick = (e: MouseEvent | TouchEvent) => {
@@ -87,10 +80,10 @@ export default function NightSky() {
       }))
       constellations.push({
         pts,
-        label: NAMES[Math.floor(Math.random() * NAMES.length)],
         life: 240,
         drawn: 0,
       })
+      showHMMessage(getNextMessage())
     }
     canvas.addEventListener('mousedown', onClick)
     canvas.addEventListener('touchstart', onClick)
