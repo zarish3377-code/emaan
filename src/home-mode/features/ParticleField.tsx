@@ -134,19 +134,7 @@ export default function ParticleField() {
         ctx.fill()
       }
 
-      for (let i = msgs.length - 1; i >= 0; i--) {
-        const m = msgs[i]
-        m.y -= 0.7
-        m.life--
-        if (m.life <= 0) {
-          msgs.splice(i, 1)
-          continue
-        }
-        ctx.fillStyle = `rgba(255,255,255,${Math.min(1, m.life / 30)})`
-        ctx.font = "italic 18px 'Cormorant Garamond', serif"
-        ctx.textAlign = 'center'
-        ctx.fillText(m.text, m.x, m.y)
-      }
+      // (toast messages handled by showHMMessage on click)
     }
     raf = requestAnimationFrame(tick)
 

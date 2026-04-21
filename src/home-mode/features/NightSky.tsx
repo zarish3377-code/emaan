@@ -183,21 +183,7 @@ export default function NightSky() {
           ctx.fill()
         }
         ctx.shadowBlur = 0
-        // label near centroid
-        if (dpts >= c.pts.length) {
-          let cx = 0
-          let cy = 0
-          for (const p of c.pts) {
-            cx += p.x
-            cy += p.y
-          }
-          cx /= c.pts.length
-          cy /= c.pts.length
-          ctx.fillStyle = `rgba(255,255,255,${0.85 * a})`
-          ctx.font = "italic 16px 'Cormorant Garamond', serif"
-          ctx.textAlign = 'center'
-          ctx.fillText(c.label, cx, cy + 30)
-        }
+        // (label removed — toast message now shown via showHMMessage on click)
         if (c.life <= 0) constellations.splice(i, 1)
       }
     }
