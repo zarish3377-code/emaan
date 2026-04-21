@@ -176,20 +176,7 @@ export default function FallingHearts() {
       }
       ctx.globalAlpha = 1
 
-      for (let i = msgs.length - 1; i >= 0; i--) {
-        const m = msgs[i]
-        m.y -= 0.8
-        m.life--
-        if (m.life <= 0) {
-          msgs.splice(i, 1)
-          continue
-        }
-        const a = Math.min(1, m.life / 30)
-        ctx.fillStyle = `rgba(255,255,255,${a})`
-        ctx.font = "italic 18px 'Cormorant Garamond', serif"
-        ctx.textAlign = 'center'
-        ctx.fillText(m.text, m.x, m.y)
-      }
+      // (toast messages handled by showHMMessage on click)
     }
     raf = requestAnimationFrame(tick)
 
