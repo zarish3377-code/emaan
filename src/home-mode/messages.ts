@@ -23,7 +23,7 @@ export const HM_MESSAGES: string[] = [
   'You deserve to feel chosen, and I choose you. 💍',
   'You are softer than your fears, I promise. 🌸',
   'Even your silence speaks to me. 🌙',
-  "You're allowed to take up space beside me. 🪐',
+  "You're allowed to take up space beside me. 🪐",
   'Your heart is not a burden to hold. 🤲',
   "You are loved in ways you can't always see. 🌠",
   "It's okay to pause, I'll wait with you. ⏳",
