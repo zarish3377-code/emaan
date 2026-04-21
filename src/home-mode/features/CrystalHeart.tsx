@@ -1,23 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import FeatureOverlay, { featureCaption } from './FeatureOverlay'
+import FeatureOverlay from './FeatureOverlay'
 
 const SONG_URL = '/home-mode/song.mp3'
 
-function buildHeartShape(): THREE.Shape {
+function createHeartShape() {
   const shape = new THREE.Shape()
-  const steps = 100
-  for (let i = 0; i <= steps; i++) {
-    const t = (i / steps) * Math.PI * 2
-    const x = 16 * Math.pow(Math.sin(t), 3)
-    const y =
-      13 * Math.cos(t) -
-      5 * Math.cos(2 * t) -
-      2 * Math.cos(3 * t) -
-      Math.cos(4 * t)
-    if (i === 0) shape.moveTo(x, y)
-    else shape.lineTo(x, y)
-  }
+  const x = 0
+  const y = 0
+  shape.moveTo(x + 0.25, y + 0.25)
+  shape.bezierCurveTo(x + 0.25, y + 0.25, x + 0.2, y, x, y)
+  shape.bezierCurveTo(x - 0.3, y, x - 0.3, y + 0.35, x - 0.3, y + 0.35)
+  shape.bezierCurveTo(x - 0.3, y + 0.55, x - 0.1, y + 0.77, x + 0.25, y + 0.95)
+  shape.bezierCurveTo(x + 0.6, y + 0.77, x + 0.8, y + 0.55, x + 0.8, y + 0.35)
+  shape.bezierCurveTo(x + 0.8, y + 0.35, x + 0.8, y, x + 0.5, y)
+  shape.bezierCurveTo(x + 0.35, y, x + 0.25, y + 0.25, x + 0.25, y + 0.25)
   return shape
 }
 
@@ -38,7 +35,6 @@ export default function CrystalHeart() {
     isPlayingRef.current = isPlaying
   }, [isPlaying])
 
-  // Three.js setup (mount once)
   useEffect(() => {
     const mount = mountRef.current
     if (!mount) return
@@ -47,138 +43,205 @@ export default function CrystalHeart() {
     const h = mount.clientHeight
 
     const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 1000)
-    camera.position.z = 4.5
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    scene.background = new THREE.Color(0x0a0410)
+    scene.fog = new THREE.FogExp2(0x0a0410, 0.08)
+
+    const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100)
+    camera.position.set(0, 0, 2.8)
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setSize(w, h)
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMappingExposure = 1.2
     mount.appendChild(renderer.domElement)
 
-    const shape = buildHeartShape()
-    const geom = new THREE.ExtrudeGeometry(shape, {
-      depth: 4,
+    // Heart geometry
+    const shape = createHeartShape()
+    const geometry = new THREE.ExtrudeGeometry(shape, {
+      depth: 0.3,
       bevelEnabled: true,
-      bevelSize: 2,
-      bevelThickness: 1.5,
-      bevelSegments: 6,
-      curveSegments: 24,
+      bevelSegments: 8,
+      steps: 2,
+      bevelSize: 0.06,
+      bevelThickness: 0.06,
     })
-    geom.center()
-    const mat = new THREE.MeshStandardMaterial({
-      color: 0xff89ac,
-      metalness: 0.3,
-      roughness: 0.4,
-    })
-    const heart = new THREE.Mesh(geom, mat)
-    heart.rotation.z = Math.PI
-    heart.scale.setScalar(0.01)
+    geometry.computeBoundingBox()
+    const bb = geometry.boundingBox!
+    geometry.translate(
+      -(bb.max.x + bb.min.x) / 2,
+      -(bb.max.y + bb.min.y) / 2,
+      -(bb.max.z + bb.min.z) / 2
+    )
+    // Heart from these bezier coords points "down"; flip
+    geometry.rotateZ(Math.PI)
+
+    let material: THREE.Material
+    try {
+      material = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#ff5577'),
+        metalness: 0.0,
+        roughness: 0.05,
+        transmission: 0.6,
+        thickness: 0.5,
+        reflectivity: 0.8,
+        ior: 1.8,
+        transparent: true,
+        opacity: 0.92,
+        side: THREE.DoubleSide,
+      })
+    } catch {
+      material = new THREE.MeshStandardMaterial({
+        color: 0xff5577,
+        metalness: 0.15,
+        roughness: 0.1,
+        transparent: true,
+        opacity: 0.9,
+      })
+    }
+
+    const heart = new THREE.Mesh(geometry, material)
+    heart.scale.setScalar(0)
     scene.add(heart)
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.6)
+    // Lights
+    const ambient = new THREE.AmbientLight(0xffffff, 0.4)
     scene.add(ambient)
-    const goldLight = new THREE.PointLight(0xffd700, 1.2, 100)
-    goldLight.position.set(2, 3, 4)
-    scene.add(goldLight)
-    const roseLight = new THREE.PointLight(0xff89ac, 0.8, 100)
-    roseLight.position.set(-3, -1, 2)
-    scene.add(roseLight)
+    const keyLight = new THREE.PointLight(0xffd700, 2.5, 20)
+    keyLight.position.set(3, 4, 3)
+    scene.add(keyLight)
+    const fillLight = new THREE.PointLight(0xff89ac, 1.8, 20)
+    fillLight.position.set(-3, -1, 2)
+    scene.add(fillLight)
+    const rimLight = new THREE.PointLight(0x9b6fcc, 1.2, 20)
+    rimLight.position.set(0, 0, -4)
+    scene.add(rimLight)
 
-    // Snow hearts
-    const snowCount = 250
-    const snowGeom = new THREE.BufferGeometry()
-    const snowPos = new Float32Array(snowCount * 3)
-    const snowVel = new Float32Array(snowCount)
-    const snowColors = new Float32Array(snowCount * 3)
-    const palette = [
-      [1, 0.4, 0.6],
-      [1, 0.7, 0.8],
-      [1, 0.45, 0.7],
-      [1, 0.71, 0.76],
+    // Particles around heart
+    const particleCount = 2000
+    const positions = new Float32Array(particleCount * 3)
+    const colors = new Float32Array(particleCount * 3)
+    const phases = new Float32Array(particleCount)
+    const colorOptions = [
+      new THREE.Color('#FF5577'),
+      new THREE.Color('#FF89AC'),
+      new THREE.Color('#FFD700'),
+      new THREE.Color('#C44DFF'),
+      new THREE.Color('#ffffff'),
     ]
-    for (let i = 0; i < snowCount; i++) {
-      snowPos[i * 3] = (Math.random() - 0.5) * 12
-      snowPos[i * 3 + 1] = Math.random() * 8 - 4
-      snowPos[i * 3 + 2] = (Math.random() - 0.5) * 6
-      snowVel[i] = 0.005 + Math.random() * 0.012
-      const c = palette[Math.floor(Math.random() * palette.length)]
-      snowColors[i * 3] = c[0]
-      snowColors[i * 3 + 1] = c[1]
-      snowColors[i * 3 + 2] = c[2]
+    for (let i = 0; i < particleCount; i++) {
+      const t = (i / particleCount) * Math.PI * 2
+      const layer = Math.floor(i / (particleCount / 3))
+      const scale = [0.9, 1.0, 1.15][layer] || 1.0
+      const hx = scale * 16 * Math.pow(Math.sin(t), 3) * 0.06
+      const hy =
+        scale *
+        (13 * Math.cos(t) -
+          5 * Math.cos(2 * t) -
+          2 * Math.cos(3 * t) -
+          Math.cos(4 * t)) *
+        -0.06
+      const hz = (Math.random() - 0.5) * 0.4
+      positions[i * 3] = hx + (Math.random() - 0.5) * 0.15
+      positions[i * 3 + 1] = hy + (Math.random() - 0.5) * 0.15
+      positions[i * 3 + 2] = hz
+      const col = colorOptions[Math.floor(Math.random() * colorOptions.length)]
+      colors[i * 3] = col.r
+      colors[i * 3 + 1] = col.g
+      colors[i * 3 + 2] = col.b
+      phases[i] = Math.random() * Math.PI * 2
     }
-    snowGeom.setAttribute('position', new THREE.BufferAttribute(snowPos, 3))
-    snowGeom.setAttribute('color', new THREE.BufferAttribute(snowColors, 3))
-    const snowMat = new THREE.PointsMaterial({
-      size: 0.08,
+    const pGeo = new THREE.BufferGeometry()
+    pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    pGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+    const pMat = new THREE.PointsMaterial({
+      size: 0.04,
       vertexColors: true,
-      transparent: true,
-      opacity: 0.85,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
+      transparent: true,
+      opacity: 0.75,
+      sizeAttenuation: true,
     })
-    const snow = new THREE.Points(snowGeom, snowMat)
-    scene.add(snow)
+    const particles = new THREE.Points(pGeo, pMat)
+    scene.add(particles)
 
-    const scaleStart = performance.now()
-    const targetScale = 0.12
-
-    let raf = 0
-    let mouseX = 0
-    let mouseY = 0
-    let cameraZTarget = 4.5
-
+    // Mouse drift target
+    const camTarget = { x: 0, y: 0 }
     const onMouseMove = (e: MouseEvent) => {
-      mouseX = (e.clientX / window.innerWidth - 0.5) * 0.4
-      mouseY = (e.clientY / window.innerHeight - 0.5) * 0.4
+      camTarget.x = (e.clientX / window.innerWidth - 0.5) * 0.4
+      camTarget.y = (e.clientY / window.innerHeight - 0.5) * -0.3
     }
     window.addEventListener('mousemove', onMouseMove)
 
-    const animate = (t: number) => {
+    // Entry tween
+    const entryStart = performance.now()
+    const entryDur = 1200
+
+    const clock = new THREE.Clock()
+    let raf = 0
+    const animate = () => {
       raf = requestAnimationFrame(animate)
-      const elapsed = (t - scaleStart) / 1000
+      const t = clock.getElapsedTime()
 
-      const springProgress = Math.min(elapsed / 1.5, 1)
-      const eased =
-        springProgress < 1
-          ? 1 - Math.cos(springProgress * Math.PI * 2.5) * Math.exp(-springProgress * 4)
-          : 1
-      let scale = targetScale * eased
+      // Entry elastic
+      const ep = Math.min((performance.now() - entryStart) / entryDur, 1)
+      const c4 = (2 * Math.PI) / 3
+      const elastic =
+        ep === 0
+          ? 0
+          : ep === 1
+          ? 1
+          : Math.pow(2, -10 * ep) * Math.sin((ep * 10 - 0.75) * c4) + 1
 
+      // Audio
       let bass = 0
       let mid = 0
       if (analyserRef.current && dataArrayRef.current && isPlayingRef.current) {
-        analyserRef.current.getByteFrequencyData(dataArrayRef.current as Uint8Array<ArrayBuffer>)
-        let bassSum = 0
-        for (let i = 0; i < 8; i++) bassSum += dataArrayRef.current[i]
-        bass = bassSum / 8
-        let midSum = 0
-        for (let i = 9; i < 41; i++) midSum += dataArrayRef.current[i]
-        mid = midSum / 32
-
-        scale =
-          targetScale + (bass / 255) * 0.06 + Math.sin(elapsed * 1.2) * 0.006
-        goldLight.intensity = 1.2 + (bass / 255) * 1.5
-        roseLight.intensity = 0.8 + (mid / 255) * 1.2
-
-        if (bass > 200) cameraZTarget = 3.5
+        analyserRef.current.getByteFrequencyData(
+          dataArrayRef.current as Uint8Array<ArrayBuffer>
+        )
+        const data = dataArrayRef.current
+        let bs = 0
+        for (let i = 0; i < 8; i++) bs += data[i]
+        bass = bs / 8 / 255
+        let ms = 0
+        for (let i = 9; i < 40; i++) ms += data[i]
+        mid = ms / 31 / 255
       }
 
-      cameraZTarget += (4.5 - cameraZTarget) * 0.04
-      camera.position.z += (cameraZTarget - camera.position.z) * 0.1
-      camera.position.x += (mouseX - camera.position.x) * 0.05
-      camera.position.y += (-mouseY - camera.position.y) * 0.05
+      // Heart anim
+      heart.rotation.y += 0.004 + bass * 0.018
+      heart.rotation.x = Math.sin(t * 0.4) * 0.08
+      const breathe = 1.0 + Math.sin(t * 1.4) * 0.04 + bass * 0.08
+      heart.scale.setScalar(elastic * breathe)
+      heart.position.y = Math.sin(t * 0.7) * 0.08
+
+      // Lights orbit + react
+      keyLight.position.x = Math.sin(t * 0.5) * 3
+      keyLight.position.z = Math.cos(t * 0.5) * 3
+      fillLight.position.x = Math.sin(t * 0.5 + Math.PI) * 3
+      fillLight.position.z = Math.cos(t * 0.5 + Math.PI) * 3
+      keyLight.intensity = 2.5 + bass * 3.0
+      fillLight.intensity = 1.8 + mid * 2.0
+
+      // Particle shimmer
+      const posArr = pGeo.attributes.position.array as Float32Array
+      for (let i = 0; i < particleCount; i++) {
+        posArr[i * 3 + 2] += Math.sin(t * 2 + phases[i]) * 0.001
+        if (bass > 0.6) {
+          posArr[i * 3] *= 1.0 + bass * 0.003
+          posArr[i * 3 + 1] *= 1.0 + bass * 0.003
+        }
+      }
+      pGeo.attributes.position.needsUpdate = true
+      pMat.size = 0.04 + bass * 0.02
+      particles.rotation.y += 0.002 + bass * 0.008
+
+      // Camera lerp toward mouse target
+      camera.position.x += (camTarget.x - camera.position.x) * 0.03
+      camera.position.y += (camTarget.y - camera.position.y) * 0.03
       camera.lookAt(0, 0, 0)
-
-      heart.scale.setScalar(scale)
-      heart.position.y = Math.sin(elapsed * 0.8) * 0.08
-      heart.rotation.y += 0.004 + (mid / 255) * 0.015
-
-      const sp = snowGeom.attributes.position.array as Float32Array
-      for (let i = 0; i < snowCount; i++) {
-        const speedMul = 1 + (bass / 255) * 1.5
-        sp[i * 3 + 1] -= snowVel[i] * speedMul
-        if (sp[i * 3 + 1] < -4) sp[i * 3 + 1] = 4
-      }
-      snowGeom.attributes.position.needsUpdate = true
 
       renderer.render(scene, camera)
     }
@@ -197,10 +260,10 @@ export default function CrystalHeart() {
       cancelAnimationFrame(raf)
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('resize', onResize)
-      geom.dispose()
-      mat.dispose()
-      snowGeom.dispose()
-      snowMat.dispose()
+      geometry.dispose()
+      material.dispose()
+      pGeo.dispose()
+      pMat.dispose()
       renderer.dispose()
       if (renderer.domElement.parentNode === mount) {
         mount.removeChild(renderer.domElement)
@@ -208,19 +271,14 @@ export default function CrystalHeart() {
     }
   }, [])
 
-  // Audio cleanup on unmount
+  // Audio cleanup
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-      }
+      if (audioRef.current) audioRef.current.pause()
       try {
         sourceRef.current?.disconnect()
         analyserRef.current?.disconnect()
-        if (
-          audioCtxRef.current &&
-          audioCtxRef.current.state !== 'closed'
-        ) {
+        if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
           audioCtxRef.current.close()
         }
       } catch {
@@ -240,12 +298,15 @@ export default function CrystalHeart() {
       const src = ctx.createMediaElementSource(audioRef.current)
       const analyser = ctx.createAnalyser()
       analyser.fftSize = 256
+      analyser.smoothingTimeConstant = 0.8
       src.connect(analyser)
       analyser.connect(ctx.destination)
       audioCtxRef.current = ctx
       sourceRef.current = src
       analyserRef.current = analyser
-      dataArrayRef.current = new Uint8Array(new ArrayBuffer(analyser.frequencyBinCount))
+      dataArrayRef.current = new Uint8Array(
+        new ArrayBuffer(analyser.frequencyBinCount)
+      )
     }
     if (audioCtxRef.current.state === 'suspended') {
       await audioCtxRef.current.resume()
@@ -271,7 +332,7 @@ export default function CrystalHeart() {
   }
 
   return (
-    <FeatureOverlay background="#16000a">
+    <FeatureOverlay background="#0a0410">
       <div ref={mountRef} style={{ position: 'absolute', inset: 0 }} />
 
       <audio
@@ -284,34 +345,6 @@ export default function CrystalHeart() {
           setEnded(true)
         }}
       />
-
-      {isPlaying && !ended && (
-        <div
-          style={{
-            ...featureCaption,
-            bottom: '15%',
-            fontSize: '1.2rem',
-            color: '#ffdada',
-            opacity: 0,
-            animation: 'hm-fade-in 2s ease 1s forwards',
-          }}
-        >
-          this song makes me think of you
-        </div>
-      )}
-      {ended && (
-        <div
-          style={{
-            ...featureCaption,
-            bottom: '15%',
-            fontSize: '1.3rem',
-            color: '#ffdada',
-            animation: 'hm-fade-in 1s ease',
-          }}
-        >
-          i hope you felt that ♡
-        </div>
-      )}
 
       {/* Controls */}
       <div
@@ -389,6 +422,25 @@ export default function CrystalHeart() {
           />
         </div>
       </div>
+
+      {ended && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: '18%',
+            transform: 'translateX(-50%)',
+            fontFamily: "'Cormorant Garamond', serif",
+            fontStyle: 'italic',
+            color: '#ffdada',
+            fontSize: '1.3rem',
+            textShadow: '0 2px 16px rgba(0,0,0,0.7)',
+            animation: 'hm-fade-in 1s ease',
+          }}
+        >
+          i hope you felt that ♡
+        </div>
+      )}
     </FeatureOverlay>
   )
 }

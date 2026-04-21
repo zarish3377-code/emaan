@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import FeatureOverlay, { featureCaption } from './FeatureOverlay'
+import { getNextMessage, showHMMessage } from '../messages'
 
 interface Star {
   x: number
@@ -20,19 +21,9 @@ interface ShootingStar {
 }
 interface Constellation {
   pts: { x: number; y: number }[]
-  label: string
   life: number
   drawn: number
 }
-
-const WISHES = [
-  'i wish you always feel loved',
-  'i wish your days get easier',
-  'i wish you knew how special you are',
-  'i wish you the softest sleep tonight',
-  'i wish i could tell you every day',
-]
-const NAMES = ['yours', 'the soft one', 'named after you', 'the brave', 'little light']
 
 export default function NightSky() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -74,14 +65,7 @@ export default function NightSky() {
         life: 0,
         maxLife: 50 + Math.random() * 30,
       })
-      const w = WISHES[Math.floor(Math.random() * WISHES.length)]
-      if (wishRef.current) {
-        wishRef.current.textContent = w
-        wishRef.current.style.animation = 'none'
-        // reflow
-        void wishRef.current.offsetWidth
-        wishRef.current.style.animation = 'hm-wish 2.8s ease forwards'
-      }
+      showHMMessage(getNextMessage())
     }
 
     const onClick = (e: MouseEvent | TouchEvent) => {
@@ -96,10 +80,10 @@ export default function NightSky() {
       }))
       constellations.push({
         pts,
-        label: NAMES[Math.floor(Math.random() * NAMES.length)],
         life: 240,
         drawn: 0,
       })
+      showHMMessage(getNextMessage())
     }
     canvas.addEventListener('mousedown', onClick)
     canvas.addEventListener('touchstart', onClick)
@@ -199,21 +183,7 @@ export default function NightSky() {
           ctx.fill()
         }
         ctx.shadowBlur = 0
-        // label near centroid
-        if (dpts >= c.pts.length) {
-          let cx = 0
-          let cy = 0
-          for (const p of c.pts) {
-            cx += p.x
-            cy += p.y
-          }
-          cx /= c.pts.length
-          cy /= c.pts.length
-          ctx.fillStyle = `rgba(255,255,255,${0.85 * a})`
-          ctx.font = "italic 16px 'Cormorant Garamond', serif"
-          ctx.textAlign = 'center'
-          ctx.fillText(c.label, cx, cy + 30)
-        }
+        // (label removed — toast message now shown via showHMMessage on click)
         if (c.life <= 0) constellations.splice(i, 1)
       }
     }

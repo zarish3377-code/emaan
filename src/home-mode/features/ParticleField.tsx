@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import FeatureOverlay, { featureCaption } from './FeatureOverlay'
+import { getNextMessage, showHMMessage } from '../messages'
 
 interface Star {
   x: number
@@ -16,14 +17,6 @@ interface Burst {
   vy: number
   life: number
 }
-interface Msg {
-  x: number
-  y: number
-  text: string
-  life: number
-}
-
-const MSGS = ['make a wish', 'i see you', "you're a star", 'beautiful', '✨']
 
 export default function ParticleField() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -46,10 +39,8 @@ export default function ParticleField() {
       })
     }
     const bursts: Burst[] = []
-    const msgs: Msg[] = []
     let mx = -1000
     let my = -1000
-    let pressing = false
 
     const onMove = (e: MouseEvent | TouchEvent) => {
       const t = 'touches' in e ? e.touches[0] : (e as MouseEvent)
@@ -74,12 +65,7 @@ export default function ParticleField() {
           life: 50,
         })
       }
-      msgs.push({
-        x: t.clientX,
-        y: t.clientY - 10,
-        text: MSGS[Math.floor(Math.random() * MSGS.length)],
-        life: 70,
-      })
+      showHMMessage(getNextMessage())
     }
     canvas.addEventListener('mousemove', onMove)
     canvas.addEventListener('touchmove', onMove)
@@ -148,19 +134,7 @@ export default function ParticleField() {
         ctx.fill()
       }
 
-      for (let i = msgs.length - 1; i >= 0; i--) {
-        const m = msgs[i]
-        m.y -= 0.7
-        m.life--
-        if (m.life <= 0) {
-          msgs.splice(i, 1)
-          continue
-        }
-        ctx.fillStyle = `rgba(255,255,255,${Math.min(1, m.life / 30)})`
-        ctx.font = "italic 18px 'Cormorant Garamond', serif"
-        ctx.textAlign = 'center'
-        ctx.fillText(m.text, m.x, m.y)
-      }
+      // (toast messages handled by showHMMessage on click)
     }
     raf = requestAnimationFrame(tick)
 

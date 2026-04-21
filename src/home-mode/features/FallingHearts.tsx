@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import FeatureOverlay, { featureCaption } from './FeatureOverlay'
+import FeatureOverlay from './FeatureOverlay'
+import { getNextMessage, showHMMessage } from '../messages'
 
 interface Heart {
   x: number
@@ -21,23 +22,8 @@ interface Spark {
   life: number
   color: string
 }
-interface FloatMsg {
-  x: number
-  y: number
-  text: string
-  life: number
-}
 
 const COLORS = ['#ff6b9d', '#c44dff', '#4dffc4', '#ffd700', '#ff4757']
-const MSGS = [
-  'caught one 💕',
-  "you're magic",
-  'keep going',
-  'i knew you could',
-  'beautiful',
-  '✨',
-  'sweet thing',
-]
 
 function drawHeart(
   ctx: CanvasRenderingContext2D,
@@ -75,7 +61,6 @@ export default function FallingHearts() {
 
     const hearts: Heart[] = []
     const sparks: Spark[] = []
-    const msgs: FloatMsg[] = []
     const dust: { x: number; y: number; vy: number; r: number; o: number }[] = []
 
     const spawnHeart = (yOverride?: number): Heart => ({
@@ -121,12 +106,7 @@ export default function FallingHearts() {
               color: h.color,
             })
           }
-          msgs.push({
-            x: h.x,
-            y: h.y,
-            text: MSGS[Math.floor(Math.random() * MSGS.length)],
-            life: 70,
-          })
+          showHMMessage(getNextMessage())
           hearts.splice(i, 1)
           scoreRef.current++
           setScore(scoreRef.current)
@@ -196,20 +176,7 @@ export default function FallingHearts() {
       }
       ctx.globalAlpha = 1
 
-      for (let i = msgs.length - 1; i >= 0; i--) {
-        const m = msgs[i]
-        m.y -= 0.8
-        m.life--
-        if (m.life <= 0) {
-          msgs.splice(i, 1)
-          continue
-        }
-        const a = Math.min(1, m.life / 30)
-        ctx.fillStyle = `rgba(255,255,255,${a})`
-        ctx.font = "italic 18px 'Cormorant Garamond', serif"
-        ctx.textAlign = 'center'
-        ctx.fillText(m.text, m.x, m.y)
-      }
+      // (toast messages handled by showHMMessage on click)
     }
     raf = requestAnimationFrame(tick)
 

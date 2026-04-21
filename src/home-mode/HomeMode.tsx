@@ -145,6 +145,36 @@ const HM_GLOBAL_CSS = `
 .hm-photo-wrap:hover .hm-photo-zoom {
   opacity: 1 !important;
 }
+.hm-message-toast {
+  position: fixed;
+  z-index: 99995;
+  max-width: min(320px, 85vw);
+  padding: 14px 22px;
+  background: rgba(8, 4, 18, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(200, 170, 220, 0.25);
+  border-radius: 16px;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #F0E8FF;
+  letter-spacing: 0.015em;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 500ms ease, transform 500ms cubic-bezier(0.34,1.4,0.64,1);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04) inset,
+    0 12px 40px rgba(0,0,0,0.4),
+    0 0 24px rgba(160,120,220,0.12);
+}
+@keyframes hm-hint-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
 `
 
 let injected = false
