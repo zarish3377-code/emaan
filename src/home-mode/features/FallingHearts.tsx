@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import FeatureOverlay, { featureCaption } from './FeatureOverlay'
+import FeatureOverlay from './FeatureOverlay'
+import { getNextMessage, showHMMessage } from '../messages'
 
 interface Heart {
   x: number
@@ -21,23 +22,8 @@ interface Spark {
   life: number
   color: string
 }
-interface FloatMsg {
-  x: number
-  y: number
-  text: string
-  life: number
-}
 
 const COLORS = ['#ff6b9d', '#c44dff', '#4dffc4', '#ffd700', '#ff4757']
-const MSGS = [
-  'caught one 💕',
-  "you're magic",
-  'keep going',
-  'i knew you could',
-  'beautiful',
-  '✨',
-  'sweet thing',
-]
 
 function drawHeart(
   ctx: CanvasRenderingContext2D,
