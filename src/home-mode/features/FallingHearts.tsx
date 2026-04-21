@@ -61,7 +61,6 @@ export default function FallingHearts() {
 
     const hearts: Heart[] = []
     const sparks: Spark[] = []
-    const msgs: FloatMsg[] = []
     const dust: { x: number; y: number; vy: number; r: number; o: number }[] = []
 
     const spawnHeart = (yOverride?: number): Heart => ({
@@ -107,12 +106,7 @@ export default function FallingHearts() {
               color: h.color,
             })
           }
-          msgs.push({
-            x: h.x,
-            y: h.y,
-            text: MSGS[Math.floor(Math.random() * MSGS.length)],
-            life: 70,
-          })
+          showHMMessage(getNextMessage())
           hearts.splice(i, 1)
           scoreRef.current++
           setScore(scoreRef.current)
