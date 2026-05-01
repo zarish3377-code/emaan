@@ -95,9 +95,11 @@ const Flower = ({
         />
       ))}
 
-      {/* Petals */}
+      {/* Petals — 10 per flower, all stay visible after bloom, sway gently */}
       {Array.from({ length: def.petalCount }).map((_, i) => {
         const rot = (360 / def.petalCount) * i
+        const swayDur = 2.5 + Math.random() * 1.5
+        const bloomDelay = def.delay + i * 60
         return (
           <path
             key={i}
@@ -108,7 +110,7 @@ const Flower = ({
             style={{
               transformOrigin: 'center',
               ['--hm-petal-rot' as string]: `${rot}deg`,
-              animation: `hm-petal-bloom 700ms cubic-bezier(0.34,1.4,0.64,1) ${def.delay + i * 80}ms both`,
+              animation: `hm-petal-bloom 700ms cubic-bezier(0.34,1.4,0.64,1) ${bloomDelay}ms both, hm-petal-sway ${swayDur}s ease-in-out ${bloomDelay + 700}ms infinite`,
             }}
           />
         )
