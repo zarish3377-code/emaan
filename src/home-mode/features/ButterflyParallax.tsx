@@ -415,6 +415,115 @@ export default function ButterflyParallax() {
           )}
         </div>
       )}
+      {/* Scrollable dialogue with all messages */}
+      {dialogOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            left: '50%',
+            top: '50%',
+            transform: dialogClosing
+              ? 'translate(-50%, -50%) scale(0.92)'
+              : 'translate(-50%, -50%) scale(1)',
+            opacity: dialogClosing ? 0 : 1,
+            width: 'min(420px, 88vw)',
+            maxHeight: '70vh',
+            background: '#FFFDF8',
+            border: '1px solid #E8DCC8',
+            borderRadius: 16,
+            boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            zIndex: 99998,
+            animation: dialogClosing
+              ? undefined
+              : 'hm-dialog-pop 350ms cubic-bezier(0.34, 1.4, 0.64, 1)',
+            transition: 'transform 260ms ease, opacity 260ms ease',
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              position: 'relative',
+              padding: '20px 24px 12px',
+              borderBottom: '1px solid rgba(230,210,190,0.4)',
+              fontFamily: "'Dancing Script', cursive",
+              fontSize: 18,
+              color: '#C84060',
+              textAlign: 'center',
+              background: '#FFFDF8',
+              flexShrink: 0,
+            }}
+          >
+            a little something for you ♡
+            <button
+              type="button"
+              onClick={handleDialogClose}
+              aria-label="Close"
+              style={{
+                position: 'absolute',
+                top: 14,
+                right: 14,
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                border: 'none',
+                background: 'rgba(200,100,100,0.1)',
+                color: '#C84060',
+                fontSize: 18,
+                lineHeight: 1,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 0,
+              }}
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Scrollable body */}
+          <div
+            className="hm-letter-scroll"
+            style={{
+              overflowY: 'auto',
+              padding: '20px 28px 28px',
+              flex: 1,
+            }}
+          >
+            {HM_MESSAGES.map((msg, i) => (
+              <div key={i}>
+                <p
+                  style={{
+                    fontFamily: "'Dancing Script', cursive",
+                    fontSize: 16,
+                    lineHeight: 1.9,
+                    color: '#3A2820',
+                    margin: '0 0 18px 0',
+                  }}
+                >
+                  {msg}
+                </p>
+                {(i + 1) % 5 === 0 && i < HM_MESSAGES.length - 1 && (
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      color: 'rgba(200,140,160,0.55)',
+                      letterSpacing: '0.6em',
+                      fontSize: 12,
+                      margin: '8px 0 22px',
+                    }}
+                  >
+                    ✦ ✦ ✦
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </FeatureOverlay>
   )
 }
