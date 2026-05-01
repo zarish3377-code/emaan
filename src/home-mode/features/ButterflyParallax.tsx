@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import FeatureOverlay from './FeatureOverlay'
-import { getNextMessage, showHMMessage } from '../messages'
+import { HM_MESSAGES } from '../messages'
 
 interface BfDef {
   id: 'a' | 'b' | 'c'
