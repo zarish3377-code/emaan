@@ -160,6 +160,21 @@ export default function FlowerBloom() {
   const [petals, setPetals] = useState<FloatingPetal[]>([])
   const overlayRef = useRef<SVGSVGElement>(null)
 
+  // 8 floating mist blobs — stable random positions per mount
+  const mistBlobs = useMemo(
+    () =>
+      Array.from({ length: 8 }).map(() => ({
+        size: 80 + Math.random() * 80,
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        dx: (Math.random() - 0.5) * 40,
+        dy: (Math.random() - 0.5) * 40,
+        dur: 6 + Math.random() * 4,
+        delay: Math.random() * 4,
+      })),
+    []
+  )
+
   useEffect(() => {
     const t1 = setTimeout(() => setShowText(true), 7000)
     const t2 = setTimeout(() => setBloomed(true), 6500)
@@ -168,6 +183,10 @@ export default function FlowerBloom() {
       clearTimeout(t2)
     }
   }, [])
+
+  const handleSceneClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    showHMMessage(getNextMessage(), { x: e.clientX, y: e.clientY })
+  }
 
   const handleFlowerClick = (def: FlowerDef, e: React.MouseEvent) => {
     if (!bloomed) return
