@@ -232,11 +232,23 @@ export default function FlowerBloom() {
       )
     }, 1500)
 
-    showHMMessage(getNextMessage())
+    showHMMessage(getNextMessage(), { x: e.clientX, y: e.clientY })
   }
 
   return (
     <FeatureOverlay background="linear-gradient(180deg, #0A1A0A 0%, #0D2010 40%, #0A1808 100%)">
+      {/* Click-anywhere catcher */}
+      <div
+        onClick={handleSceneClick}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 1,
+          cursor: 'pointer',
+        }}
+      />
+
+      {/* Subtle texture */}
       <div
         style={{
           position: 'absolute',
@@ -247,6 +259,40 @@ export default function FlowerBloom() {
         }}
       />
 
+      {/* Pink mist — radial wash */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'radial-gradient(ellipse at 50% 60%, rgba(255,160,190,0.18) 0%, rgba(220,120,160,0.10) 35%, transparent 70%)',
+          animation: 'hm-mist-breathe 5s ease-in-out infinite',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Pink mist blobs */}
+      {mistBlobs.map((b, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            left: `${b.left}%`,
+            top: `${b.top}%`,
+            width: b.size,
+            height: b.size,
+            borderRadius: '50%',
+            background: 'rgba(255,140,180,0.06)',
+            filter: 'blur(30px)',
+            pointerEvents: 'none',
+            zIndex: 0,
+            ['--mist-dx' as string]: `${b.dx}px`,
+            ['--mist-dy' as string]: `${b.dy}px`,
+            animation: `hm-mist-drift ${b.dur}s ease-in-out ${b.delay}s infinite`,
+          }}
+        />
+      ))}
       <svg
         ref={overlayRef}
         viewBox="0 0 600 600"
