@@ -13,12 +13,12 @@ interface FlowerDef {
 }
 
 const FLOWERS: FlowerDef[] = [
-  { id: 'f1', cx: 120, cy: 410, size: 'large',  petalCount: 6, gradientId: 'pg-rose',  delay: 2800 },
-  { id: 'f2', cx: 480, cy: 410, size: 'large',  petalCount: 6, gradientId: 'pg-rose',  delay: 3200 },
-  { id: 'f3', cx: 105, cy: 290, size: 'medium', petalCount: 5, gradientId: 'pg-lav',   delay: 3600 },
-  { id: 'f4', cx: 495, cy: 290, size: 'medium', petalCount: 5, gradientId: 'pg-lav',   delay: 4000 },
-  { id: 'f5', cx: 150, cy: 185, size: 'medium', petalCount: 5, gradientId: 'pg-gold',  delay: 4400 },
-  { id: 'f6', cx: 450, cy: 185, size: 'small',  petalCount: 4, gradientId: 'pg-rose',  delay: 4800 },
+  { id: 'f1', cx: 120, cy: 410, size: 'large',  petalCount: 10, gradientId: 'pg-rose',  delay: 2800 },
+  { id: 'f2', cx: 480, cy: 410, size: 'large',  petalCount: 10, gradientId: 'pg-rose',  delay: 3200 },
+  { id: 'f3', cx: 105, cy: 290, size: 'medium', petalCount: 10, gradientId: 'pg-lav',   delay: 3600 },
+  { id: 'f4', cx: 495, cy: 290, size: 'medium', petalCount: 10, gradientId: 'pg-lav',   delay: 4000 },
+  { id: 'f5', cx: 150, cy: 185, size: 'medium', petalCount: 10, gradientId: 'pg-gold',  delay: 4400 },
+  { id: 'f6', cx: 450, cy: 185, size: 'small',  petalCount: 10, gradientId: 'pg-gold',  delay: 4800 },
 ]
 
 const SIZE_SCALE: Record<'large' | 'medium' | 'small', number> = {
