@@ -178,7 +178,8 @@ export default function ButterflyParallax() {
   const [phase, setPhase] = useState<Phase>('approach')
   const [t, setT] = useState(0)
   const [showHint, setShowHint] = useState(false)
-  const messageShownRef = useRef(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogClosing, setDialogClosing] = useState(false)
 
   // Approach RAF
   useEffect(() => {
@@ -211,10 +212,16 @@ export default function ButterflyParallax() {
     if (phase !== 'arrived') return
     setPhase('opened')
     setShowHint(false)
-    if (!messageShownRef.current) {
-      messageShownRef.current = true
-      setTimeout(() => showHMMessage(getNextMessage()), 1100)
-    }
+    setDialogOpen(true)
+    setDialogClosing(false)
+  }
+
+  const handleDialogClose = () => {
+    setDialogClosing(true)
+    setTimeout(() => {
+      setDialogOpen(false)
+      setDialogClosing(false)
+    }, 260)
   }
 
   return (
