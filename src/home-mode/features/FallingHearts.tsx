@@ -106,7 +106,7 @@ export default function FallingHearts() {
               color: h.color,
             })
           }
-          showHMMessage(getNextMessage())
+          showHMMessage(getNextMessage(), { x: h.x, y: h.y })
           hearts.splice(i, 1)
           scoreRef.current++
           setScore(scoreRef.current)
