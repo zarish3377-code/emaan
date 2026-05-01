@@ -65,7 +65,7 @@ export default function ParticleField() {
           life: 50,
         })
       }
-      showHMMessage(getNextMessage())
+      showHMMessage(getNextMessage(), { x: t.clientX, y: t.clientY })
     }
     canvas.addEventListener('mousemove', onMove)
     canvas.addEventListener('touchmove', onMove)

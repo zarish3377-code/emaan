@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import FeatureOverlay from './FeatureOverlay'
 import { getNextMessage, showHMMessage } from '../messages'
 
@@ -13,12 +13,12 @@ interface FlowerDef {
 }
 
 const FLOWERS: FlowerDef[] = [
-  { id: 'f1', cx: 120, cy: 410, size: 'large',  petalCount: 6, gradientId: 'pg-rose',  delay: 2800 },
-  { id: 'f2', cx: 480, cy: 410, size: 'large',  petalCount: 6, gradientId: 'pg-rose',  delay: 3200 },
-  { id: 'f3', cx: 105, cy: 290, size: 'medium', petalCount: 5, gradientId: 'pg-lav',   delay: 3600 },
-  { id: 'f4', cx: 495, cy: 290, size: 'medium', petalCount: 5, gradientId: 'pg-lav',   delay: 4000 },
-  { id: 'f5', cx: 150, cy: 185, size: 'medium', petalCount: 5, gradientId: 'pg-gold',  delay: 4400 },
-  { id: 'f6', cx: 450, cy: 185, size: 'small',  petalCount: 4, gradientId: 'pg-rose',  delay: 4800 },
+  { id: 'f1', cx: 120, cy: 410, size: 'large',  petalCount: 10, gradientId: 'pg-rose',  delay: 2800 },
+  { id: 'f2', cx: 480, cy: 410, size: 'large',  petalCount: 10, gradientId: 'pg-rose',  delay: 3200 },
+  { id: 'f3', cx: 105, cy: 290, size: 'medium', petalCount: 10, gradientId: 'pg-lav',   delay: 3600 },
+  { id: 'f4', cx: 495, cy: 290, size: 'medium', petalCount: 10, gradientId: 'pg-lav',   delay: 4000 },
+  { id: 'f5', cx: 150, cy: 185, size: 'medium', petalCount: 10, gradientId: 'pg-gold',  delay: 4400 },
+  { id: 'f6', cx: 450, cy: 185, size: 'small',  petalCount: 10, gradientId: 'pg-gold',  delay: 4800 },
 ]
 
 const SIZE_SCALE: Record<'large' | 'medium' | 'small', number> = {
@@ -95,9 +95,11 @@ const Flower = ({
         />
       ))}
 
-      {/* Petals */}
+      {/* Petals — 10 per flower, all stay visible after bloom, sway gently */}
       {Array.from({ length: def.petalCount }).map((_, i) => {
         const rot = (360 / def.petalCount) * i
+        const swayDur = 2.5 + Math.random() * 1.5
+        const bloomDelay = def.delay + i * 60
         return (
           <path
             key={i}
@@ -108,7 +110,7 @@ const Flower = ({
             style={{
               transformOrigin: 'center',
               ['--hm-petal-rot' as string]: `${rot}deg`,
-              animation: `hm-petal-bloom 700ms cubic-bezier(0.34,1.4,0.64,1) ${def.delay + i * 80}ms both`,
+              animation: `hm-petal-bloom 700ms cubic-bezier(0.34,1.4,0.64,1) ${bloomDelay}ms both, hm-petal-sway ${swayDur}s ease-in-out ${bloomDelay + 700}ms infinite`,
             }}
           />
         )
@@ -158,6 +160,21 @@ export default function FlowerBloom() {
   const [petals, setPetals] = useState<FloatingPetal[]>([])
   const overlayRef = useRef<SVGSVGElement>(null)
 
+  // 8 floating mist blobs — stable random positions per mount
+  const mistBlobs = useMemo(
+    () =>
+      Array.from({ length: 8 }).map(() => ({
+        size: 80 + Math.random() * 80,
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        dx: (Math.random() - 0.5) * 40,
+        dy: (Math.random() - 0.5) * 40,
+        dur: 6 + Math.random() * 4,
+        delay: Math.random() * 4,
+      })),
+    []
+  )
+
   useEffect(() => {
     const t1 = setTimeout(() => setShowText(true), 7000)
     const t2 = setTimeout(() => setBloomed(true), 6500)
@@ -166,6 +183,10 @@ export default function FlowerBloom() {
       clearTimeout(t2)
     }
   }, [])
+
+  const handleSceneClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    showHMMessage(getNextMessage(), { x: e.clientX, y: e.clientY })
+  }
 
   const handleFlowerClick = (def: FlowerDef, e: React.MouseEvent) => {
     if (!bloomed) return
@@ -211,11 +232,23 @@ export default function FlowerBloom() {
       )
     }, 1500)
 
-    showHMMessage(getNextMessage())
+    showHMMessage(getNextMessage(), { x: e.clientX, y: e.clientY })
   }
 
   return (
     <FeatureOverlay background="linear-gradient(180deg, #0A1A0A 0%, #0D2010 40%, #0A1808 100%)">
+      {/* Click-anywhere catcher */}
+      <div
+        onClick={handleSceneClick}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 1,
+          cursor: 'pointer',
+        }}
+      />
+
+      {/* Subtle texture */}
       <div
         style={{
           position: 'absolute',
@@ -226,6 +259,40 @@ export default function FlowerBloom() {
         }}
       />
 
+      {/* Pink mist — radial wash */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'radial-gradient(ellipse at 50% 60%, rgba(255,160,190,0.18) 0%, rgba(220,120,160,0.10) 35%, transparent 70%)',
+          animation: 'hm-mist-breathe 5s ease-in-out infinite',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Pink mist blobs */}
+      {mistBlobs.map((b, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            left: `${b.left}%`,
+            top: `${b.top}%`,
+            width: b.size,
+            height: b.size,
+            borderRadius: '50%',
+            background: 'rgba(255,140,180,0.06)',
+            filter: 'blur(30px)',
+            pointerEvents: 'none',
+            zIndex: 0,
+            ['--mist-dx' as string]: `${b.dx}px`,
+            ['--mist-dy' as string]: `${b.dy}px`,
+            animation: `hm-mist-drift ${b.dur}s ease-in-out ${b.delay}s infinite`,
+          }}
+        />
+      ))}
       <svg
         ref={overlayRef}
         viewBox="0 0 600 600"
@@ -235,6 +302,8 @@ export default function FlowerBloom() {
           inset: 0,
           width: '100%',
           height: '100%',
+          zIndex: 2,
+          pointerEvents: 'none',
         }}
       >
         <defs>

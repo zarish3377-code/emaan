@@ -175,6 +175,32 @@ const HM_GLOBAL_CSS = `
   0%, 100% { opacity: 0.45; }
   50% { opacity: 0.9; }
 }
+@keyframes hm-dialog-pop {
+  0% { transform: translate(-50%, -50%) scale(0.88); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+.hm-letter-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #E8C8D0 transparent;
+}
+.hm-letter-scroll::-webkit-scrollbar { width: 6px; }
+.hm-letter-scroll::-webkit-scrollbar-track { background: transparent; }
+.hm-letter-scroll::-webkit-scrollbar-thumb {
+  background: #E8C8D0;
+  border-radius: 3px;
+}
+@keyframes hm-mist-breathe {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+@keyframes hm-mist-drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(var(--mist-dx, 20px), var(--mist-dy, -15px)); }
+}
+@keyframes hm-petal-sway {
+  0%, 100% { transform: rotate(var(--hm-petal-rot, 0deg)) scale(1); }
+  50% { transform: rotate(calc(var(--hm-petal-rot, 0deg) + 4deg)) scale(1.03); }
+}
 `
 
 let injected = false

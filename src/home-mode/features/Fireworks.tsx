@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import FeatureOverlay, { featureCaption } from './FeatureOverlay'
+import { getNextMessage, showHMMessage } from '../messages'
 
 interface Particle {
   x: number
@@ -128,6 +129,7 @@ export default function Fireworks() {
         ctx.fill()
         if (s.ttl <= 0) {
           explode(s.x, s.y, s.color)
+          showHMMessage(getNextMessage(), { x: s.x, y: s.y })
           shells.splice(i, 1)
         }
       }

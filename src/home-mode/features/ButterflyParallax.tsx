@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import FeatureOverlay from './FeatureOverlay'
-import { getNextMessage, showHMMessage } from '../messages'
+import { HM_MESSAGES } from '../messages'
 
 interface BfDef {
   id: 'a' | 'b' | 'c'
@@ -178,7 +178,8 @@ export default function ButterflyParallax() {
   const [phase, setPhase] = useState<Phase>('approach')
   const [t, setT] = useState(0)
   const [showHint, setShowHint] = useState(false)
-  const messageShownRef = useRef(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogClosing, setDialogClosing] = useState(false)
 
   // Approach RAF
   useEffect(() => {
@@ -211,10 +212,16 @@ export default function ButterflyParallax() {
     if (phase !== 'arrived') return
     setPhase('opened')
     setShowHint(false)
-    if (!messageShownRef.current) {
-      messageShownRef.current = true
-      setTimeout(() => showHMMessage(getNextMessage()), 1100)
-    }
+    setDialogOpen(true)
+    setDialogClosing(false)
+  }
+
+  const handleDialogClose = () => {
+    setDialogClosing(true)
+    setTimeout(() => {
+      setDialogOpen(false)
+      setDialogClosing(false)
+    }, 260)
   }
 
   return (
@@ -386,81 +393,7 @@ export default function ButterflyParallax() {
               }}
             />
 
-            {/* Letter — slides up out of envelope */}
-            <div
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: '50%',
-                width: 240,
-                maxHeight:
-                  phase === 'opened' || phase === 'leaving' ? 460 : 0,
-                overflow: 'hidden',
-                opacity: phase === 'opened' || phase === 'leaving' ? 1 : 0,
-                transform:
-                  phase === 'opened' || phase === 'leaving'
-                    ? 'translate(-50%, -110%)'
-                    : 'translate(-50%, 30px)',
-                transition:
-                  'max-height 700ms cubic-bezier(0.4,0,0.2,1) 200ms, opacity 400ms ease 200ms, transform 600ms cubic-bezier(0.34,1.2,0.64,1) 200ms',
-                zIndex: 1,
-              }}
-            >
-              <div
-                style={{
-                  background: '#FFFDF8',
-                  border: '1px solid #E8DCC8',
-                  borderRadius: 4,
-                  padding: '24px 22px 20px',
-                  boxShadow:
-                    '0 -4px 20px rgba(0,0,0,0.15), 0 8px 32px rgba(0,0,0,0.2)',
-                  backgroundImage:
-                    'repeating-linear-gradient(transparent, transparent 27px, rgba(180,160,130,0.12) 27px, rgba(180,160,130,0.12) 28px)',
-                  backgroundSize: '100% 28px',
-                  backgroundPosition: '0 8px',
-                  fontFamily: "'Dancing Script', cursive",
-                  color: '#3A2820',
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: 15,
-                    fontWeight: 500,
-                    lineHeight: 1.85,
-                    margin: 0,
-                  }}
-                >
-                  you wandered here,
-                  <br />
-                  so i sent these three
-                  <br />
-                  to find you.
-                  <br />
-                  <br />
-                  they said you looked
-                  <br />
-                  like someone who needed
-                  <br />
-                  to know they are loved.
-                  <br />
-                  <br />
-                  they were right.
-                </p>
-                <p
-                  style={{
-                    fontFamily: "'Dancing Script', cursive",
-                    fontSize: 17,
-                    fontWeight: 600,
-                    color: '#C84060',
-                    textAlign: 'right',
-                    marginTop: 12,
-                    paddingRight: 8,
-                  }}
-                >
-                  — always ♡
-                </p>
-              </div>
-            </div>
+            {/* Letter content moved to scrollable dialogue modal */}
           </div>
 
           {showHint && phase === 'arrived' && (
@@ -480,6 +413,115 @@ export default function ButterflyParallax() {
               open it ✦
             </div>
           )}
+        </div>
+      )}
+      {/* Scrollable dialogue with all messages */}
+      {dialogOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            left: '50%',
+            top: '50%',
+            transform: dialogClosing
+              ? 'translate(-50%, -50%) scale(0.92)'
+              : 'translate(-50%, -50%) scale(1)',
+            opacity: dialogClosing ? 0 : 1,
+            width: 'min(420px, 88vw)',
+            maxHeight: '70vh',
+            background: '#FFFDF8',
+            border: '1px solid #E8DCC8',
+            borderRadius: 16,
+            boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            zIndex: 99998,
+            animation: dialogClosing
+              ? undefined
+              : 'hm-dialog-pop 350ms cubic-bezier(0.34, 1.4, 0.64, 1)',
+            transition: 'transform 260ms ease, opacity 260ms ease',
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              position: 'relative',
+              padding: '20px 24px 12px',
+              borderBottom: '1px solid rgba(230,210,190,0.4)',
+              fontFamily: "'Dancing Script', cursive",
+              fontSize: 18,
+              color: '#C84060',
+              textAlign: 'center',
+              background: '#FFFDF8',
+              flexShrink: 0,
+            }}
+          >
+            a little something for you ♡
+            <button
+              type="button"
+              onClick={handleDialogClose}
+              aria-label="Close"
+              style={{
+                position: 'absolute',
+                top: 14,
+                right: 14,
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                border: 'none',
+                background: 'rgba(200,100,100,0.1)',
+                color: '#C84060',
+                fontSize: 18,
+                lineHeight: 1,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 0,
+              }}
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Scrollable body */}
+          <div
+            className="hm-letter-scroll"
+            style={{
+              overflowY: 'auto',
+              padding: '20px 28px 28px',
+              flex: 1,
+            }}
+          >
+            {HM_MESSAGES.map((msg, i) => (
+              <div key={i}>
+                <p
+                  style={{
+                    fontFamily: "'Dancing Script', cursive",
+                    fontSize: 16,
+                    lineHeight: 1.9,
+                    color: '#3A2820',
+                    margin: '0 0 18px 0',
+                  }}
+                >
+                  {msg}
+                </p>
+                {(i + 1) % 5 === 0 && i < HM_MESSAGES.length - 1 && (
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      color: 'rgba(200,140,160,0.55)',
+                      letterSpacing: '0.6em',
+                      fontSize: 12,
+                      margin: '8px 0 22px',
+                    }}
+                  >
+                    ✦ ✦ ✦
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </FeatureOverlay>

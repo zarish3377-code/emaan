@@ -76,23 +76,28 @@ export function getNextMessage(): string {
   return HM_MESSAGES[pick]
 }
 
-// Toast displayer — anchorRect optional, otherwise center-bottom
-export function showHMMessage(text: string, anchorRect?: DOMRect | null) {
-  const root =
-    document.getElementById('hm-root') ||
-    document.body
+// Toast displayer.
+// Pass { x, y } in screen pixels to anchor the toast at that point.
+// Pass nothing (or null) to fall back to bottom-center.
+export function showHMMessage(
+  text: string,
+  pos?: { x: number; y: number } | null
+) {
+  const root = document.getElementById('hm-root') || document.body
 
   const el = document.createElement('div')
   el.className = 'hm-message-toast'
   el.textContent = text
 
-  if (anchorRect) {
-    el.style.left = `${anchorRect.left + anchorRect.width / 2}px`
-    el.style.top = `${anchorRect.top - 20}px`
-    el.style.transform = 'translate(-50%, -100%) translateY(10px)'
+  if (pos) {
+    el.style.left = `${pos.x}px`
+    el.style.top = `${pos.y}px`
+    el.style.bottom = ''
+    el.style.transform = 'translate(-50%, -110%) translateY(8px)'
   } else {
     el.style.left = '50%'
     el.style.bottom = '12%'
+    el.style.top = ''
     el.style.transform = 'translateX(-50%) translateY(10px)'
   }
 
@@ -100,20 +105,16 @@ export function showHMMessage(text: string, anchorRect?: DOMRect | null) {
 
   requestAnimationFrame(() => {
     el.style.opacity = '1'
-    if (anchorRect) {
-      el.style.transform = 'translate(-50%, -100%) translateY(0px)'
-    } else {
-      el.style.transform = 'translateX(-50%) translateY(0px)'
-    }
+    el.style.transform = pos
+      ? 'translate(-50%, -110%) translateY(0px)'
+      : 'translateX(-50%) translateY(0px)'
   })
 
   setTimeout(() => {
     el.style.opacity = '0'
-    if (anchorRect) {
-      el.style.transform = 'translate(-50%, -100%) translateY(-12px)'
-    } else {
-      el.style.transform = 'translateX(-50%) translateY(-12px)'
-    }
+    el.style.transform = pos
+      ? 'translate(-50%, -110%) translateY(-14px)'
+      : 'translateX(-50%) translateY(-14px)'
     setTimeout(() => el.remove(), 500)
   }, 3800)
 }

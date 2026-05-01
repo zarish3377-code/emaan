@@ -11,8 +11,8 @@ const LibraryButton = () => {
         className="lib-btn"
         style={{
           position: 'fixed',
-          bottom: '100px',
-          left: '22px',
+          top: '74px',
+          right: '26px',
           zIndex: 9998,
           background: 'linear-gradient(135deg, #f5ead7, #f2e0c0)',
           border: '1.5px solid #c9a84c',

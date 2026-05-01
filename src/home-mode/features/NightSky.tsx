@@ -65,7 +65,7 @@ export default function NightSky() {
         life: 0,
         maxLife: 50 + Math.random() * 30,
       })
-      showHMMessage(getNextMessage())
+      showHMMessage(getNextMessage(), { x: x + 60, y: y + 30 })
     }
 
     const onClick = (e: MouseEvent | TouchEvent) => {
@@ -83,7 +83,7 @@ export default function NightSky() {
         life: 240,
         drawn: 0,
       })
-      showHMMessage(getNextMessage())
+      showHMMessage(getNextMessage(), { x: cx, y: cy })
     }
     canvas.addEventListener('mousedown', onClick)
     canvas.addEventListener('touchstart', onClick)
