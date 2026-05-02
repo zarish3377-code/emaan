@@ -325,8 +325,10 @@ const PdfReader = ({ title, url, onBack }: Props) => {
                     }
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '12px', color: textColor, opacity: 0.6 }}>
-                        📝 Page {ann.page}
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: "'Cormorant Garamond', serif", fontSize: '12px', color: textColor, opacity: 0.75 }}>
+                        <FlowerMarker type={ann.marker ?? 'tulip'} size={16} />
+                        Page {ann.page}
+                        {ann.drawing && <span title="Has drawing" style={{ opacity: 0.7 }}>✎</span>}
                         {admin && ann.userId && <span style={{ opacity: 0.5, fontSize: '10px', marginLeft: '4px' }}>@{getUserLabel(ann.userId)}</span>}
                       </span>
                       {(!ann.userId || ann.userId === userId || admin) && (
