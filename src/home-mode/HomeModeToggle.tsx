@@ -26,6 +26,9 @@ export function HomeModeToggle() {
         top: 22,
         right: 26,
         zIndex: 99999,
+        opacity: hidden ? 0 : 1,
+        pointerEvents: hidden ? 'none' : 'auto',
+        visibility: hidden ? 'hidden' : 'visible',
         background: isActive
           ? 'linear-gradient(135deg, #FCE4EC, #F8BBD9)'
           : 'linear-gradient(135deg, #FFFBFE, #FCE4EC)',
