@@ -253,7 +253,11 @@ const PdfReader = ({ title, url, onBack }: Props) => {
           <button className={`lib-toolbar-btn ${isBookmarked ? 'active' : ''}`} onClick={toggleBookmark}>
             {isBookmarked ? '🔖' : '📑'}
           </button>
-          <button className={`lib-toolbar-btn ${noteMode ? 'active' : ''}`} onClick={() => { setNoteMode(!noteMode); setShowNotePopup(null); }}>✏️</button>
+          <button
+            className={`lib-toolbar-btn ${placingMarker ? 'active' : ''}`}
+            title={placingMarker ? 'Click on the page to place an annotation' : 'Add annotation'}
+            onClick={() => setPlacingMarker(p => !p)}
+          >✏️</button>
           <button className="lib-toolbar-btn" onClick={() => setDarkMode(!darkMode)}>{darkMode ? '☀️' : '🌙'}</button>
           <button className="lib-toolbar-btn" onClick={() => setScale(s => Math.max(0.5, s - 0.2))}>−</button>
           <button className="lib-toolbar-btn" onClick={() => setScale(s => Math.min(3, s + 0.2))}>+</button>
