@@ -1,8 +1,13 @@
 import { useState } from "react";
 import LibraryModal from "./LibraryModal";
+import { useHomeMode } from "@/home-mode/useHomeMode";
 
 const LibraryButton = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { isActive: homeActive } = useHomeMode();
+
+  // Hide the library button entirely while Home Mode is active
+  const hidden = homeActive;
 
   return (
     <>
@@ -14,6 +19,9 @@ const LibraryButton = () => {
           top: '74px',
           right: '26px',
           zIndex: 9998,
+          opacity: hidden ? 0 : 1,
+          pointerEvents: hidden ? 'none' : 'auto',
+          visibility: hidden ? 'hidden' : 'visible',
           background: 'linear-gradient(135deg, #f5ead7, #f2e0c0)',
           border: '1.5px solid #c9a84c',
           borderRadius: '100px',
