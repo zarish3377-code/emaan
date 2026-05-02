@@ -382,49 +382,45 @@ const PdfReader = ({ title, url, onBack }: Props) => {
               <canvas ref={canvasRef} onClick={handleCanvasClick} style={{
                 maxWidth: '100%', borderRadius: '4px',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                cursor: noteMode ? 'crosshair' : 'default',
+                cursor: placingMarker ? 'crosshair' : 'default',
               }} />
-              {annotations.filter(a => a.page === currentPage && a.position).map(ann => (
-                <div key={ann.id} style={{
-                  position: 'absolute', left: `${ann.position!.x}px`, top: `${ann.position!.y}px`,
-                  background: '#fdf0d5', border: '1px solid #c9a84c', borderRadius: '6px',
-                  padding: '6px 10px', maxWidth: '200px', fontSize: '11px',
-                  fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', color: '#3A2A2E',
-                  boxShadow: '2px 3px 8px rgba(0,0,0,0.2)', zIndex: 5, cursor: 'pointer',
-                }} title="Click to remove" onClick={(e) => { e.stopPropagation(); removeAnnotation(ann.id); }}>
-                  📝 {ann.content}
-                  {admin && ann.userId && ann.userId !== userId && (
-                    <span style={{ display: 'block', fontSize: '9px', opacity: 0.5, marginTop: '2px' }}>@{getUserLabel(ann.userId)}</span>
-                  )}
-                </div>
-              ))}
-              {showNotePopup && (
+              {placingMarker && (
                 <div style={{
-                  position: 'absolute', left: `${showNotePopup.x}px`, top: `${showNotePopup.y}px`,
-                  background: '#fdf0d5', border: '1px solid #c9a84c', borderRadius: '8px',
-                  padding: '10px', zIndex: 10, boxShadow: '4px 6px 20px rgba(0,0,0,0.3)', width: '220px',
-                }} onClick={e => e.stopPropagation()}>
-                  <textarea value={noteInput} onChange={e => setNoteInput(e.target.value)}
-                    placeholder="Write your note..." autoFocus style={{
-                      width: '100%', minHeight: '60px', background: 'transparent',
-                      border: '1px solid rgba(201,168,76,0.3)', borderRadius: '4px', padding: '6px',
-                      fontFamily: "'Cormorant Garamond', serif", fontSize: '13px', fontStyle: 'italic',
-                      color: '#3A2A2E', resize: 'vertical', outline: 'none',
-                    }} />
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '6px', justifyContent: 'flex-end' }}>
-                    <button onClick={() => { setShowNotePopup(null); setNoteInput(''); }} style={{
-                      background: 'none', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '4px',
-                      padding: '3px 10px', cursor: 'pointer', fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: '12px', color: '#5D3048',
-                    }}>Cancel</button>
-                    <button onClick={addNote} style={{
-                      background: 'linear-gradient(135deg, #c9a84c, #a88430)', border: 'none',
-                      borderRadius: '4px', padding: '3px 10px', cursor: 'pointer',
-                      fontFamily: "'Cormorant Garamond', serif", fontSize: '12px', color: '#fff',
-                    }}>Save</button>
-                  </div>
+                  position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
+                  background: 'rgba(26,16,8,0.9)', color: '#f5ead7', padding: '6px 14px',
+                  borderRadius: '20px', fontFamily: "'Cormorant Garamond', serif", fontSize: '13px',
+                  fontStyle: 'italic', border: '1px solid rgba(201,168,76,0.4)', zIndex: 6,
+                  pointerEvents: 'none',
+                }}>
+                  ✿ Tap anywhere on the page to plant an annotation
                 </div>
               )}
+              {annotations.filter(a => a.page === currentPage && a.position).map(ann => {
+                const canEdit = !ann.userId || ann.userId === userId || admin;
+                return (
+                  <button
+                    key={ann.id}
+                    title={ann.content ? `${ann.content.slice(0, 60)}${ann.content.length > 60 ? '…' : ''}` : 'Open annotation'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (canEdit) setPanelState({ mode: 'edit', annotation: ann });
+                    }}
+                    style={{
+                      position: 'absolute',
+                      left: `${ann.position!.x}%`, top: `${ann.position!.y}%`,
+                      transform: 'translate(-50%, -100%)',
+                      background: 'transparent', border: 'none', padding: 0,
+                      cursor: canEdit ? 'pointer' : 'default',
+                      filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.4))',
+                      zIndex: 5, transition: 'transform 200ms ease',
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translate(-50%, -100%) scale(1.25)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translate(-50%, -100%) scale(1)'; }}
+                  >
+                    <FlowerMarker type={ann.marker ?? 'tulip'} size={22} />
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
