@@ -447,6 +447,24 @@ const PdfReader = ({ title, url, onBack }: Props) => {
         </div>
         <button className="lib-toolbar-btn" onClick={() => goToPage(currentPage + 1)} disabled={currentPage >= totalPages}>Next ▶</button>
       </div>
+
+      {panelState && (
+        <AnnotationPanel
+          initial={panelState.mode === 'edit' ? panelState.annotation : null}
+          page={currentPage}
+          canDelete={
+            panelState.mode === 'edit' &&
+            (admin || !panelState.annotation.userId || panelState.annotation.userId === userId)
+          }
+          onSave={saveAnnotation}
+          onDelete={
+            panelState.mode === 'edit'
+              ? () => { removeAnnotation(panelState.annotation.id); setPanelState(null); }
+              : undefined
+          }
+          onClose={() => setPanelState(null)}
+        />
+      )}
     </div>
   );
 };
