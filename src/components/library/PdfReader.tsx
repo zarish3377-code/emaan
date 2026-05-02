@@ -181,10 +181,14 @@ const PdfReader = ({ title, url, onBack }: Props) => {
   };
 
   const handleCanvasClick = (e: React.MouseEvent) => {
-    if (!noteMode) return;
+    if (!placingMarker) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
-    setShowNotePopup({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    const pos = {
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    };
+    setPanelState({ mode: 'create', position: pos });
   };
 
   const bgColor = darkMode ? '#1a1008' : '#fdf6e3';
