@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import FeatureOverlay from './FeatureOverlay'
-import { HM_MESSAGES } from '../messages'
+
 
 interface BfDef {
   id: 'a' | 'b' | 'c'
@@ -484,43 +484,59 @@ export default function ButterflyParallax() {
             </button>
           </div>
 
-          {/* Scrollable body */}
+          {/* Scrollable body — Neno's letter */}
           <div
             className="hm-letter-scroll"
             style={{
               overflowY: 'auto',
-              padding: '20px 28px 28px',
+              padding: '24px 30px 30px',
               flex: 1,
             }}
           >
-            {HM_MESSAGES.map((msg, i) => (
-              <div key={i}>
-                <p
-                  style={{
-                    fontFamily: "'Dancing Script', cursive",
-                    fontSize: 16,
-                    lineHeight: 1.9,
-                    color: '#3A2820',
-                    margin: '0 0 18px 0',
-                  }}
-                >
-                  {msg}
-                </p>
-                {(i + 1) % 5 === 0 && i < HM_MESSAGES.length - 1 && (
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      color: 'rgba(200,140,160,0.55)',
-                      letterSpacing: '0.6em',
-                      fontSize: 12,
-                      margin: '8px 0 22px',
-                    }}
-                  >
-                    ✦ ✦ ✦
-                  </div>
-                )}
-              </div>
-            ))}
+            <p
+              style={{
+                fontFamily: "'Dancing Script', cursive",
+                fontSize: 17,
+                lineHeight: 1.95,
+                color: '#3A2820',
+                margin: '0 0 18px 0',
+                whiteSpace: 'pre-line',
+              }}
+            >
+              {`You wandered here, so I sent these three to find you.
+
+They said you looked like someone who needed to know they are loved. They were right. SO! I LOVE YOU!! FOREVER AND EVER
+
+I owe you a lot, and I will cherish you forever and always. Your smile sets my heart on fire and brightens up my life. You got the key to my heart, and you rule my whole world, and it's the best feeling I have ever felt in my entire life.
+
+You make me feel like I'm in heaven with your unwavering affection.
+
+Just another reminder of how much I love you 💐`}
+            </p>
+            <div
+              style={{
+                textAlign: 'center',
+                color: 'rgba(200,140,160,0.6)',
+                letterSpacing: '0.4em',
+                fontSize: 12,
+                margin: '14px 0 18px',
+              }}
+            >
+              ✦ ✦ ✦
+            </div>
+            <p
+              style={{
+                fontFamily: "'Dancing Script', cursive",
+                fontSize: 18,
+                lineHeight: 1.7,
+                color: '#C84060',
+                textAlign: 'right',
+                margin: 0,
+              }}
+            >
+              Always yours,<br />
+              Your Neno~
+            </p>
           </div>
         </div>
       )}
