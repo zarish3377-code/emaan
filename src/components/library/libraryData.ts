@@ -116,6 +116,10 @@ export interface Annotation {
   content: string;
   color?: string;
   position?: { x: number; y: number };
+  /** Optional freehand whiteboard drawing as PNG data URL. */
+  drawing?: string;
+  /** Marker flower style for the page indicator. */
+  marker?: 'tulip' | 'daisy';
   timestamp: string;
   userId?: string;
 }

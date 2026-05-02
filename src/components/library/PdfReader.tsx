@@ -4,6 +4,8 @@ import {
   getBookmarks, saveBookmarks, getAnnotations, saveAnnotations,
   Bookmark, Annotation, isLibraryAdmin, getLibraryUserId
 } from "./libraryData";
+import AnnotationPanel from "./AnnotationPanel";
+import FlowerMarker from "./FlowerMarker";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
@@ -30,9 +32,12 @@ const PdfReader = ({ title, url, onBack }: Props) => {
   const [pageInput, setPageInput] = useState('');
   const [scale, setScale] = useState(1.2);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [noteMode, setNoteMode] = useState(false);
-  const [noteInput, setNoteInput] = useState('');
-  const [showNotePopup, setShowNotePopup] = useState<{ x: number; y: number } | null>(null);
+  const [placingMarker, setPlacingMarker] = useState(false);
+  const [panelState, setPanelState] = useState<
+    | { mode: 'create'; position: { x: number; y: number } }
+    | { mode: 'edit'; annotation: Annotation }
+    | null
+  >(null);
 
   const admin = isLibraryAdmin();
   const userId = getLibraryUserId();
@@ -124,26 +129,39 @@ const PdfReader = ({ title, url, onBack }: Props) => {
     saveBookmarks(title, updatedOwn);
   };
 
-  const addNote = () => {
-    if (!noteInput.trim()) return;
-    const note: Annotation = {
-      id: crypto.randomUUID(),
-      type: 'note',
-      page: currentPage,
-      content: noteInput.trim(),
-      position: showNotePopup || undefined,
-      timestamp: new Date().toISOString(),
-      userId,
-    };
+  const saveAnnotation = (data: { content: string; drawing?: string; marker: 'tulip' | 'daisy' }) => {
+    if (!panelState) return;
     const ownAnnotations = annotations.filter(a => !a.userId || a.userId === userId);
     const otherAnnotations = annotations.filter(a => a.userId && a.userId !== userId);
-    const updatedOwn = [...ownAnnotations, note];
-    
+
+    let updatedOwn: Annotation[];
+    if (panelState.mode === 'create') {
+      const note: Annotation = {
+        id: crypto.randomUUID(),
+        type: 'note',
+        page: currentPage,
+        content: data.content,
+        drawing: data.drawing,
+        marker: data.marker,
+        position: panelState.position,
+        timestamp: new Date().toISOString(),
+        userId,
+      };
+      updatedOwn = [...ownAnnotations, note];
+    } else {
+      // edit existing
+      const editId = panelState.annotation.id;
+      updatedOwn = ownAnnotations.map(a =>
+        a.id === editId
+          ? { ...a, content: data.content, drawing: data.drawing, marker: data.marker, timestamp: new Date().toISOString() }
+          : a
+      );
+    }
+
     setAnnotations(admin ? [...updatedOwn, ...otherAnnotations] : updatedOwn);
     saveAnnotations(title, updatedOwn);
-    setNoteInput('');
-    setShowNotePopup(null);
-    setNoteMode(false);
+    setPanelState(null);
+    setPlacingMarker(false);
   };
 
   const removeAnnotation = (id: string) => {
@@ -163,10 +181,14 @@ const PdfReader = ({ title, url, onBack }: Props) => {
   };
 
   const handleCanvasClick = (e: React.MouseEvent) => {
-    if (!noteMode) return;
+    if (!placingMarker) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
-    setShowNotePopup({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    const pos = {
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    };
+    setPanelState({ mode: 'create', position: pos });
   };
 
   const bgColor = darkMode ? '#1a1008' : '#fdf6e3';
@@ -231,7 +253,11 @@ const PdfReader = ({ title, url, onBack }: Props) => {
           <button className={`lib-toolbar-btn ${isBookmarked ? 'active' : ''}`} onClick={toggleBookmark}>
             {isBookmarked ? '🔖' : '📑'}
           </button>
-          <button className={`lib-toolbar-btn ${noteMode ? 'active' : ''}`} onClick={() => { setNoteMode(!noteMode); setShowNotePopup(null); }}>✏️</button>
+          <button
+            className={`lib-toolbar-btn ${placingMarker ? 'active' : ''}`}
+            title={placingMarker ? 'Click on the page to place an annotation' : 'Add annotation'}
+            onClick={() => setPlacingMarker(p => !p)}
+          >✏️</button>
           <button className="lib-toolbar-btn" onClick={() => setDarkMode(!darkMode)}>{darkMode ? '☀️' : '🌙'}</button>
           <button className="lib-toolbar-btn" onClick={() => setScale(s => Math.max(0.5, s - 0.2))}>−</button>
           <button className="lib-toolbar-btn" onClick={() => setScale(s => Math.min(3, s + 0.2))}>+</button>
@@ -284,7 +310,7 @@ const PdfReader = ({ title, url, onBack }: Props) => {
             ) : (
               annotations.length === 0 ? (
                 <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '13px', color: textColor, opacity: 0.5, fontStyle: 'italic', textAlign: 'center' }}>
-                  No notes yet. Click ✏️ then click on the page to add a note.
+                  No annotations yet. Tap ✏️ then a spot on the page to plant one.
                 </p>
               ) : (
                 annotations.sort((a, b) => a.page - b.page).map(ann => (
@@ -292,10 +318,17 @@ const PdfReader = ({ title, url, onBack }: Props) => {
                     padding: '8px', borderRadius: '6px',
                     background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
                     marginBottom: '6px', cursor: 'pointer',
-                  }} onClick={() => goToPage(ann.page)}>
+                  }} onClick={() => {
+                    goToPage(ann.page);
+                    if (!ann.userId || ann.userId === userId || admin) {
+                      setPanelState({ mode: 'edit', annotation: ann });
+                    }
+                  }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '12px', color: textColor, opacity: 0.6 }}>
-                        📝 Page {ann.page}
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: "'Cormorant Garamond', serif", fontSize: '12px', color: textColor, opacity: 0.75 }}>
+                        <FlowerMarker type={ann.marker ?? 'tulip'} size={16} />
+                        Page {ann.page}
+                        {ann.drawing && <span title="Has drawing" style={{ opacity: 0.7 }}>✎</span>}
                         {admin && ann.userId && <span style={{ opacity: 0.5, fontSize: '10px', marginLeft: '4px' }}>@{getUserLabel(ann.userId)}</span>}
                       </span>
                       {(!ann.userId || ann.userId === userId || admin) && (
@@ -356,49 +389,45 @@ const PdfReader = ({ title, url, onBack }: Props) => {
               <canvas ref={canvasRef} onClick={handleCanvasClick} style={{
                 maxWidth: '100%', borderRadius: '4px',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                cursor: noteMode ? 'crosshair' : 'default',
+                cursor: placingMarker ? 'crosshair' : 'default',
               }} />
-              {annotations.filter(a => a.page === currentPage && a.position).map(ann => (
-                <div key={ann.id} style={{
-                  position: 'absolute', left: `${ann.position!.x}px`, top: `${ann.position!.y}px`,
-                  background: '#fdf0d5', border: '1px solid #c9a84c', borderRadius: '6px',
-                  padding: '6px 10px', maxWidth: '200px', fontSize: '11px',
-                  fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', color: '#3A2A2E',
-                  boxShadow: '2px 3px 8px rgba(0,0,0,0.2)', zIndex: 5, cursor: 'pointer',
-                }} title="Click to remove" onClick={(e) => { e.stopPropagation(); removeAnnotation(ann.id); }}>
-                  📝 {ann.content}
-                  {admin && ann.userId && ann.userId !== userId && (
-                    <span style={{ display: 'block', fontSize: '9px', opacity: 0.5, marginTop: '2px' }}>@{getUserLabel(ann.userId)}</span>
-                  )}
-                </div>
-              ))}
-              {showNotePopup && (
+              {placingMarker && (
                 <div style={{
-                  position: 'absolute', left: `${showNotePopup.x}px`, top: `${showNotePopup.y}px`,
-                  background: '#fdf0d5', border: '1px solid #c9a84c', borderRadius: '8px',
-                  padding: '10px', zIndex: 10, boxShadow: '4px 6px 20px rgba(0,0,0,0.3)', width: '220px',
-                }} onClick={e => e.stopPropagation()}>
-                  <textarea value={noteInput} onChange={e => setNoteInput(e.target.value)}
-                    placeholder="Write your note..." autoFocus style={{
-                      width: '100%', minHeight: '60px', background: 'transparent',
-                      border: '1px solid rgba(201,168,76,0.3)', borderRadius: '4px', padding: '6px',
-                      fontFamily: "'Cormorant Garamond', serif", fontSize: '13px', fontStyle: 'italic',
-                      color: '#3A2A2E', resize: 'vertical', outline: 'none',
-                    }} />
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '6px', justifyContent: 'flex-end' }}>
-                    <button onClick={() => { setShowNotePopup(null); setNoteInput(''); }} style={{
-                      background: 'none', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '4px',
-                      padding: '3px 10px', cursor: 'pointer', fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: '12px', color: '#5D3048',
-                    }}>Cancel</button>
-                    <button onClick={addNote} style={{
-                      background: 'linear-gradient(135deg, #c9a84c, #a88430)', border: 'none',
-                      borderRadius: '4px', padding: '3px 10px', cursor: 'pointer',
-                      fontFamily: "'Cormorant Garamond', serif", fontSize: '12px', color: '#fff',
-                    }}>Save</button>
-                  </div>
+                  position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
+                  background: 'rgba(26,16,8,0.9)', color: '#f5ead7', padding: '6px 14px',
+                  borderRadius: '20px', fontFamily: "'Cormorant Garamond', serif", fontSize: '13px',
+                  fontStyle: 'italic', border: '1px solid rgba(201,168,76,0.4)', zIndex: 6,
+                  pointerEvents: 'none',
+                }}>
+                  ✿ Tap anywhere on the page to plant an annotation
                 </div>
               )}
+              {annotations.filter(a => a.page === currentPage && a.position).map(ann => {
+                const canEdit = !ann.userId || ann.userId === userId || admin;
+                return (
+                  <button
+                    key={ann.id}
+                    title={ann.content ? `${ann.content.slice(0, 60)}${ann.content.length > 60 ? '…' : ''}` : 'Open annotation'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (canEdit) setPanelState({ mode: 'edit', annotation: ann });
+                    }}
+                    style={{
+                      position: 'absolute',
+                      left: `${ann.position!.x}%`, top: `${ann.position!.y}%`,
+                      transform: 'translate(-50%, -100%)',
+                      background: 'transparent', border: 'none', padding: 0,
+                      cursor: canEdit ? 'pointer' : 'default',
+                      filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.4))',
+                      zIndex: 5, transition: 'transform 200ms ease',
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translate(-50%, -100%) scale(1.25)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translate(-50%, -100%) scale(1)'; }}
+                  >
+                    <FlowerMarker type={ann.marker ?? 'tulip'} size={22} />
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -425,6 +454,24 @@ const PdfReader = ({ title, url, onBack }: Props) => {
         </div>
         <button className="lib-toolbar-btn" onClick={() => goToPage(currentPage + 1)} disabled={currentPage >= totalPages}>Next ▶</button>
       </div>
+
+      {panelState && (
+        <AnnotationPanel
+          initial={panelState.mode === 'edit' ? panelState.annotation : null}
+          page={currentPage}
+          canDelete={
+            panelState.mode === 'edit' &&
+            (admin || !panelState.annotation.userId || panelState.annotation.userId === userId)
+          }
+          onSave={saveAnnotation}
+          onDelete={
+            panelState.mode === 'edit'
+              ? () => { removeAnnotation(panelState.annotation.id); setPanelState(null); }
+              : undefined
+          }
+          onClose={() => setPanelState(null)}
+        />
+      )}
     </div>
   );
 };
