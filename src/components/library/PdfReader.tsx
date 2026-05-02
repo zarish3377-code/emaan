@@ -129,26 +129,39 @@ const PdfReader = ({ title, url, onBack }: Props) => {
     saveBookmarks(title, updatedOwn);
   };
 
-  const addNote = () => {
-    if (!noteInput.trim()) return;
-    const note: Annotation = {
-      id: crypto.randomUUID(),
-      type: 'note',
-      page: currentPage,
-      content: noteInput.trim(),
-      position: showNotePopup || undefined,
-      timestamp: new Date().toISOString(),
-      userId,
-    };
+  const saveAnnotation = (data: { content: string; drawing?: string; marker: 'tulip' | 'daisy' }) => {
+    if (!panelState) return;
     const ownAnnotations = annotations.filter(a => !a.userId || a.userId === userId);
     const otherAnnotations = annotations.filter(a => a.userId && a.userId !== userId);
-    const updatedOwn = [...ownAnnotations, note];
-    
+
+    let updatedOwn: Annotation[];
+    if (panelState.mode === 'create') {
+      const note: Annotation = {
+        id: crypto.randomUUID(),
+        type: 'note',
+        page: currentPage,
+        content: data.content,
+        drawing: data.drawing,
+        marker: data.marker,
+        position: panelState.position,
+        timestamp: new Date().toISOString(),
+        userId,
+      };
+      updatedOwn = [...ownAnnotations, note];
+    } else {
+      // edit existing
+      const editId = panelState.annotation.id;
+      updatedOwn = ownAnnotations.map(a =>
+        a.id === editId
+          ? { ...a, content: data.content, drawing: data.drawing, marker: data.marker, timestamp: new Date().toISOString() }
+          : a
+      );
+    }
+
     setAnnotations(admin ? [...updatedOwn, ...otherAnnotations] : updatedOwn);
     saveAnnotations(title, updatedOwn);
-    setNoteInput('');
-    setShowNotePopup(null);
-    setNoteMode(false);
+    setPanelState(null);
+    setPlacingMarker(false);
   };
 
   const removeAnnotation = (id: string) => {
