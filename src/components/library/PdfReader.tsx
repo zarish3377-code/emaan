@@ -310,7 +310,7 @@ const PdfReader = ({ title, url, onBack }: Props) => {
             ) : (
               annotations.length === 0 ? (
                 <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '13px', color: textColor, opacity: 0.5, fontStyle: 'italic', textAlign: 'center' }}>
-                  No notes yet. Click ✏️ then click on the page to add a note.
+                  No annotations yet. Tap ✏️ then a spot on the page to plant one.
                 </p>
               ) : (
                 annotations.sort((a, b) => a.page - b.page).map(ann => (
