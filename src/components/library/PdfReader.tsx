@@ -32,9 +32,12 @@ const PdfReader = ({ title, url, onBack }: Props) => {
   const [pageInput, setPageInput] = useState('');
   const [scale, setScale] = useState(1.2);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [noteMode, setNoteMode] = useState(false);
-  const [noteInput, setNoteInput] = useState('');
-  const [showNotePopup, setShowNotePopup] = useState<{ x: number; y: number } | null>(null);
+  const [placingMarker, setPlacingMarker] = useState(false);
+  const [panelState, setPanelState] = useState<
+    | { mode: 'create'; position: { x: number; y: number } }
+    | { mode: 'edit'; annotation: Annotation }
+    | null
+  >(null);
 
   const admin = isLibraryAdmin();
   const userId = getLibraryUserId();
