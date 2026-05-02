@@ -318,7 +318,12 @@ const PdfReader = ({ title, url, onBack }: Props) => {
                     padding: '8px', borderRadius: '6px',
                     background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
                     marginBottom: '6px', cursor: 'pointer',
-                  }} onClick={() => goToPage(ann.page)}>
+                  }} onClick={() => {
+                    goToPage(ann.page);
+                    if (!ann.userId || ann.userId === userId || admin) {
+                      setPanelState({ mode: 'edit', annotation: ann });
+                    }
+                  }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '12px', color: textColor, opacity: 0.6 }}>
                         📝 Page {ann.page}
