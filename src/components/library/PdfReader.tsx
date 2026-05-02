@@ -4,6 +4,8 @@ import {
   getBookmarks, saveBookmarks, getAnnotations, saveAnnotations,
   Bookmark, Annotation, isLibraryAdmin, getLibraryUserId
 } from "./libraryData";
+import AnnotationPanel from "./AnnotationPanel";
+import FlowerMarker from "./FlowerMarker";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
