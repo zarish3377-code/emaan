@@ -12,7 +12,10 @@ function getOrCreateToggleRoot() {
 }
 
 export function HomeModeToggle() {
-  const { isActive, toggle } = useHomeMode()
+  const { isActive, toggle, activeFeature, activePopup, showWelcome } = useHomeMode()
+
+  // Hide the toggle while inside any feature overlay, photo popup, or welcome scene
+  const hidden = isActive && (activeFeature !== null || activePopup !== null || showWelcome)
 
   return createPortal(
     <button
