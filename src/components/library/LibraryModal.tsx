@@ -16,6 +16,9 @@ interface Props {
 const LibraryModal = ({ onClose }: Props) => {
   const [visible, setVisible] = useState(false);
   const [activeBook, setActiveBook] = useState<{ title: string; url: string } | null>(null);
+  const [userBooks, setUserBooks] = useState<UserBookMeta[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,6 +27,7 @@ const LibraryModal = ({ onClose }: Props) => {
     // Hide Home Mode toggle while library is open
     const toggleEl = document.getElementById('hm-toggle-root');
     if (toggleEl) toggleEl.style.display = 'none';
+    listUserBooks().then(setUserBooks).catch(() => {});
     return () => {
       document.body.style.overflow = '';
       const toggleEl = document.getElementById('hm-toggle-root');
@@ -45,6 +49,32 @@ const LibraryModal = ({ onClose }: Props) => {
   const openBook = (index: number) => {
     const book = BOOKS[index];
     setActiveBook({ title: book.title, url: getBookUrl(book.fileName) });
+  };
+
+  const openUserBook = async (b: UserBookMeta) => {
+    const url = await getUserBookBlobUrl(b.id);
+    if (url) setActiveBook({ title: b.title, url });
+  };
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      for (const f of Array.from(files)) {
+        if (!/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') continue;
+        await addUserBook(f);
+      }
+      const next = await listUserBooks();
+      setUserBooks(next);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removeUserBook = async (id: string) => {
+    await deleteUserBook(id);
+    setUserBooks(await listUserBooks());
   };
 
   const content = (
