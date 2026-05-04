@@ -10,7 +10,8 @@ interface Props {
   onClose: () => void;
 }
 
-const COLORS = ["#3A2A2E", "#c9a84c", "#b95c7c", "#5b8a72", "#5d6fb5"];
+// No black/near-black — only warm, soft, garden-inspired hues.
+const COLORS = ["#c9a84c", "#b95c7c", "#5b8a72", "#5d6fb5", "#d97742", "#a86bc4"];
 
 const AnnotationPanel = ({ initial, page, canDelete, onSave, onDelete, onClose }: Props) => {
   const [text, setText] = useState(initial?.content ?? "");
