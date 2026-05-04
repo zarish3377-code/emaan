@@ -167,12 +167,20 @@ const PdfReader = ({ title, url, onBack }: Props) => {
   const removeAnnotation = (id: string) => {
     const target = annotations.find(a => a.id === id);
     if (!target) return;
-    // Only allow removing own annotations (or admin can remove any)
     if (!admin && target.userId && target.userId !== userId) return;
-    
+
     const updated = annotations.filter(a => a.id !== id);
     setAnnotations(updated);
-    // Only save own annotations
+    saveAnnotations(title, updated.filter(a => !a.userId || a.userId === userId));
+  };
+
+  /** Patch a single annotation (used by drag/resize). Persists own annotations only. */
+  const patchAnnotation = (id: string, patch: Partial<Annotation>) => {
+    const target = annotations.find(a => a.id === id);
+    if (!target) return;
+    if (!admin && target.userId && target.userId !== userId) return;
+    const updated = annotations.map(a => a.id === id ? { ...a, ...patch } : a);
+    setAnnotations(updated);
     saveAnnotations(title, updated.filter(a => !a.userId || a.userId === userId));
   };
 
@@ -402,100 +410,16 @@ const PdfReader = ({ title, url, onBack }: Props) => {
                   ✿ Tap anywhere on the page to plant an annotation
                 </div>
               )}
-              {annotations.filter(a => a.page === currentPage && a.position).map(ann => {
-                const canEdit = !ann.userId || ann.userId === userId || admin;
-                // Clamp position so the note stays inside the page
-                const px = Math.min(96, Math.max(4, ann.position!.x));
-                const py = Math.min(96, Math.max(4, ann.position!.y));
-                // Auto-anchor: pick the side of the marker that keeps the note inside.
-                // x translate: if near right edge, anchor right; if near left, anchor left; else center
-                const tx = px > 70 ? '-100%' : px < 30 ? '0%' : '-50%';
-                // y translate: if near bottom, place above; if near top, place below; else above
-                const ty = py > 70 ? '-100%' : py < 25 ? '8px' : '-100%';
-                // Subtle tilt that flips so it always leans toward page center
-                const tilt = px > 50 ? -2.5 : 2.5;
-                const hasContent = (ann.content && ann.content.trim()) || ann.drawing;
-                return (
-                  <div
-                    key={ann.id}
-                    style={{
-                      position: 'absolute',
-                      left: `${px}%`, top: `${py}%`,
-                      zIndex: 5,
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    {/* Marker pin (clickable) */}
-                    <button
-                      title={ann.content ? `${ann.content.slice(0, 60)}${ann.content.length > 60 ? '…' : ''}` : 'Open annotation'}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (canEdit) setPanelState({ mode: 'edit', annotation: ann });
-                      }}
-                      style={{
-                        position: 'absolute', left: 0, top: 0,
-                        transform: 'translate(-50%, -50%)',
-                        background: 'transparent', border: 'none', padding: 0,
-                        cursor: canEdit ? 'pointer' : 'default',
-                        filter: 'drop-shadow(0 2px 3px rgba(60,30,10,0.45))',
-                        pointerEvents: 'auto',
-                      }}
-                    >
-                      <FlowerMarker type={ann.marker ?? 'tulip'} size={22} />
-                    </button>
-                    {/* Inline annotation card on the page */}
-                    {hasContent && (
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (canEdit) setPanelState({ mode: 'edit', annotation: ann });
-                        }}
-                        style={{
-                          position: 'absolute', left: 0, top: 0,
-                          transform: `translate(${tx}, ${ty}) rotate(${tilt}deg)`,
-                          width: 'min(180px, 28vw)',
-                          maxHeight: '180px',
-                          background: 'linear-gradient(180deg, #fff8e1, #fdeec2)',
-                          border: '1px solid rgba(180,130,60,0.45)',
-                          borderRadius: '8px',
-                          padding: '8px 10px',
-                          boxShadow: '0 4px 14px rgba(60,30,10,0.35)',
-                          fontFamily: "'Cormorant Garamond', serif",
-                          fontSize: '12px',
-                          fontStyle: 'italic',
-                          color: '#4a2f12',
-                          lineHeight: 1.3,
-                          overflow: 'hidden',
-                          cursor: canEdit ? 'pointer' : 'default',
-                          pointerEvents: 'auto',
-                          marginTop: '12px',
-                          display: 'flex', flexDirection: 'column', gap: '4px',
-                        }}
-                      >
-                        {ann.content && (
-                          <div style={{
-                            display: '-webkit-box',
-                            WebkitLineClamp: ann.drawing ? 2 : 5,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}>{ann.content}</div>
-                        )}
-                        {ann.drawing && (
-                          <img
-                            src={ann.drawing}
-                            alt=""
-                            style={{
-                              width: '100%', height: 'auto', maxHeight: '90px',
-                              objectFit: 'contain', borderRadius: '4px',
-                              background: '#fdf6e3',
-                            }}
-                          />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {annotations.filter(a => a.page === currentPage && a.position).map(ann => (
+                <InlineAnnotation
+                  key={ann.id}
+                  ann={ann}
+                  canvasRef={canvasRef}
+                  canEdit={!ann.userId || ann.userId === userId || admin}
+                  onOpen={() => setPanelState({ mode: 'edit', annotation: ann })}
+                  onPatch={(patch) => patchAnnotation(ann.id, patch)}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -541,6 +465,214 @@ const PdfReader = ({ title, url, onBack }: Props) => {
         />
       )}
     </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────
+// InlineAnnotation: marker + draggable, resizable, transparent card
+// ─────────────────────────────────────────────────────────────────
+interface InlineProps {
+  ann: Annotation;
+  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canEdit: boolean;
+  onOpen: () => void;
+  onPatch: (patch: Partial<Annotation>) => void;
+}
+
+const MIN_W = 110, MAX_W = 320;
+const MIN_H = 60,  MAX_H = 320;
+
+const InlineAnnotation = ({ ann, canvasRef, canEdit, onOpen, onPatch }: InlineProps) => {
+  // Marker is anchored at ann.position. Card sits at marker + cardOffset (percent of page).
+  const px = Math.min(96, Math.max(4, ann.position!.x));
+  const py = Math.min(96, Math.max(4, ann.position!.y));
+
+  // Default offset puts the card just below-right of the marker, biased toward page center.
+  const defaultOffset = {
+    x: px > 60 ? -16 : px < 30 ? 4 : -8,
+    y: py > 70 ? -22 : 4,
+  };
+  const offset = ann.cardOffset ?? defaultOffset;
+  const size = ann.cardSize ?? { w: 180, h: 120 };
+
+  // Clamp card position so it stays inside [4, 96] of the canvas.
+  const cardX = Math.min(96, Math.max(4, px + offset.x));
+  const cardY = Math.min(96, Math.max(4, py + offset.y));
+
+  // Subtle tilt that flips toward page center
+  const tilt = cardX > 50 ? -2 : 2;
+
+  const hasContent = (ann.content && ann.content.trim()) || ann.drawing;
+
+  // Drag + resize state (in percent / px relative to canvas)
+  const dragRef = useRef<{ startMouseX: number; startMouseY: number; startX: number; startY: number } | null>(null);
+  const resizeRef = useRef<{ startMouseX: number; startMouseY: number; startW: number; startH: number } | null>(null);
+
+  const getCanvasRect = () => canvasRef.current?.getBoundingClientRect();
+
+  const onDragPointerDown = (e: React.PointerEvent) => {
+    if (!canEdit) return;
+    e.stopPropagation();
+    e.preventDefault();
+    dragRef.current = {
+      startMouseX: e.clientX,
+      startMouseY: e.clientY,
+      startX: offset.x,
+      startY: offset.y,
+    };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onDragPointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const rect = getCanvasRect(); if (!rect) return;
+    const dxPct = ((e.clientX - dragRef.current.startMouseX) / rect.width) * 100;
+    const dyPct = ((e.clientY - dragRef.current.startMouseY) / rect.height) * 100;
+    let nx = dragRef.current.startX + dxPct;
+    let ny = dragRef.current.startY + dyPct;
+    // Clamp absolute position within page
+    nx = Math.min(96 - px, Math.max(4 - px, nx));
+    ny = Math.min(96 - py, Math.max(4 - py, ny));
+    onPatch({ cardOffset: { x: nx, y: ny } });
+  };
+  const onDragPointerUp = (e: React.PointerEvent) => {
+    dragRef.current = null;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  };
+
+  const onResizePointerDown = (e: React.PointerEvent) => {
+    if (!canEdit) return;
+    e.stopPropagation();
+    e.preventDefault();
+    resizeRef.current = {
+      startMouseX: e.clientX,
+      startMouseY: e.clientY,
+      startW: size.w,
+      startH: size.h,
+    };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onResizePointerMove = (e: React.PointerEvent) => {
+    if (!resizeRef.current) return;
+    const rect = getCanvasRect(); if (!rect) return;
+    const dx = e.clientX - resizeRef.current.startMouseX;
+    const dy = e.clientY - resizeRef.current.startMouseY;
+    // Allow growth, but not past page edges
+    const maxAllowedW = rect.width * (96 - cardX) / 100;
+    const maxAllowedH = rect.height * (96 - cardY) / 100;
+    const w = Math.min(MAX_W, Math.max(MIN_W, Math.min(maxAllowedW, resizeRef.current.startW + dx)));
+    const h = Math.min(MAX_H, Math.max(MIN_H, Math.min(maxAllowedH, resizeRef.current.startH + dy)));
+    onPatch({ cardSize: { w, h } });
+  };
+  const onResizePointerUp = (e: React.PointerEvent) => {
+    resizeRef.current = null;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  };
+
+  return (
+    <>
+      {/* Marker pin */}
+      <button
+        title={ann.content ? `${ann.content.slice(0, 60)}${ann.content.length > 60 ? '…' : ''}` : 'Open annotation'}
+        onClick={(e) => { e.stopPropagation(); if (canEdit) onOpen(); }}
+        style={{
+          position: 'absolute',
+          left: `${px}%`, top: `${py}%`,
+          transform: 'translate(-50%, -50%)',
+          background: 'transparent', border: 'none', padding: 0,
+          cursor: canEdit ? 'pointer' : 'default',
+          filter: 'drop-shadow(0 2px 3px rgba(60,30,10,0.45))',
+          zIndex: 6,
+        }}
+      >
+        <FlowerMarker type={ann.marker ?? 'tulip'} size={22} />
+      </button>
+
+      {/* Inline content — fully transparent (no card background) */}
+      {hasContent && (
+        <div
+          style={{
+            position: 'absolute',
+            left: `${cardX}%`, top: `${cardY}%`,
+            width: `${size.w}px`,
+            height: `${size.h}px`,
+            transform: `rotate(${tilt}deg)`,
+            transformOrigin: 'top left',
+            zIndex: 5,
+            pointerEvents: 'none',
+          }}
+        >
+          {/* Drag handle (the whole content area) */}
+          <div
+            onPointerDown={onDragPointerDown}
+            onPointerMove={onDragPointerMove}
+            onPointerUp={onDragPointerUp}
+            onPointerCancel={onDragPointerUp}
+            onClick={(e) => { e.stopPropagation(); if (canEdit) onOpen(); }}
+            style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', flexDirection: 'column', gap: '4px',
+              padding: '4px',
+              cursor: canEdit ? 'move' : 'pointer',
+              pointerEvents: 'auto',
+              touchAction: 'none',
+              overflow: 'hidden',
+            }}
+          >
+            {ann.drawing && (
+              <img
+                src={ann.drawing}
+                alt=""
+                draggable={false}
+                style={{
+                  width: '100%', flex: ann.content ? '1 1 auto' : '1 1 100%',
+                  minHeight: 0, objectFit: 'contain',
+                  background: 'transparent',
+                  pointerEvents: 'none',
+                  filter: 'drop-shadow(0 1px 2px rgba(60,30,10,0.35))',
+                }}
+              />
+            )}
+            {ann.content && (
+              <div style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: '13px',
+                fontStyle: 'italic',
+                lineHeight: 1.25,
+                color: '#5b3a14',
+                textShadow: '0 1px 0 rgba(255,250,235,0.85), 0 0 4px rgba(255,250,235,0.7)',
+                overflow: 'auto',
+                wordBreak: 'break-word',
+                flex: ann.drawing ? '0 0 auto' : '1 1 auto',
+                maxHeight: ann.drawing ? '40%' : '100%',
+                pointerEvents: 'auto',
+              }}>{ann.content}</div>
+            )}
+          </div>
+
+          {/* Resize handle (bottom-right) */}
+          {canEdit && (
+            <div
+              onPointerDown={onResizePointerDown}
+              onPointerMove={onResizePointerMove}
+              onPointerUp={onResizePointerUp}
+              onPointerCancel={onResizePointerUp}
+              title="Drag to resize"
+              style={{
+                position: 'absolute',
+                right: -2, bottom: -2,
+                width: 16, height: 16,
+                borderRight: '2px solid rgba(180,130,60,0.85)',
+                borderBottom: '2px solid rgba(180,130,60,0.85)',
+                borderBottomRightRadius: 4,
+                cursor: 'nwse-resize',
+                pointerEvents: 'auto',
+                touchAction: 'none',
+              }}
+            />
+          )}
+        </div>
+      )}
+    </>
   );
 };
 

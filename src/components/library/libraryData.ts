@@ -116,6 +116,10 @@ export interface Annotation {
   content: string;
   color?: string;
   position?: { x: number; y: number };
+  /** Optional inline card position override (percent of page). */
+  cardOffset?: { x: number; y: number };
+  /** Inline card size in px (within clamps). */
+  cardSize?: { w: number; h: number };
   /** Optional freehand whiteboard drawing as PNG data URL. */
   drawing?: string;
   /** Marker flower style for the page indicator. */
