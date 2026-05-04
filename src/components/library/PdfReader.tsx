@@ -410,100 +410,16 @@ const PdfReader = ({ title, url, onBack }: Props) => {
                   ✿ Tap anywhere on the page to plant an annotation
                 </div>
               )}
-              {annotations.filter(a => a.page === currentPage && a.position).map(ann => {
-                const canEdit = !ann.userId || ann.userId === userId || admin;
-                // Clamp position so the note stays inside the page
-                const px = Math.min(96, Math.max(4, ann.position!.x));
-                const py = Math.min(96, Math.max(4, ann.position!.y));
-                // Auto-anchor: pick the side of the marker that keeps the note inside.
-                // x translate: if near right edge, anchor right; if near left, anchor left; else center
-                const tx = px > 70 ? '-100%' : px < 30 ? '0%' : '-50%';
-                // y translate: if near bottom, place above; if near top, place below; else above
-                const ty = py > 70 ? '-100%' : py < 25 ? '8px' : '-100%';
-                // Subtle tilt that flips so it always leans toward page center
-                const tilt = px > 50 ? -2.5 : 2.5;
-                const hasContent = (ann.content && ann.content.trim()) || ann.drawing;
-                return (
-                  <div
-                    key={ann.id}
-                    style={{
-                      position: 'absolute',
-                      left: `${px}%`, top: `${py}%`,
-                      zIndex: 5,
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    {/* Marker pin (clickable) */}
-                    <button
-                      title={ann.content ? `${ann.content.slice(0, 60)}${ann.content.length > 60 ? '…' : ''}` : 'Open annotation'}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (canEdit) setPanelState({ mode: 'edit', annotation: ann });
-                      }}
-                      style={{
-                        position: 'absolute', left: 0, top: 0,
-                        transform: 'translate(-50%, -50%)',
-                        background: 'transparent', border: 'none', padding: 0,
-                        cursor: canEdit ? 'pointer' : 'default',
-                        filter: 'drop-shadow(0 2px 3px rgba(60,30,10,0.45))',
-                        pointerEvents: 'auto',
-                      }}
-                    >
-                      <FlowerMarker type={ann.marker ?? 'tulip'} size={22} />
-                    </button>
-                    {/* Inline annotation card on the page */}
-                    {hasContent && (
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (canEdit) setPanelState({ mode: 'edit', annotation: ann });
-                        }}
-                        style={{
-                          position: 'absolute', left: 0, top: 0,
-                          transform: `translate(${tx}, ${ty}) rotate(${tilt}deg)`,
-                          width: 'min(180px, 28vw)',
-                          maxHeight: '180px',
-                          background: 'linear-gradient(180deg, #fff8e1, #fdeec2)',
-                          border: '1px solid rgba(180,130,60,0.45)',
-                          borderRadius: '8px',
-                          padding: '8px 10px',
-                          boxShadow: '0 4px 14px rgba(60,30,10,0.35)',
-                          fontFamily: "'Cormorant Garamond', serif",
-                          fontSize: '12px',
-                          fontStyle: 'italic',
-                          color: '#4a2f12',
-                          lineHeight: 1.3,
-                          overflow: 'hidden',
-                          cursor: canEdit ? 'pointer' : 'default',
-                          pointerEvents: 'auto',
-                          marginTop: '12px',
-                          display: 'flex', flexDirection: 'column', gap: '4px',
-                        }}
-                      >
-                        {ann.content && (
-                          <div style={{
-                            display: '-webkit-box',
-                            WebkitLineClamp: ann.drawing ? 2 : 5,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}>{ann.content}</div>
-                        )}
-                        {ann.drawing && (
-                          <img
-                            src={ann.drawing}
-                            alt=""
-                            style={{
-                              width: '100%', height: 'auto', maxHeight: '90px',
-                              objectFit: 'contain', borderRadius: '4px',
-                              background: '#fdf6e3',
-                            }}
-                          />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {annotations.filter(a => a.page === currentPage && a.position).map(ann => (
+                <InlineAnnotation
+                  key={ann.id}
+                  ann={ann}
+                  canvasRef={canvasRef}
+                  canEdit={!ann.userId || ann.userId === userId || admin}
+                  onOpen={() => setPanelState({ mode: 'edit', annotation: ann })}
+                  onPatch={(patch) => patchAnnotation(ann.id, patch)}
+                />
+              ))}
             </div>
           )}
         </div>
