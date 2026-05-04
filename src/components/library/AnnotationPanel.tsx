@@ -23,13 +23,12 @@ const AnnotationPanel = ({ initial, page, canDelete, onSave, onDelete, onClose }
   const last = useRef<{ x: number; y: number } | null>(null);
   const hasDrawn = useRef(!!initial?.drawing);
 
-  // Load existing drawing
+  // Load existing drawing (transparent canvas — no fill)
   useEffect(() => {
     const c = canvasRef.current;
     if (!c) return;
     const ctx = c.getContext('2d')!;
-    ctx.fillStyle = '#fdf6e3';
-    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.clearRect(0, 0, c.width, c.height);
     if (initial?.drawing) {
       const img = new Image();
       img.onload = () => ctx.drawImage(img, 0, 0, c.width, c.height);
