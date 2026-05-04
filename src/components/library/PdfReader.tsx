@@ -167,12 +167,20 @@ const PdfReader = ({ title, url, onBack }: Props) => {
   const removeAnnotation = (id: string) => {
     const target = annotations.find(a => a.id === id);
     if (!target) return;
-    // Only allow removing own annotations (or admin can remove any)
     if (!admin && target.userId && target.userId !== userId) return;
-    
+
     const updated = annotations.filter(a => a.id !== id);
     setAnnotations(updated);
-    // Only save own annotations
+    saveAnnotations(title, updated.filter(a => !a.userId || a.userId === userId));
+  };
+
+  /** Patch a single annotation (used by drag/resize). Persists own annotations only. */
+  const patchAnnotation = (id: string, patch: Partial<Annotation>) => {
+    const target = annotations.find(a => a.id === id);
+    if (!target) return;
+    if (!admin && target.userId && target.userId !== userId) return;
+    const updated = annotations.map(a => a.id === id ? { ...a, ...patch } : a);
+    setAnnotations(updated);
     saveAnnotations(title, updated.filter(a => !a.userId || a.userId === userId));
   };
 
