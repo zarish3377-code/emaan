@@ -69,8 +69,7 @@ const AnnotationPanel = ({ initial, page, canDelete, onSave, onDelete, onClose }
   const clear = () => {
     const c = canvasRef.current!;
     const ctx = c.getContext('2d')!;
-    ctx.fillStyle = '#fdf6e3';
-    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.clearRect(0, 0, c.width, c.height);
     hasDrawn.current = false;
   };
 
