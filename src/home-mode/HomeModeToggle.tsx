@@ -1,5 +1,18 @@
 import { createPortal } from 'react-dom'
+import { useState, useEffect } from 'react'
 import { useHomeMode } from './useHomeMode'
+
+function useGardenOpen() {
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    const check = () => setOpen(!!document.getElementById('secret-garden-overlay'))
+    check()
+    const observer = new MutationObserver(check)
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [])
+  return open
+}
 
 function getOrCreateToggleRoot() {
   let el = document.getElementById('hm-toggle-root')
@@ -13,9 +26,10 @@ function getOrCreateToggleRoot() {
 
 export function HomeModeToggle() {
   const { isActive, toggle, activeFeature, activePopup, showWelcome } = useHomeMode()
+  const gardenOpen = useGardenOpen()
 
-  // Hide the toggle while inside any feature overlay, photo popup, or welcome scene
-  const hidden = isActive && (activeFeature !== null || activePopup !== null || showWelcome)
+  // Hide the toggle while inside any feature overlay, photo popup, welcome scene, or Secret Garden
+  const hidden = gardenOpen || (isActive && (activeFeature !== null || activePopup !== null || showWelcome))
 
   return createPortal(
     <button
