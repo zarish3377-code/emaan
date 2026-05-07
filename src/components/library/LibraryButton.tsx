@@ -1,6 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LibraryModal from "./LibraryModal";
 import { useHomeMode } from "@/home-mode/useHomeMode";
+
+function useGardenOpen() {
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    const check = () => setOpen(!!document.getElementById('secret-garden-overlay'))
+    check()
+    const observer = new MutationObserver(check)
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [])
+  return open
+}
 
 const LibraryButton = () => {
   const [isOpen, setIsOpen] = useState(false);

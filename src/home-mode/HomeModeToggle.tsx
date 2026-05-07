@@ -1,5 +1,18 @@
 import { createPortal } from 'react-dom'
+import { useState, useEffect } from 'react'
 import { useHomeMode } from './useHomeMode'
+
+function useGardenOpen() {
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    const check = () => setOpen(!!document.getElementById('secret-garden-overlay'))
+    check()
+    const observer = new MutationObserver(check)
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [])
+  return open
+}
 
 function getOrCreateToggleRoot() {
   let el = document.getElementById('hm-toggle-root')

@@ -44,6 +44,7 @@ const SecretGarden = ({ isOpen, onClose }: SecretGardenProps) => {
 
   return (
     <div 
+      id="secret-garden-overlay"
       className="fixed inset-0 z-50 transition-opacity duration-500"
       style={{
         background: skyGradient,
