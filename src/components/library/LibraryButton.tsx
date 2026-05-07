@@ -17,9 +17,10 @@ function useGardenOpen() {
 const LibraryButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { isActive: homeActive } = useHomeMode();
+  const gardenOpen = useGardenOpen();
 
-  // Hide the library button entirely while Home Mode is active
-  const hidden = homeActive;
+  // Hide the library button while Home Mode is active or Secret Garden is open
+  const hidden = homeActive || gardenOpen;
 
   return (
     <>

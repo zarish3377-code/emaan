@@ -26,9 +26,10 @@ function getOrCreateToggleRoot() {
 
 export function HomeModeToggle() {
   const { isActive, toggle, activeFeature, activePopup, showWelcome } = useHomeMode()
+  const gardenOpen = useGardenOpen()
 
-  // Hide the toggle while inside any feature overlay, photo popup, or welcome scene
-  const hidden = isActive && (activeFeature !== null || activePopup !== null || showWelcome)
+  // Hide the toggle while inside any feature overlay, photo popup, welcome scene, or Secret Garden
+  const hidden = gardenOpen || (isActive && (activeFeature !== null || activePopup !== null || showWelcome))
 
   return createPortal(
     <button
