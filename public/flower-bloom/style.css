@@ -1,28 +1,28 @@
-body {
+html, body {
+  margin: 0;
+  padding: 0;
   background: #131b21;
+  height: 100%;
+  overflow: hidden;
 }
 
 .container {
-  width: 50%;
+  width: 70%;
+  max-width: 700px;
   margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 svg#flower-frame {
-  height: 90vh;
+  height: 92vh;
   width: 100%;
+  animation: flower-fade-in 1800ms ease-out both;
 }
 
-#Footer_group_1_,
-[id^=PinkFlowerGroup],
-[id^=BaseGroup] path,
-[id^=LeafGroup] path,
-path[id^=Stroke],
-g[id^=BudGroup] g[id^=BudGroup] g[id^=Bud],
-#Bud8_1_,
-#Bud10_1_,
-#Bud23_1_,
-#Bud26_1_,
-[id^=Dots],
-[id^=Flourish] {
-  visibility: hidden;
+@keyframes flower-fade-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 }
