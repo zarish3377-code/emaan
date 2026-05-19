@@ -6,7 +6,7 @@ import {
 } from "./libraryData";
 import AnnotationPanel from "./AnnotationPanel";
 import FlowerMarker from "./FlowerMarker";
-import { recordReadingStart, heartbeatReading, recordReadingStop } from "./activeReaders";
+import { recordReadingStart, heartbeatReading, recordReadingStop, saveReadingProgress } from "./activeReaders";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 

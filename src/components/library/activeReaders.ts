@@ -61,3 +61,47 @@ export async function fetchActiveReaders(): Promise<ActiveReader[]> {
   if (error) { console.warn('fetchActiveReaders error', error); return []; }
   return (data || []) as ActiveReader[];
 }
+
+// ── Reading history (where each user left off) ─────────────────────
+export interface ReadingHistoryEntry {
+  id: string;
+  user_id: string;
+  user_email: string | null;
+  user_name: string | null;
+  book_title: string;
+  last_page: number;
+  total_pages: number | null;
+  updated_at: string;
+}
+
+export async function saveReadingProgress(bookTitle: string, lastPage: number, totalPages?: number) {
+  const user_id = getLibraryUserId();
+  const user_email = getLibraryUserEmail();
+  const { data: { user } } = await supabase.auth.getUser();
+  const user_name = (user?.user_metadata?.full_name as string | undefined)
+    ?? (user?.user_metadata?.name as string | undefined)
+    ?? user_email
+    ?? 'Anonymous';
+  await supabase
+    .from('library_reading_history')
+    .upsert({
+      user_id,
+      user_email,
+      user_name,
+      book_title: bookTitle,
+      last_page: lastPage,
+      total_pages: totalPages ?? null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,book_title' });
+}
+
+/** Admin-only: latest reading history across all users (most recent first). */
+export async function fetchReadingHistory(limit = 50): Promise<ReadingHistoryEntry[]> {
+  const { data, error } = await supabase
+    .from('library_reading_history')
+    .select('*')
+    .order('updated_at', { ascending: false })
+    .limit(limit);
+  if (error) { console.warn('fetchReadingHistory error', error); return []; }
+  return (data || []) as ReadingHistoryEntry[];
+}
