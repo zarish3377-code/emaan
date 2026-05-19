@@ -21,6 +21,7 @@ import ValentineButton from "@/components/ValentineButton";
 import ValentinePanel from "@/components/ValentinePanel";
 import PasswordGate from "@/components/PasswordGate";
 import LibraryButton from "@/components/library/LibraryButton";
+import { useRegisterPanel } from "@/lib/uiPanelState";
 import backgroundAllway from "@/assets/background_allway.jpg";
 
 const Index = () => {
@@ -33,6 +34,15 @@ const Index = () => {
   const [isCountdownOpen, setIsCountdownOpen] = useState(false);
   const [isValentineOpen, setIsValentineOpen] = useState(false);
   const backgroundAudioRef = useRef<HTMLAudioElement>(null);
+
+  // Register every open panel so floating buttons (Home/Library) can fade
+  useRegisterPanel(isMessagePanelOpen, 'message');
+  useRegisterPanel(isNenoPanelOpen, 'neno');
+  useRegisterPanel(isGardenOpen, 'garden');
+  useRegisterPanel(isNewYearPanelOpen, 'newyear');
+  useRegisterPanel(isCollectionOpen, 'collection');
+  useRegisterPanel(isCountdownOpen, 'countdown');
+  useRegisterPanel(isValentineOpen, 'valentine');
 
   useEffect(() => {
     const handleScroll = () => {

@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { BOOKS, getBookUrl } from "./libraryData";
+import { BOOKS, getBookUrl, isLibraryAdmin } from "./libraryData";
 import BookShelf from "./BookShelf";
 import PdfReader from "./PdfReader";
 import {
   listUserBooks, addUserBook, getUserBookBlobUrl, deleteUserBook,
   UserBookMeta,
 } from "./userBooks";
+import { fetchActiveReaders, ActiveReader } from "./activeReaders";
+import { supabase } from "@/integrations/supabase/client";
 import libraryBg from "/library/background.png";
 
 interface Props {
@@ -20,6 +22,26 @@ const LibraryModal = ({ onClose }: Props) => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const admin = isLibraryAdmin();
+  const [activeReaders, setActiveReaders] = useState<ActiveReader[]>([]);
+
+  // Admin: poll for active readers + subscribe to realtime changes
+  useEffect(() => {
+    if (!admin) return;
+    let mounted = true;
+    const refresh = () => fetchActiveReaders().then(r => { if (mounted) setActiveReaders(r); });
+    refresh();
+    const interval = window.setInterval(refresh, 15000);
+    const channel = supabase
+      .channel('library_active_readers_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'library_active_readers' }, refresh)
+      .subscribe();
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, [admin]);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -168,6 +190,49 @@ const LibraryModal = ({ onClose }: Props) => {
           for my girl who lives in books ✨
         </p>
       </div>
+
+      {admin && (
+        <div style={{
+          position: 'relative',
+          zIndex: 5,
+          maxWidth: 900,
+          margin: '4px auto 0',
+          padding: '10px 14px',
+          background: 'rgba(20,12,5,0.55)',
+          border: '1px solid rgba(201,168,76,0.35)',
+          borderRadius: 10,
+          color: '#f5ead7',
+          fontFamily: "'Cormorant Garamond', serif",
+        }}>
+          <div style={{
+            fontSize: 13,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            opacity: 0.85,
+            marginBottom: 6,
+          }}>
+            👁 Who's reading right now {activeReaders.length > 0 && `(${activeReaders.length})`}
+          </div>
+          {activeReaders.length === 0 ? (
+            <div style={{ fontSize: 13, fontStyle: 'italic', opacity: 0.65 }}>
+              no readers active right now
+            </div>
+          ) : (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {activeReaders.map(r => (
+                <li key={r.id} style={{ fontSize: 14, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <span style={{ fontWeight: 600 }}>
+                    {r.user_name || r.user_email || r.user_id.slice(0, 8)}
+                  </span>
+                  <span style={{ fontStyle: 'italic', opacity: 0.85, textAlign: 'right' }}>
+                    📖 {r.book_title}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {/* Book shelves */}
       <div style={{

@@ -92,6 +92,36 @@ export type Database = {
         }
         Relationships: []
       }
+      library_active_readers: {
+        Row: {
+          book_title: string
+          id: string
+          last_seen_at: string
+          opened_at: string
+          user_email: string | null
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          book_title: string
+          id?: string
+          last_seen_at?: string
+          opened_at?: string
+          user_email?: string | null
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          book_title?: string
+          id?: string
+          last_seen_at?: string
+          opened_at?: string
+          user_email?: string | null
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       message_reactions: {
         Row: {
           created_at: string
