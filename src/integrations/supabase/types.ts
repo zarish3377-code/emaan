@@ -122,6 +122,39 @@ export type Database = {
         }
         Relationships: []
       }
+      library_reading_history: {
+        Row: {
+          book_title: string
+          id: string
+          last_page: number
+          total_pages: number | null
+          updated_at: string
+          user_email: string | null
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          book_title: string
+          id?: string
+          last_page?: number
+          total_pages?: number | null
+          updated_at?: string
+          user_email?: string | null
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          book_title?: string
+          id?: string
+          last_page?: number
+          total_pages?: number | null
+          updated_at?: string
+          user_email?: string | null
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       message_reactions: {
         Row: {
           created_at: string

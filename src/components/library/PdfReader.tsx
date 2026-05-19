@@ -6,7 +6,7 @@ import {
 } from "./libraryData";
 import AnnotationPanel from "./AnnotationPanel";
 import FlowerMarker from "./FlowerMarker";
-import { recordReadingStart, heartbeatReading, recordReadingStop } from "./activeReaders";
+import { recordReadingStart, heartbeatReading, recordReadingStop, saveReadingProgress } from "./activeReaders";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
@@ -107,6 +107,15 @@ const PdfReader = ({ title, url, onBack }: Props) => {
       recordReadingStop();
     };
   }, [title]);
+
+  // Persist reading progress (where the user left off) — debounced
+  useEffect(() => {
+    if (!totalPages) return;
+    const t = window.setTimeout(() => {
+      saveReadingProgress(title, currentPage, totalPages);
+    }, 800);
+    return () => window.clearTimeout(t);
+  }, [title, currentPage, totalPages]);
 
   // Render page
   useEffect(() => {
