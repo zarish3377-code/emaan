@@ -108,6 +108,15 @@ const PdfReader = ({ title, url, onBack }: Props) => {
     };
   }, [title]);
 
+  // Persist reading progress (where the user left off) — debounced
+  useEffect(() => {
+    if (!totalPages) return;
+    const t = window.setTimeout(() => {
+      saveReadingProgress(title, currentPage, totalPages);
+    }, 800);
+    return () => window.clearTimeout(t);
+  }, [title, currentPage, totalPages]);
+
   // Render page
   useEffect(() => {
     if (!pdf || !canvasRef.current) return;
