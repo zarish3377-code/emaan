@@ -191,6 +191,49 @@ const LibraryModal = ({ onClose }: Props) => {
         </p>
       </div>
 
+      {admin && (
+        <div style={{
+          position: 'relative',
+          zIndex: 5,
+          maxWidth: 900,
+          margin: '4px auto 0',
+          padding: '10px 14px',
+          background: 'rgba(20,12,5,0.55)',
+          border: '1px solid rgba(201,168,76,0.35)',
+          borderRadius: 10,
+          color: '#f5ead7',
+          fontFamily: "'Cormorant Garamond', serif",
+        }}>
+          <div style={{
+            fontSize: 13,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            opacity: 0.85,
+            marginBottom: 6,
+          }}>
+            👁 Who's reading right now {activeReaders.length > 0 && `(${activeReaders.length})`}
+          </div>
+          {activeReaders.length === 0 ? (
+            <div style={{ fontSize: 13, fontStyle: 'italic', opacity: 0.65 }}>
+              no readers active right now
+            </div>
+          ) : (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {activeReaders.map(r => (
+                <li key={r.id} style={{ fontSize: 14, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <span style={{ fontWeight: 600 }}>
+                    {r.user_name || r.user_email || r.user_id.slice(0, 8)}
+                  </span>
+                  <span style={{ fontStyle: 'italic', opacity: 0.85, textAlign: 'right' }}>
+                    📖 {r.book_title}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       {/* Book shelves */}
       <div style={{
         position: 'relative',
