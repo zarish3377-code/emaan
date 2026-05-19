@@ -7,7 +7,7 @@ import {
   listUserBooks, addUserBook, getUserBookBlobUrl, deleteUserBook,
   UserBookMeta,
 } from "./userBooks";
-import { fetchActiveReaders, ActiveReader } from "./activeReaders";
+import { fetchActiveReaders, ActiveReader, fetchReadingHistory, ReadingHistoryEntry } from "./activeReaders";
 import { supabase } from "@/integrations/supabase/client";
 import libraryBg from "/library/background.png";
 
