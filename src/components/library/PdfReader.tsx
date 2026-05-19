@@ -6,6 +6,7 @@ import {
 } from "./libraryData";
 import AnnotationPanel from "./AnnotationPanel";
 import FlowerMarker from "./FlowerMarker";
+import { recordReadingStart, heartbeatReading, recordReadingStop } from "./activeReaders";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
@@ -92,6 +93,19 @@ const PdfReader = ({ title, url, onBack }: Props) => {
   useEffect(() => {
     setBookmarks(getBookmarks(title));
     setAnnotations(getAnnotations(title));
+  }, [title]);
+
+  // Track active reading session (admin can see who's reading what)
+  useEffect(() => {
+    recordReadingStart(title);
+    const hb = window.setInterval(() => { heartbeatReading(title); }, 30000);
+    const onUnload = () => { recordReadingStop(); };
+    window.addEventListener('beforeunload', onUnload);
+    return () => {
+      window.clearInterval(hb);
+      window.removeEventListener('beforeunload', onUnload);
+      recordReadingStop();
+    };
   }, [title]);
 
   // Render page
