@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { BOOKS, getBookUrl } from "./libraryData";
+import { BOOKS, getBookUrl, isLibraryAdmin } from "./libraryData";
 import BookShelf from "./BookShelf";
 import PdfReader from "./PdfReader";
 import {
   listUserBooks, addUserBook, getUserBookBlobUrl, deleteUserBook,
   UserBookMeta,
 } from "./userBooks";
+import { fetchActiveReaders, ActiveReader } from "./activeReaders";
+import { supabase } from "@/integrations/supabase/client";
 import libraryBg from "/library/background.png";
 
 interface Props {
@@ -20,6 +22,26 @@ const LibraryModal = ({ onClose }: Props) => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const admin = isLibraryAdmin();
+  const [activeReaders, setActiveReaders] = useState<ActiveReader[]>([]);
+
+  // Admin: poll for active readers + subscribe to realtime changes
+  useEffect(() => {
+    if (!admin) return;
+    let mounted = true;
+    const refresh = () => fetchActiveReaders().then(r => { if (mounted) setActiveReaders(r); });
+    refresh();
+    const interval = window.setInterval(refresh, 15000);
+    const channel = supabase
+      .channel('library_active_readers_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'library_active_readers' }, refresh)
+      .subscribe();
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, [admin]);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
