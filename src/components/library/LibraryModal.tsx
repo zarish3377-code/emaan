@@ -24,22 +24,32 @@ const LibraryModal = ({ onClose }: Props) => {
   const overlayRef = useRef<HTMLDivElement>(null);
   const admin = isLibraryAdmin();
   const [activeReaders, setActiveReaders] = useState<ActiveReader[]>([]);
+  const [history, setHistory] = useState<ReadingHistoryEntry[]>([]);
+  const [adminTab, setAdminTab] = useState<'live' | 'history'>('live');
 
-  // Admin: poll for active readers + subscribe to realtime changes
+  // Admin: poll for active readers + history, subscribe to realtime changes
   useEffect(() => {
     if (!admin) return;
     let mounted = true;
-    const refresh = () => fetchActiveReaders().then(r => { if (mounted) setActiveReaders(r); });
+    const refresh = () => {
+      fetchActiveReaders().then(r => { if (mounted) setActiveReaders(r); });
+      fetchReadingHistory(50).then(h => { if (mounted) setHistory(h); });
+    };
     refresh();
     const interval = window.setInterval(refresh, 15000);
-    const channel = supabase
+    const ch1 = supabase
       .channel('library_active_readers_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'library_active_readers' }, refresh)
+      .subscribe();
+    const ch2 = supabase
+      .channel('library_reading_history_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'library_reading_history' }, refresh)
       .subscribe();
     return () => {
       mounted = false;
       window.clearInterval(interval);
-      supabase.removeChannel(channel);
+      supabase.removeChannel(ch1);
+      supabase.removeChannel(ch2);
     };
   }, [admin]);
 
