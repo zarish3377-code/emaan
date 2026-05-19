@@ -214,32 +214,90 @@ const LibraryModal = ({ onClose }: Props) => {
           color: '#f5ead7',
           fontFamily: "'Cormorant Garamond', serif",
         }}>
-          <div style={{
-            fontSize: 13,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            opacity: 0.85,
-            marginBottom: 6,
-          }}>
-            👁 Who's reading right now {activeReaders.length > 0 && `(${activeReaders.length})`}
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            {([
+              { k: 'live', label: `👁 Live${activeReaders.length ? ` (${activeReaders.length})` : ''}` },
+              { k: 'history', label: `🔖 Where they left off${history.length ? ` (${history.length})` : ''}` },
+            ] as const).map(t => (
+              <button
+                key={t.k}
+                type="button"
+                onClick={() => setAdminTab(t.k)}
+                style={{
+                  background: adminTab === t.k ? 'rgba(201,168,76,0.28)' : 'transparent',
+                  border: '1px solid rgba(201,168,76,0.45)',
+                  borderRadius: 100,
+                  padding: '4px 12px',
+                  color: '#f5ead7',
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: 12,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
-          {activeReaders.length === 0 ? (
-            <div style={{ fontSize: 13, fontStyle: 'italic', opacity: 0.65 }}>
-              no readers active right now
-            </div>
-          ) : (
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {activeReaders.map(r => (
-                <li key={r.id} style={{ fontSize: 14, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                  <span style={{ fontWeight: 600 }}>
-                    {r.user_name || r.user_email || r.user_id.slice(0, 8)}
-                  </span>
-                  <span style={{ fontStyle: 'italic', opacity: 0.85, textAlign: 'right' }}>
-                    📖 {r.book_title}
-                  </span>
-                </li>
-              ))}
-            </ul>
+
+          {adminTab === 'live' && (
+            activeReaders.length === 0 ? (
+              <div style={{ fontSize: 13, fontStyle: 'italic', opacity: 0.65 }}>
+                no readers active right now
+              </div>
+            ) : (
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {activeReaders.map(r => (
+                  <li key={r.id} style={{ fontSize: 14, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                    <span style={{ fontWeight: 600 }}>
+                      {r.user_name || r.user_email || r.user_id.slice(0, 8)}
+                    </span>
+                    <span style={{ fontStyle: 'italic', opacity: 0.85, textAlign: 'right' }}>
+                      📖 {r.book_title}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )
+          )}
+
+          {adminTab === 'history' && (
+            history.length === 0 ? (
+              <div style={{ fontSize: 13, fontStyle: 'italic', opacity: 0.65 }}>
+                no reading history yet
+              </div>
+            ) : (
+              <ul style={{
+                listStyle: 'none', margin: 0, padding: 0,
+                display: 'flex', flexDirection: 'column', gap: 4,
+                maxHeight: 180, overflowY: 'auto',
+              }}>
+                {history.map(h => {
+                  const when = new Date(h.updated_at);
+                  const pct = h.total_pages ? Math.round((h.last_page / h.total_pages) * 100) : null;
+                  return (
+                    <li key={h.id} style={{
+                      fontSize: 14, display: 'flex', justifyContent: 'space-between', gap: 12,
+                      borderBottom: '1px dashed rgba(201,168,76,0.18)', paddingBottom: 3,
+                    }}>
+                      <span style={{ fontWeight: 600, flex: '0 0 auto' }}>
+                        {h.user_name || h.user_email || h.user_id.slice(0, 8)}
+                      </span>
+                      <span style={{ fontStyle: 'italic', opacity: 0.9, textAlign: 'right', flex: 1 }}>
+                        📖 {h.book_title} · p.{h.last_page}
+                        {h.total_pages ? `/${h.total_pages}` : ''}
+                        {pct !== null ? ` (${pct}%)` : ''}
+                        <span style={{ opacity: 0.55, marginLeft: 6, fontSize: 12 }}>
+                          · {when.toLocaleDateString()} {when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )
           )}
         </div>
       )}
