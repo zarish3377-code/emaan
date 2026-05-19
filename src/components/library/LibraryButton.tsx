@@ -1,26 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import LibraryModal from "./LibraryModal";
 import { useHomeMode } from "@/home-mode/useHomeMode";
-
-function useGardenOpen() {
-  const [open, setOpen] = useState(false)
-  useEffect(() => {
-    const check = () => setOpen(!!document.getElementById('secret-garden-overlay'))
-    check()
-    const observer = new MutationObserver(check)
-    observer.observe(document.body, { childList: true, subtree: true })
-    return () => observer.disconnect()
-  }, [])
-  return open
-}
+import { useAnyPanelOpen, useRegisterPanel } from "@/lib/uiPanelState";
 
 const LibraryButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { isActive: homeActive } = useHomeMode();
-  const gardenOpen = useGardenOpen();
+  const anyPanelOpen = useAnyPanelOpen();
+  useRegisterPanel(isOpen, 'library');
 
-  // Hide the library button while Home Mode is active or Secret Garden is open
-  const hidden = homeActive || gardenOpen;
+  // Hide library button while Home Mode is active, library itself is open, or any other panel is open
+  const hidden = homeActive || anyPanelOpen;
 
   return (
     <>
