@@ -97,10 +97,7 @@ export function getLibraryUserEmail(): string | null {
 }
 
 export function isLibraryAdmin(): boolean {
-  if (getLibraryUserEmail() === ADMIN_EMAIL) return true;
-  // Allow admin to view tracking without signing in via a local flag.
-  // Enable in browser console:  localStorage.setItem('library_admin','1')
-  try { return localStorage.getItem('library_admin') === '1'; } catch { return false; }
+  return getLibraryUserEmail() === ADMIN_EMAIL;
 }
 
 // ── Bookmark types ─────────────────────────────────────────────────
