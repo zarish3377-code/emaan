@@ -81,7 +81,7 @@ export async function saveReadingProgress(bookTitle: string, lastPage: number, t
   const user_name = (user?.user_metadata?.full_name as string | undefined)
     ?? (user?.user_metadata?.name as string | undefined)
     ?? user_email
-    ?? 'Anonymous';
+    ?? `Guest · ${user_id.slice(0, 6)}`;
   await supabase
     .from('library_reading_history')
     .upsert({
