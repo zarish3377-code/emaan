@@ -19,7 +19,7 @@ export async function recordReadingStart(bookTitle: string) {
   const user_name = (user?.user_metadata?.full_name as string | undefined)
     ?? (user?.user_metadata?.name as string | undefined)
     ?? user_email
-    ?? 'Anonymous';
+    ?? `Guest · ${user_id.slice(0, 6)}`;
   const now = new Date().toISOString();
   // Upsert by user_id (unique)
   await supabase
